@@ -1,5 +1,8 @@
 # Ɍム-ic [✘] Downloader
 
+![Platform](https://img.shields.io/badge/platform-Termux-green.svg)
+![Status](https://img.shields.io/badge/status-active-success.svg)
+
 Android + Termux üçün hazırlanmış çoxplatformalı media yükləyici.  
 Instagram, TikTok və YouTube kontentini (video + audio, YouTube playlist daxil olmaqla) birbaşa telefonuna endirir.
 
