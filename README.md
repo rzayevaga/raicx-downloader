@@ -25,14 +25,6 @@ Məqsəd: reklamsız, ağır tətbiqlərsiz, sadə bir terminal paneli ilə ist�
     - Tək video (video + audio)
     - Playlist (bütün video və ya bütün audio)
 
-- 🎵 **Audio çıxarma:**
-  - Videolardan MP3 formatında səs çıxarma
-
-- ⚡ **Sürətli konsol interfeysi:**
-  - Rəngli menyular
-  - Animasiya ilə quraşdırma addımları
-  - Sadə və anlaşılan seçim sistemi
-
 - 🔄 **Auto-share dəstəyi:**
   - İstənilən tətbiqdən “Paylaş / Share → Termux” edərək linki birbaşa `rxd` panelinə ötürmə
 
@@ -48,8 +40,7 @@ Məqsəd: reklamsız, ağır tətbiqlərsiz, sadə bir terminal paneli ilə ist�
   İlk quraşdırmada dil soruşulur, sonradan menyudan dəyişmək olur.
 
 - 📁 **Avtomatik təşkil:**
-  - Yüklənən fayllar telefon yaddaşında xüsusi qovluq strukturunda saxlanılır  
-    (istifadəçi üçün əlçatan, lakin README-də dəqiq path göstərilmir)
+  - Yüklənən fayllar telefon yaddaşında xüsusi qovluq strukturunda saxlanılır
 
 ---
 
@@ -75,114 +66,16 @@ Məqsəd: reklamsız, ağır tətbiqlərsiz, sadə bir terminal paneli ilə ist�
    cd raicx-downloader
 
 3. Skripti icra oluna bilən et:
-
-chmod +x rxd.sh
-
+   ```bash
+   chmod +x rxd.sh
 
 4. Quraşdırmanı işə sal:
-
-./rxd.sh
-
-
+   ```bash
+   ./rxd.sh
 
 Quraşdırma bitdikdən sonra sistem rxd əmrini tanıyır və panelə daxil olmaq üçün sadəcə:
 
-rxd
-
-yazmağın kifayətdir.
-
-
----
-
-🖥 İşləmə Prinsipi
-
-1. Əsas menyu
-
-rxd yazdıqda qarşına 3 əsas seçim çıxır:
-
-[1] Manual Yükləmə
-
-[2] Auto Yükləmə (Link yapışdır və ya Share → Termux)
-
-[3] Parametrlər (Dil və s.)
-
-[0] Çıxış
-
-
-
----
-
-2. Manual Yükləmə
-
-Menu → [1] Manual Yükləmə
-
-Buradan:
-
-Instagram
-
-TikTok
-
-YouTube
-
-
-seçirsən.
-
-Hər platformada:
-
-Link daxil edirsən
-
-Video və ya Audio (MP3) seçirsən
-
-YouTube üçün əlavə olaraq:
-
-Tək Video
-
-Playlist
-
-
-
-Seçimdən sonra fayllar avtomatik yüklənir və telefon yaddaşında saxlanılır.
-
-
----
-
-3. Auto Yükləmə
-
-Menu → [2] Auto Yükləmə
-
-İki istifadə forması var:
-
-1. Termux-da birbaşa linki yapışdırırsan:
-
-Skript linkdən platformanı özü tanıyır
-
-Səndən yalnız video / audio seçimi istəyir
-
-
-
-2. Hər hansı tətbiqdən (Instagram, TikTok, YouTube, browser və s.)
-
-Paylaş / Share → Termux seçirsən
-
-Termux avtomatik rxd ilə açılır
-
-Paneldə videonu və ya audionu seçib yükləyirsən
-
-
-
-
-
----
-
-4. Dil Parametri
-
-Menu → [3] Parametrlər → Dil
-
-Mövcud dillərdən birini seçməklə bütün menyu, mesajlar və promtlar həmin dilə keçir.
-
-İlkin quraşdırmada da dil soruşulur və yadda saxlanılır.
-
-
+`rxd` yazmağın kifayətdir.
 
 ---
 
