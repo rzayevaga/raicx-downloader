@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-LM_VERSION="LM-V20.4"
+LM_VERSION="LM-V20.5"
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
@@ -1003,7 +1003,7 @@ lm_download_youtube_single() {
         local output_dir="$LM_DOWNLOAD_BASE/YouTube/Music"
         mkdir -p "$output_dir"
         echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_YT_AUDIO\n"
-        yt-dlp --newline -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 -o "$output_dir/%(title)s.%(ext)s" "$url"
+        yt-dlp --newline -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata -o "$output_dir/%(title)s.%(ext)s" "$url"
     fi
     echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
 }
@@ -1020,7 +1020,7 @@ lm_download_youtube_playlist() {
         local output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Music"
         mkdir -p "$output_dir"
         echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_YTPL_AUDIO\n"
-        yt-dlp --newline --yes-playlist -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 -o "$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s" "$url"
+        yt-dlp --newline --yes-playlist -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata -o "$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s" "$url"
     fi
     echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
 }
