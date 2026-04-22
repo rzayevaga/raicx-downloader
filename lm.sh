@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-LM_VERSION="LM-V21.1"
+LM_VERSION="LM-V20.2"
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
@@ -1351,6 +1351,21 @@ if [ "$installed" != "true" ] || [ "$version" != "$LM_VERSION" ]; then
 fi
 
 if [ $# -eq 0 ]; then
+    lm_check_update
+    check_status=$?
+    if [ $check_status -eq 0 ]; then
+        echo -e "\n\033[0;32m[LM]\033[0m $TXT_UPDATE_AVAILABLE ($remote_version)"
+        echo -ne "\033[0;32m$TXT_UPDATE_PROMPT \033[0m"
+        read up_confirm
+        case "$up_confirm" in
+            h|H|y|Y|e|E|yes|YES|Yes)
+                lm_do_update
+                ;;
+        esac
+    elif [ $check_status -eq 1 ]; then
+        echo -e "\n\033[0;31m[LM]\033[0m Yeniləmə yoxlanarkən xəta baş verdi (internet yoxdur?)"
+        sleep 2
+    fi
     lm_main_menu
 else
     lm_auto_download "$1"
