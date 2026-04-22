@@ -67,15 +67,15 @@ Məqsəd: reklamsız, ağır tətbiqlərsiz, sadə bir terminal paneli ilə ist�
 
 3. Skripti icra oluna bilən et:
    ```bash
-   chmod +x rxd.sh
+   chmod +x lm.sh
 
 4. Quraşdırmanı işə sal:
    ```bash
-   ./rxd.sh
+   ./lm.sh
 
-Quraşdırma bitdikdən sonra sistem rxd əmrini tanıyır və panelə daxil olmaq üçün sadəcə:
+Quraşdırma bitdikdən sonra sistem lm əmrini tanıyır və panelə daxil olmaq üçün sadəcə:
 
-`rxd` yazmağın kifayətdir.
+`lm` yazmağın kifayətdir.
 
 ---
 
