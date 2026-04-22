@@ -1363,7 +1363,7 @@ if [ $# -eq 0 ]; then
                 ;;
         esac
     elif [ $check_status -eq 1 ]; then
-        echo -e "\n\033[0;31m[LM]\033[0m Yeniləmə yoxlanarkən xəta baş verdi (internet yoxdur?)"
+        echo -e "\n\033[0;31m[LM]\033[0m Üzür istəyirik, yeniləmə yoxlanarkən xəta baş verdi (internet yoxdur?)"
         sleep 2
     fi
     lm_main_menu
