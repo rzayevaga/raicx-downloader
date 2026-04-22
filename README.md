@@ -4,7 +4,7 @@ Android + Termux üçün hazırlanmış çoxplatformalı media yükləyici.
 Instagram, TikTok və YouTube kontentini (video + audio, YouTube playlist daxil olmaqla) birbaşa telefonuna endirir.
 
 > Versiya: **X-5.5**  
-> Əsas əmr: **`rxd`**  
+> Əsas əmr: **`lm`**  
 > ![Platform](https://img.shields.io/badge/platform-Termux-green.svg)
 > ![Status](https://img.shields.io/badge/status-active-success.svg)
 ---
