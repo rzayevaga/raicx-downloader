@@ -1,4 +1,3 @@
-```bash
 #!/data/data/com.termux/files/usr/bin/bash
 
 LM_VERSION="LM-V20.1"
