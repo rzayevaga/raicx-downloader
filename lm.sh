@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-LM_VERSION="LM-V20.6"
+LM_VERSION="LM-V20.7"
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
@@ -92,7 +92,6 @@ TXT_OPTIMIZE_DONE=""
 TXT_CACHE_CLEARED=""
 TXT_SYSTEM_INFO=""
 TXT_ALREADY_LATEST=""
-TXT_DISK_SPACE_LOW=""
 
 lm_set_lang_vars() {
     case "$LM_LANG" in
@@ -179,7 +178,6 @@ lm_set_lang_vars() {
             TXT_CACHE_CLEARED="Keş təmizləndi."
             TXT_SYSTEM_INFO="Sistem Məlumatı"
             TXT_ALREADY_LATEST="Ən son versiyadan istifadə edirsiniz."
-            TXT_DISK_SPACE_LOW="Diskdə kifayət qədər yer yoxdur (ən azı 100MB lazımdır). Yükləmə dayandırıldı."
             ;;
         TR)
             TXT_INSTALLER_TITLE="Ɍム-ic LM Yükleyici"
@@ -264,7 +262,6 @@ lm_set_lang_vars() {
             TXT_CACHE_CLEARED="Önbellek temizlendi."
             TXT_SYSTEM_INFO="Sistem Bilgisi"
             TXT_ALREADY_LATEST="En son sürümü kullanıyorsunuz."
-            TXT_DISK_SPACE_LOW="Diskte yeterli alan yok (en az 100MB gerekli). İndirme durduruldu."
             ;;
         EN)
             TXT_INSTALLER_TITLE="Ɍム-ic LM Installer"
@@ -349,7 +346,6 @@ lm_set_lang_vars() {
             TXT_CACHE_CLEARED="Cache cleared."
             TXT_SYSTEM_INFO="System Information"
             TXT_ALREADY_LATEST="You are using the latest version."
-            TXT_DISK_SPACE_LOW="Not enough disk space (at least 100MB required). Download stopped."
             ;;
         RU)
             TXT_INSTALLER_TITLE="Ɍム-ic LM Установщик"
@@ -434,7 +430,6 @@ lm_set_lang_vars() {
             TXT_CACHE_CLEARED="Кэш очищен."
             TXT_SYSTEM_INFO="Информация о системе"
             TXT_ALREADY_LATEST="У вас последняя версия."
-            TXT_DISK_SPACE_LOW="Недостаточно места на диске (нужно не менее 100 МБ). Загрузка остановлена."
             ;;
         AR)
             TXT_INSTALLER_TITLE="Ɍム-ic LM المُثَبِّت"
@@ -519,7 +514,6 @@ lm_set_lang_vars() {
             TXT_CACHE_CLEARED="تم مسح ذاكرة التخزين المؤقت."
             TXT_SYSTEM_INFO="معلومات النظام"
             TXT_ALREADY_LATEST="أنت تستخدم أحدث إصدار."
-            TXT_DISK_SPACE_LOW="مساحة القرص غير كافية (تحتاج 100MB على الأقل). توقف التحميل."
             ;;
         ZH)
             TXT_INSTALLER_TITLE="Ɍム-ic LM 安装程序"
@@ -604,7 +598,6 @@ lm_set_lang_vars() {
             TXT_CACHE_CLEARED="缓存已清除。"
             TXT_SYSTEM_INFO="系统信息"
             TXT_ALREADY_LATEST="您已使用最新版本。"
-            TXT_DISK_SPACE_LOW="磁盘空间不足 (至少需要100MB)。下载已停止。"
             ;;
         JA)
             TXT_INSTALLER_TITLE="Ɍム-ic LM インストーラー"
@@ -689,7 +682,6 @@ lm_set_lang_vars() {
             TXT_CACHE_CLEARED="キャッシュをクリアしました。"
             TXT_SYSTEM_INFO="システム情報"
             TXT_ALREADY_LATEST="最新バージョンを使用しています。"
-            TXT_DISK_SPACE_LOW="ディスク容量が足りません（少なくとも100MB必要です）。ダウンロードを停止しました。"
             ;;
         HI)
             TXT_INSTALLER_TITLE="Ɍム-ic LM इंस्टॉलर"
@@ -774,7 +766,6 @@ lm_set_lang_vars() {
             TXT_CACHE_CLEARED="कैश साफ़ कर दिया गया।"
             TXT_SYSTEM_INFO="सिस्टम जानकारी"
             TXT_ALREADY_LATEST="आप नवीनतम संस्करण का उपयोग कर रहे हैं।"
-            TXT_DISK_SPACE_LOW="डिस्क में पर्याप्त जगह नहीं है (कम से कम 100MB आवश्यक है)। डाउनलोड रोका गया।"
             ;;
         *)
             LM_LANG="AZ"
@@ -917,37 +908,6 @@ lm_do_update() {
     fi
 }
 
-lm_ensure_termux_api() {
-    if ! command -v termux-notification &> /dev/null; then
-        echo -e "\033[0;32m[LM]\033[0m termux-api tapılmadı, avtomatik quraşdırılır..."
-        pkg update -y > /dev/null 2>&1
-        pkg install termux-api -y > /dev/null 2>&1
-    fi
-}
-
-lm_disk_check() {
-    local target_dir="$1"
-    local min_mb="${2:-100}"
-    mkdir -p "$target_dir"
-    local avail
-    avail=$(df -m "$target_dir" 2>/dev/null | awk 'NR==2 {print $4}')
-    if [[ -z "$avail" ]]; then
-        return 0
-    fi
-    if (( avail < min_mb )); then
-        echo -e "\n\033[0;31m[LM]\033[0m $TXT_DISK_SPACE_LOW (cari: ${avail}MB)\n"
-        return 1
-    fi
-    return 0
-}
-
-lm_notify() {
-    local message="$1"
-    if command -v termux-notification &> /dev/null; then
-        termux-notification --title "Ɍム-ic LM" --content "$message" --sound default > /dev/null 2>&1
-    fi
-}
-
 lm_install() {
     mkdir -p "$LM_DIR"
     lm_banner
@@ -967,8 +927,6 @@ lm_install() {
     lm_run_step "$TXT_STEP_UPDATE_GDL" python -m pip install -U gallery-dl
     lm_run_step "$TXT_STEP_CREATE_DIRS" lm_create_folders
     lm_run_step "$TXT_STEP_SETUP_URL_OPENER" lm_setup_url_opener
-
-    lm_ensure_termux_api
 
     lm_choose_language
 
@@ -1002,99 +960,69 @@ lm_detect_platform() {
 lm_download_instagram() {
     local url="$1"
     local type="$2"
-    local output_dir
     if [ "$type" = "video" ]; then
-        output_dir="$LM_DOWNLOAD_BASE/Instagram/Video"
-    else
-        output_dir="$LM_DOWNLOAD_BASE/Instagram/Music"
-    fi
-
-    if ! lm_disk_check "$output_dir"; then
-        return
-    fi
-
-    echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO\n"
-    if [ "$type" = "video" ]; then
+        local output_dir="$LM_DOWNLOAD_BASE/Instagram/Video"
+        mkdir -p "$output_dir"
+        echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO\n"
         yt-dlp --newline -f "best" --merge-output-format mp4 -o "$output_dir/%(title)s.%(ext)s" "$url"
     else
+        local output_dir="$LM_DOWNLOAD_BASE/Instagram/Music"
+        mkdir -p "$output_dir"
+        echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO\n"
         yt-dlp --newline -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 -o "$output_dir/%(title)s.%(ext)s" "$url"
     fi
     echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
-    lm_notify "$TXT_DOWNLOAD_DONE_PREFIX: $(basename "$output_dir")"
 }
 
 lm_download_tiktok() {
     local url="$1"
     local type="$2"
-    local output_dir
     if [ "$type" = "video" ]; then
-        output_dir="$LM_DOWNLOAD_BASE/TikTok/Video"
-    else
-        output_dir="$LM_DOWNLOAD_BASE/TikTok/Music"
-    fi
-
-    if ! lm_disk_check "$output_dir"; then
-        return
-    fi
-
-    echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO\n"
-    if [ "$type" = "video" ]; then
+        local output_dir="$LM_DOWNLOAD_BASE/TikTok/Video"
+        mkdir -p "$output_dir"
+        echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO\n"
         yt-dlp --newline -f "best" --merge-output-format mp4 -o "$output_dir/%(title)s.%(ext)s" "$url"
     else
+        local output_dir="$LM_DOWNLOAD_BASE/TikTok/Music"
+        mkdir -p "$output_dir"
+        echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO\n"
         yt-dlp --newline -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 -o "$output_dir/%(title)s.%(ext)s" "$url"
     fi
     echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
-    lm_notify "$TXT_DOWNLOAD_DONE_PREFIX: $(basename "$output_dir")"
 }
 
 lm_download_youtube_single() {
     local url="$1"
     local type="$2"
-    local output_dir
     if [ "$type" = "video" ]; then
-        output_dir="$LM_DOWNLOAD_BASE/YouTube/Video"
-    else
-        output_dir="$LM_DOWNLOAD_BASE/YouTube/Music"
-    fi
-
-    if ! lm_disk_check "$output_dir"; then
-        return
-    fi
-
-    if [ "$type" = "video" ]; then
+        local output_dir="$LM_DOWNLOAD_BASE/YouTube/Video"
+        mkdir -p "$output_dir"
         echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_YT_VIDEO\n"
         yt-dlp --newline -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --merge-output-format mp4 -o "$output_dir/%(title)s.%(ext)s" "$url"
     else
+        local output_dir="$LM_DOWNLOAD_BASE/YouTube/Music"
+        mkdir -p "$output_dir"
         echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_YT_AUDIO\n"
         yt-dlp --newline -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata -o "$output_dir/%(title)s.%(ext)s" "$url"
     fi
     echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
-    lm_notify "$TXT_DOWNLOAD_DONE_PREFIX: $(basename "$output_dir")"
 }
 
 lm_download_youtube_playlist() {
     local url="$1"
     local type="$2"
-    local output_dir
     if [ "$type" = "video" ]; then
-        output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Video"
-    else
-        output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Music"
-    fi
-
-    if ! lm_disk_check "$output_dir"; then
-        return
-    fi
-
-    if [ "$type" = "video" ]; then
+        local output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Video"
+        mkdir -p "$output_dir"
         echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_YTPL_VIDEO\n"
         yt-dlp --newline --yes-playlist -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --merge-output-format mp4 -o "$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s" "$url"
     else
+        local output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Music"
+        mkdir -p "$output_dir"
         echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_YTPL_AUDIO\n"
         yt-dlp --newline --yes-playlist -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata -o "$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s" "$url"
     fi
     echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
-    lm_notify "$TXT_DOWNLOAD_DONE_PREFIX: $(basename "$output_dir")"
 }
 
 lm_manual_menu() {
@@ -1421,8 +1349,6 @@ lm_set_lang_vars
 if [ "$installed" != "true" ] || [ "$version" != "$LM_VERSION" ]; then
     lm_install
 fi
-
-lm_ensure_termux_api
 
 if [ $# -eq 0 ]; then
     lm_check_update
