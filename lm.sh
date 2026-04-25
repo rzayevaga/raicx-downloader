@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-LM_VERSION="LM-V20.7"
+LM_VERSION="LM-V21.0"
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
@@ -63,10 +63,20 @@ TXT_OPTION_VIDEO_DOWNLOAD=""
 TXT_OPTION_AUDIO_DOWNLOAD=""
 TXT_OPTION_PLAYLIST_VIDEO=""
 TXT_OPTION_PLAYLIST_AUDIO=""
+TXT_OPTION_PHOTO_DOWNLOAD=""
+TXT_SUBMENU_SLIDESHOW_TITLE=""
+TXT_OPTION_DOWNLOAD_ALL_IMAGES=""
+TXT_OPTION_DOWNLOAD_FIRST_IMAGE=""
+TXT_OPTION_DOWNLOAD_LAST_IMAGE=""
+TXT_OPTION_DOWNLOAD_INDEX_IMAGE=""
+TXT_PROMPT_IMAGE_INDEX=""
 TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO=""
 TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO=""
+TXT_DOWNLOAD_STARTED_INSTAGRAM_PHOTO=""
 TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO=""
 TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO=""
+TXT_DOWNLOAD_STARTED_TIKTOK_PHOTO=""
+TXT_DOWNLOAD_STARTED_TIKTOK_SLIDESHOW_ALL=""
 TXT_DOWNLOAD_STARTED_YT_VIDEO=""
 TXT_DOWNLOAD_STARTED_YT_AUDIO=""
 TXT_DOWNLOAD_STARTED_YTPL_VIDEO=""
@@ -149,10 +159,20 @@ lm_set_lang_vars() {
             TXT_OPTION_AUDIO_DOWNLOAD="Musiqi yüklə (MP3)"
             TXT_OPTION_PLAYLIST_VIDEO="Playlist Video yüklə"
             TXT_OPTION_PLAYLIST_AUDIO="Playlist Musiqi yüklə (MP3)"
+            TXT_OPTION_PHOTO_DOWNLOAD="Foto yüklə"
+            TXT_SUBMENU_SLIDESHOW_TITLE="Slayd seçimləri"
+            TXT_OPTION_DOWNLOAD_ALL_IMAGES="Bütün şəkilləri yüklə"
+            TXT_OPTION_DOWNLOAD_FIRST_IMAGE="İlk şəkli yüklə"
+            TXT_OPTION_DOWNLOAD_LAST_IMAGE="Son şəkli yüklə"
+            TXT_OPTION_DOWNLOAD_INDEX_IMAGE="Sıra nömrəsinə görə şəkil yüklə"
+            TXT_PROMPT_IMAGE_INDEX="Şəkil sıra nömrəsini daxil edin"
             TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="Instagram video yükləmə başlayır..."
             TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="Instagram musiqi yükləmə başlayır..."
+            TXT_DOWNLOAD_STARTED_INSTAGRAM_PHOTO="Instagram şəkil yükləmə başlayır..."
             TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="TikTok video yükləmə başlayır..."
             TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="TikTok musiqi yükləmə başlayır..."
+            TXT_DOWNLOAD_STARTED_TIKTOK_PHOTO="TikTok şəkil yükləmə başlayır..."
+            TXT_DOWNLOAD_STARTED_TIKTOK_SLIDESHOW_ALL="Bütün slayd şəkilləri yüklənir..."
             TXT_DOWNLOAD_STARTED_YT_VIDEO="YouTube video yükləmə başlayır..."
             TXT_DOWNLOAD_STARTED_YT_AUDIO="YouTube musiqi (MP3) yükləmə başlayır..."
             TXT_DOWNLOAD_STARTED_YTPL_VIDEO="YouTube Playlist video yükləmə başlayır..."
@@ -233,10 +253,20 @@ lm_set_lang_vars() {
             TXT_OPTION_AUDIO_DOWNLOAD="Müzik indir (MP3)"
             TXT_OPTION_PLAYLIST_VIDEO="Playlist Video indir"
             TXT_OPTION_PLAYLIST_AUDIO="Playlist Müzik indir (MP3)"
+            TXT_OPTION_PHOTO_DOWNLOAD="Fotoğraf indir"
+            TXT_SUBMENU_SLIDESHOW_TITLE="Slayt seçenekleri"
+            TXT_OPTION_DOWNLOAD_ALL_IMAGES="Tüm resimleri indir"
+            TXT_OPTION_DOWNLOAD_FIRST_IMAGE="İlk resmi indir"
+            TXT_OPTION_DOWNLOAD_LAST_IMAGE="Son resmi indir"
+            TXT_OPTION_DOWNLOAD_INDEX_IMAGE="Numaraya göre resim indir"
+            TXT_PROMPT_IMAGE_INDEX="Resim sıra numarasını girin"
             TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="Instagram video indiriliyor..."
             TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="Instagram müzik indiriliyor..."
+            TXT_DOWNLOAD_STARTED_INSTAGRAM_PHOTO="Instagram fotoğraf indiriliyor..."
             TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="TikTok video indiriliyor..."
             TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="TikTok müzik indiriliyor..."
+            TXT_DOWNLOAD_STARTED_TIKTOK_PHOTO="TikTok fotoğraf indiriliyor..."
+            TXT_DOWNLOAD_STARTED_TIKTOK_SLIDESHOW_ALL="Tüm slayt resimleri indiriliyor..."
             TXT_DOWNLOAD_STARTED_YT_VIDEO="YouTube video indiriliyor..."
             TXT_DOWNLOAD_STARTED_YT_AUDIO="YouTube müzik (MP3) indiriliyor..."
             TXT_DOWNLOAD_STARTED_YTPL_VIDEO="YouTube Playlist video indiriliyor..."
@@ -317,10 +347,20 @@ lm_set_lang_vars() {
             TXT_OPTION_AUDIO_DOWNLOAD="Download Audio (MP3)"
             TXT_OPTION_PLAYLIST_VIDEO="Download Playlist Video"
             TXT_OPTION_PLAYLIST_AUDIO="Download Playlist Audio (MP3)"
+            TXT_OPTION_PHOTO_DOWNLOAD="Download Photo"
+            TXT_SUBMENU_SLIDESHOW_TITLE="Slideshow options"
+            TXT_OPTION_DOWNLOAD_ALL_IMAGES="Download all images"
+            TXT_OPTION_DOWNLOAD_FIRST_IMAGE="Download first image"
+            TXT_OPTION_DOWNLOAD_LAST_IMAGE="Download last image"
+            TXT_OPTION_DOWNLOAD_INDEX_IMAGE="Download image by index"
+            TXT_PROMPT_IMAGE_INDEX="Enter image index number"
             TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="Starting Instagram video download..."
             TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="Starting Instagram audio download..."
+            TXT_DOWNLOAD_STARTED_INSTAGRAM_PHOTO="Starting Instagram photo download..."
             TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="Starting TikTok video download..."
             TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="Starting TikTok audio download..."
+            TXT_DOWNLOAD_STARTED_TIKTOK_PHOTO="Starting TikTok photo download..."
+            TXT_DOWNLOAD_STARTED_TIKTOK_SLIDESHOW_ALL="Downloading all slideshow images..."
             TXT_DOWNLOAD_STARTED_YT_VIDEO="Starting YouTube video download..."
             TXT_DOWNLOAD_STARTED_YT_AUDIO="Starting YouTube audio (MP3) download..."
             TXT_DOWNLOAD_STARTED_YTPL_VIDEO="Starting YouTube playlist video download..."
@@ -401,10 +441,20 @@ lm_set_lang_vars() {
             TXT_OPTION_AUDIO_DOWNLOAD="Скачать аудио (MP3)"
             TXT_OPTION_PLAYLIST_VIDEO="Скачать видео плейлиста"
             TXT_OPTION_PLAYLIST_AUDIO="Скачать аудио плейлиста (MP3)"
+            TXT_OPTION_PHOTO_DOWNLOAD="Скачать фото"
+            TXT_SUBMENU_SLIDESHOW_TITLE="Настройки слайд-шоу"
+            TXT_OPTION_DOWNLOAD_ALL_IMAGES="Скачать все изображения"
+            TXT_OPTION_DOWNLOAD_FIRST_IMAGE="Скачать первое изображение"
+            TXT_OPTION_DOWNLOAD_LAST_IMAGE="Скачать последнее изображение"
+            TXT_OPTION_DOWNLOAD_INDEX_IMAGE="Скачать по номеру"
+            TXT_PROMPT_IMAGE_INDEX="Введите номер изображения"
             TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="Начинается загрузка видео Instagram..."
             TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="Начинается загрузка аудио Instagram..."
+            TXT_DOWNLOAD_STARTED_INSTAGRAM_PHOTO="Начинается загрузка фото Instagram..."
             TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="Начинается загрузка видео TikTok..."
             TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="Начинается загрузка аудио TikTok..."
+            TXT_DOWNLOAD_STARTED_TIKTOK_PHOTO="Начинается загрузка фото TikTok..."
+            TXT_DOWNLOAD_STARTED_TIKTOK_SLIDESHOW_ALL="Загрузка всех изображений слайд-шоу..."
             TXT_DOWNLOAD_STARTED_YT_VIDEO="Начинается загрузка видео YouTube..."
             TXT_DOWNLOAD_STARTED_YT_AUDIO="Начинается загрузка аудио YouTube (MP3)..."
             TXT_DOWNLOAD_STARTED_YTPL_VIDEO="Начинается загрузка видео плейлиста YouTube..."
@@ -485,10 +535,20 @@ lm_set_lang_vars() {
             TXT_OPTION_AUDIO_DOWNLOAD="تحميل صوت (MP3)"
             TXT_OPTION_PLAYLIST_VIDEO="تحميل فيديو القائمة"
             TXT_OPTION_PLAYLIST_AUDIO="تحميل صوت القائمة (MP3)"
+            TXT_OPTION_PHOTO_DOWNLOAD="تحميل صورة"
+            TXT_SUBMENU_SLIDESHOW_TITLE="خيارات عرض الشرائح"
+            TXT_OPTION_DOWNLOAD_ALL_IMAGES="تحميل جميع الصور"
+            TXT_OPTION_DOWNLOAD_FIRST_IMAGE="تحميل الصورة الأولى"
+            TXT_OPTION_DOWNLOAD_LAST_IMAGE="تحميل الصورة الأخيرة"
+            TXT_OPTION_DOWNLOAD_INDEX_IMAGE="تحميل حسب الرقم"
+            TXT_PROMPT_IMAGE_INDEX="أدخل رقم الصورة"
             TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="بدء تحميل فيديو Instagram..."
             TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="بدء تحميل صوت Instagram..."
+            TXT_DOWNLOAD_STARTED_INSTAGRAM_PHOTO="بدء تحميل صورة Instagram..."
             TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="بدء تحميل فيديو TikTok..."
             TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="بدء تحميل صوت TikTok..."
+            TXT_DOWNLOAD_STARTED_TIKTOK_PHOTO="بدء تحميل صورة TikTok..."
+            TXT_DOWNLOAD_STARTED_TIKTOK_SLIDESHOW_ALL="جارٍ تحميل جميع صور عرض الشرائح..."
             TXT_DOWNLOAD_STARTED_YT_VIDEO="بدء تحميل فيديو YouTube..."
             TXT_DOWNLOAD_STARTED_YT_AUDIO="بدء تحميل صوت YouTube (MP3)..."
             TXT_DOWNLOAD_STARTED_YTPL_VIDEO="بدء تحميل فيديو قائمة YouTube..."
@@ -569,10 +629,20 @@ lm_set_lang_vars() {
             TXT_OPTION_AUDIO_DOWNLOAD="下载音频 (MP3)"
             TXT_OPTION_PLAYLIST_VIDEO="下载播放列表视频"
             TXT_OPTION_PLAYLIST_AUDIO="下载播放列表音频 (MP3)"
+            TXT_OPTION_PHOTO_DOWNLOAD="下载图片"
+            TXT_SUBMENU_SLIDESHOW_TITLE="幻灯片选项"
+            TXT_OPTION_DOWNLOAD_ALL_IMAGES="下载所有图片"
+            TXT_OPTION_DOWNLOAD_FIRST_IMAGE="下载第一张"
+            TXT_OPTION_DOWNLOAD_LAST_IMAGE="下载最后一张"
+            TXT_OPTION_DOWNLOAD_INDEX_IMAGE="按序号下载"
+            TXT_PROMPT_IMAGE_INDEX="请输入图片序号"
             TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="开始下载 Instagram 视频..."
             TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="开始下载 Instagram 音频..."
+            TXT_DOWNLOAD_STARTED_INSTAGRAM_PHOTO="开始下载 Instagram 图片..."
             TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="开始下载 TikTok 视频..."
             TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="开始下载 TikTok 音频..."
+            TXT_DOWNLOAD_STARTED_TIKTOK_PHOTO="开始下载 TikTok 图片..."
+            TXT_DOWNLOAD_STARTED_TIKTOK_SLIDESHOW_ALL="正在下载幻灯片所有图片..."
             TXT_DOWNLOAD_STARTED_YT_VIDEO="开始下载 YouTube 视频..."
             TXT_DOWNLOAD_STARTED_YT_AUDIO="开始下载 YouTube 音频 (MP3)..."
             TXT_DOWNLOAD_STARTED_YTPL_VIDEO="开始下载 YouTube 播放列表视频..."
@@ -653,10 +723,20 @@ lm_set_lang_vars() {
             TXT_OPTION_AUDIO_DOWNLOAD="音声をダウンロード (MP3)"
             TXT_OPTION_PLAYLIST_VIDEO="プレイリスト動画をダウンロード"
             TXT_OPTION_PLAYLIST_AUDIO="プレイリスト音声をダウンロード (MP3)"
+            TXT_OPTION_PHOTO_DOWNLOAD="画像をダウンロード"
+            TXT_SUBMENU_SLIDESHOW_TITLE="スライドショーオプション"
+            TXT_OPTION_DOWNLOAD_ALL_IMAGES="すべての画像をダウンロード"
+            TXT_OPTION_DOWNLOAD_FIRST_IMAGE="最初の画像をダウンロード"
+            TXT_OPTION_DOWNLOAD_LAST_IMAGE="最後の画像をダウンロード"
+            TXT_OPTION_DOWNLOAD_INDEX_IMAGE="番号で画像をダウンロード"
+            TXT_PROMPT_IMAGE_INDEX="画像番号を入力"
             TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="Instagram 動画のダウンロードを開始..."
             TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="Instagram 音声のダウンロードを開始..."
+            TXT_DOWNLOAD_STARTED_INSTAGRAM_PHOTO="Instagram 画像のダウンロードを開始..."
             TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="TikTok 動画のダウンロードを開始..."
             TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="TikTok 音声のダウンロードを開始..."
+            TXT_DOWNLOAD_STARTED_TIKTOK_PHOTO="TikTok 画像のダウンロードを開始..."
+            TXT_DOWNLOAD_STARTED_TIKTOK_SLIDESHOW_ALL="スライドショーの全画像をダウンロード中..."
             TXT_DOWNLOAD_STARTED_YT_VIDEO="YouTube 動画のダウンロードを開始..."
             TXT_DOWNLOAD_STARTED_YT_AUDIO="YouTube 音声 (MP3) のダウンロードを開始..."
             TXT_DOWNLOAD_STARTED_YTPL_VIDEO="YouTube プレイリスト動画のダウンロードを開始..."
@@ -737,10 +817,20 @@ lm_set_lang_vars() {
             TXT_OPTION_AUDIO_DOWNLOAD="संगीत डाउनलोड (MP3)"
             TXT_OPTION_PLAYLIST_VIDEO="प्लेलिस्ट वीडियो डाउनलोड"
             TXT_OPTION_PLAYLIST_AUDIO="प्लेलिस्ट संगीत डाउनलोड (MP3)"
+            TXT_OPTION_PHOTO_DOWNLOAD="फोटो डाउनलोड करें"
+            TXT_SUBMENU_SLIDESHOW_TITLE="स्लाइड शो विकल्प"
+            TXT_OPTION_DOWNLOAD_ALL_IMAGES="सभी छवियाँ डाउनलोड करें"
+            TXT_OPTION_DOWNLOAD_FIRST_IMAGE="पहली छवि डाउनलोड करें"
+            TXT_OPTION_DOWNLOAD_LAST_IMAGE="अंतिम छवि डाउनलोड करें"
+            TXT_OPTION_DOWNLOAD_INDEX_IMAGE="क्रमांक से छवि डाउनलोड करें"
+            TXT_PROMPT_IMAGE_INDEX="छवि क्रमांक दर्ज करें"
             TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="Instagram वीडियो डाउनलोड शुरू..."
             TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="Instagram संगीत डाउनलोड शुरू..."
+            TXT_DOWNLOAD_STARTED_INSTAGRAM_PHOTO="Instagram फोटो डाउनलोड शुरू..."
             TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="TikTok वीडियो डाउनलोड शुरू..."
             TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="TikTok संगीत डाउनलोड शुरू..."
+            TXT_DOWNLOAD_STARTED_TIKTOK_PHOTO="TikTok फोटो डाउनलोड शुरू..."
+            TXT_DOWNLOAD_STARTED_TIKTOK_SLIDESHOW_ALL="सभी स्लाइड शो छवियाँ डाउनलोड हो रही हैं..."
             TXT_DOWNLOAD_STARTED_YT_VIDEO="YouTube वीडियो डाउनलोड शुरू..."
             TXT_DOWNLOAD_STARTED_YT_AUDIO="YouTube संगीत (MP3) डाउनलोड शुरू..."
             TXT_DOWNLOAD_STARTED_YTPL_VIDEO="YouTube प्लेलिस्ट वीडियो डाउनलोड शुरू..."
@@ -833,8 +923,10 @@ EOF
 lm_create_folders() {
     mkdir -p "$LM_DOWNLOAD_BASE/Instagram/Video"
     mkdir -p "$LM_DOWNLOAD_BASE/Instagram/Music"
+    mkdir -p "$LM_DOWNLOAD_BASE/Instagram/Photo"
     mkdir -p "$LM_DOWNLOAD_BASE/TikTok/Video"
     mkdir -p "$LM_DOWNLOAD_BASE/TikTok/Music"
+    mkdir -p "$LM_DOWNLOAD_BASE/TikTok/Photo"
     mkdir -p "$LM_DOWNLOAD_BASE/YouTube/Video"
     mkdir -p "$LM_DOWNLOAD_BASE/YouTube/Music"
     mkdir -p "$LM_DOWNLOAD_BASE/YouTube/Playlist/Video"
@@ -896,9 +988,15 @@ lm_check_update() {
 
 lm_do_update() {
     echo -e "\n\033[0;32m[LM]\033[0m $TXT_UPDATING"
+    local remote_version
+    remote_version=$(curl -s "$LM_REPO_RAW" | grep "^LM_VERSION=" | head -1 | cut -d'"' -f2)
     if curl -s "$LM_REPO_RAW" -o "$LM_BIN.tmp"; then
         chmod +x "$LM_BIN.tmp"
         mv "$LM_BIN.tmp" "$LM_BIN"
+        # update version in config to avoid reinstall loop
+        if [ -n "$remote_version" ]; then
+            sed -i "s/^version=.*/version=$remote_version/" "$LM_CONFIG"
+        fi
         echo -e "\033[0;32m[LM]\033[0m $TXT_UPDATE_SUCCESS"
         exit 0
     else
@@ -960,34 +1058,110 @@ lm_detect_platform() {
 lm_download_instagram() {
     local url="$1"
     local type="$2"
-    if [ "$type" = "video" ]; then
-        local output_dir="$LM_DOWNLOAD_BASE/Instagram/Video"
-        mkdir -p "$output_dir"
-        echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO\n"
-        yt-dlp --newline -f "best" --merge-output-format mp4 -o "$output_dir/%(title)s.%(ext)s" "$url"
-    else
-        local output_dir="$LM_DOWNLOAD_BASE/Instagram/Music"
-        mkdir -p "$output_dir"
-        echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO\n"
-        yt-dlp --newline -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 -o "$output_dir/%(title)s.%(ext)s" "$url"
-    fi
+    case "$type" in
+        video)
+            local output_dir="$LM_DOWNLOAD_BASE/Instagram/Video"
+            mkdir -p "$output_dir"
+            echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO\n"
+            yt-dlp --newline -f "best" --merge-output-format mp4 -o "$output_dir/%(title)s.%(ext)s" "$url"
+            ;;
+        audio)
+            local output_dir="$LM_DOWNLOAD_BASE/Instagram/Music"
+            mkdir -p "$output_dir"
+            echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO\n"
+            yt-dlp --newline -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 -o "$output_dir/%(title)s.%(ext)s" "$url"
+            ;;
+        photo)
+            local output_dir="$LM_DOWNLOAD_BASE/Instagram/Photo"
+            mkdir -p "$output_dir"
+            echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_INSTAGRAM_PHOTO\n"
+            gallery-dl -d "$output_dir" --no-download-archive "$url" 2>/dev/null || yt-dlp --newline -f "bestimage" -o "$output_dir/%(title)s.%(ext)s" "$url"
+            ;;
+    esac
     echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
+}
+
+lm_download_tiktok_photo() {
+    local url="$1"
+    local output_dir="$LM_DOWNLOAD_BASE/TikTok/Photo"
+    mkdir -p "$output_dir"
+    # Detect slideshow
+    local image_count
+    image_count=$(yt-dlp --dump-json "$url" 2>/dev/null | python -c "import json,sys; data=json.load(sys.stdin); print(len(data.get('multi_image',[])))" 2>/dev/null)
+    if [ -n "$image_count" ] && [ "$image_count" -gt 1 ]; then
+        lm_download_tiktok_slideshow "$url" "$image_count"
+    else
+        echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_TIKTOK_PHOTO\n"
+        gallery-dl -d "$output_dir" --no-download-archive --range "1" "$url" 2>/dev/null || yt-dlp --newline -f "bestimage" -o "$output_dir/%(title)s.%(ext)s" "$url"
+        echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
+    fi
+}
+
+lm_download_tiktok_slideshow() {
+    local url="$1"
+    local count="$2"
+    local output_dir="$LM_DOWNLOAD_BASE/TikTok/Photo"
+    mkdir -p "$output_dir"
+    while true; do
+        echo -e "\n\033[0;36m$TXT_SUBMENU_SLIDESHOW_TITLE ($count şəkil)\033[0m"
+        echo -e "\033[38;5;208m[1]\033[0m $TXT_OPTION_DOWNLOAD_ALL_IMAGES"
+        echo -e "\033[38;5;208m[2]\033[0m $TXT_OPTION_DOWNLOAD_FIRST_IMAGE"
+        echo -e "\033[38;5;208m[3]\033[0m $TXT_OPTION_DOWNLOAD_LAST_IMAGE"
+        echo -e "\033[38;5;208m[4]\033[0m $TXT_OPTION_DOWNLOAD_INDEX_IMAGE"
+        echo -e "\033[0;31m[0]\033[0m $TXT_MENU_OPTION_BACK\n"
+        echo -ne "\033[0;32m$TXT_PROMPT_CHOICE:\033[0m "
+        read slide_choice
+        case "$slide_choice" in
+            1)
+                echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_TIKTOK_SLIDESHOW_ALL\n"
+                gallery-dl -d "$output_dir" --no-download-archive "$url"
+                echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
+                ;;
+            2)
+                echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_OPTION_DOWNLOAD_FIRST_IMAGE\n"
+                gallery-dl -d "$output_dir" --no-download-archive --range "1" "$url"
+                echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
+                ;;
+            3)
+                echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_OPTION_DOWNLOAD_LAST_IMAGE\n"
+                gallery-dl -d "$output_dir" --no-download-archive --range "$count" "$url"
+                echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
+                ;;
+            4)
+                echo -ne "\n\033[0;36m$TXT_PROMPT_IMAGE_INDEX (1-$count):\033[0m "
+                read idx
+                gallery-dl -d "$output_dir" --no-download-archive --range "$idx" "$url"
+                echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
+                ;;
+            0) break ;;
+            *) echo -e "\033[0;31m[LM]\033[0m $TXT_ERROR_INVALID_CHOICE" ;;
+        esac
+        echo -e "\n\033[0;36m$TXT_PROMPT_CONTINUE...\033[0m"
+        read
+    done
 }
 
 lm_download_tiktok() {
     local url="$1"
     local type="$2"
-    if [ "$type" = "video" ]; then
-        local output_dir="$LM_DOWNLOAD_BASE/TikTok/Video"
-        mkdir -p "$output_dir"
-        echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO\n"
-        yt-dlp --newline -f "best" --merge-output-format mp4 -o "$output_dir/%(title)s.%(ext)s" "$url"
-    else
-        local output_dir="$LM_DOWNLOAD_BASE/TikTok/Music"
-        mkdir -p "$output_dir"
-        echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO\n"
-        yt-dlp --newline -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 -o "$output_dir/%(title)s.%(ext)s" "$url"
-    fi
+    case "$type" in
+        video)
+            local output_dir="$LM_DOWNLOAD_BASE/TikTok/Video"
+            mkdir -p "$output_dir"
+            echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO\n"
+            yt-dlp --newline -f "best" --merge-output-format mp4 -o "$output_dir/%(title)s.%(ext)s" "$url"
+            ;;
+        audio)
+            local output_dir="$LM_DOWNLOAD_BASE/TikTok/Music"
+            mkdir -p "$output_dir"
+            echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO\n"
+            yt-dlp --newline -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 -o "$output_dir/%(title)s.%(ext)s" "$url"
+            ;;
+        photo)
+            lm_download_tiktok_photo "$url"
+            return
+            ;;
+    esac
     echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
 }
 
@@ -1043,12 +1217,14 @@ lm_manual_menu() {
                 echo -ne "\n\033[0;36m$TXT_PROMPT_INSTAGRAM_LINK:\033[0m "
                 read ig_url
                 echo -e "\n\033[38;5;208m[1]\033[0m $TXT_OPTION_VIDEO_DOWNLOAD"
-                echo -e "\033[38;5;208m[2]\033[0m $TXT_OPTION_AUDIO_DOWNLOAD\n"
+                echo -e "\033[38;5;208m[2]\033[0m $TXT_OPTION_AUDIO_DOWNLOAD"
+                echo -e "\033[38;5;208m[3]\033[0m $TXT_OPTION_PHOTO_DOWNLOAD\n"
                 echo -ne "\033[0;32m$TXT_PROMPT_CHOICE:\033[0m "
                 read ig_type
                 case $ig_type in
                     1) lm_download_instagram "$ig_url" "video" ;;
                     2) lm_download_instagram "$ig_url" "audio" ;;
+                    3) lm_download_instagram "$ig_url" "photo" ;;
                     *) echo -e "\033[0;31m[LM]\033[0m $TXT_ERROR_INVALID_CHOICE" ;;
                 esac
                 echo -e "\n\033[0;36m$TXT_PROMPT_CONTINUE...\033[0m"
@@ -1058,12 +1234,14 @@ lm_manual_menu() {
                 echo -ne "\n\033[0;36m$TXT_PROMPT_TIKTOK_LINK:\033[0m "
                 read tt_url
                 echo -e "\n\033[38;5;208m[1]\033[0m $TXT_OPTION_VIDEO_DOWNLOAD"
-                echo -e "\033[38;5;208m[2]\033[0m $TXT_OPTION_AUDIO_DOWNLOAD\n"
+                echo -e "\033[38;5;208m[2]\033[0m $TXT_OPTION_PHOTO_DOWNLOAD"
+                echo -e "\033[38;5;208m[3]\033[0m $TXT_OPTION_AUDIO_DOWNLOAD\n"
                 echo -ne "\033[0;32m$TXT_PROMPT_CHOICE:\033[0m "
                 read tt_type
                 case $tt_type in
                     1) lm_download_tiktok "$tt_url" "video" ;;
-                    2) lm_download_tiktok "$tt_url" "audio" ;;
+                    2) lm_download_tiktok "$tt_url" "photo" ;;
+                    3) lm_download_tiktok "$tt_url" "audio" ;;
                     *) echo -e "\033[0;31m[LM]\033[0m $TXT_ERROR_INVALID_CHOICE" ;;
                 esac
                 echo -e "\n\033[0;36m$TXT_PROMPT_CONTINUE...\033[0m"
@@ -1144,24 +1322,28 @@ lm_auto_download() {
         instagram)
             echo -e "\033[0;32m[LM]\033[0m $TXT_AUTO_PLATFORM_INSTAGRAM\n"
             echo -e "\033[38;5;208m[1]\033[0m $TXT_OPTION_VIDEO_DOWNLOAD"
-            echo -e "\033[38;5;208m[2]\033[0m $TXT_OPTION_AUDIO_DOWNLOAD\n"
+            echo -e "\033[38;5;208m[2]\033[0m $TXT_OPTION_AUDIO_DOWNLOAD"
+            echo -e "\033[38;5;208m[3]\033[0m $TXT_OPTION_PHOTO_DOWNLOAD\n"
             echo -ne "\033[0;32m$TXT_PROMPT_CHOICE:\033[0m "
             read choice
             case $choice in
                 1) lm_download_instagram "$url" "video" ;;
                 2) lm_download_instagram "$url" "audio" ;;
+                3) lm_download_instagram "$url" "photo" ;;
                 *) echo -e "\033[0;31m[LM]\033[0m $TXT_ERROR_INVALID_CHOICE" ;;
             esac
             ;;
         tiktok)
             echo -e "\033[0;32m[LM]\033[0m $TXT_AUTO_PLATFORM_TIKTOK\n"
             echo -e "\033[38;5;208m[1]\033[0m $TXT_OPTION_VIDEO_DOWNLOAD"
-            echo -e "\033[38;5;208m[2]\033[0m $TXT_OPTION_AUDIO_DOWNLOAD\n"
+            echo -e "\033[38;5;208m[2]\033[0m $TXT_OPTION_PHOTO_DOWNLOAD"
+            echo -e "\033[38;5;208m[3]\033[0m $TXT_OPTION_AUDIO_DOWNLOAD\n"
             echo -ne "\033[0;32m$TXT_PROMPT_CHOICE:\033[0m "
             read choice
             case $choice in
                 1) lm_download_tiktok "$url" "video" ;;
-                2) lm_download_tiktok "$url" "audio" ;;
+                2) lm_download_tiktok "$url" "photo" ;;
+                3) lm_download_tiktok "$url" "audio" ;;
                 *) echo -e "\033[0;31m[LM]\033[0m $TXT_ERROR_INVALID_CHOICE" ;;
             esac
             ;;
