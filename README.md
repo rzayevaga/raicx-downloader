@@ -64,15 +64,15 @@ Məqsəd: reklamsız, ağır tətbiqlərsiz, sadə bir terminal paneli ilə ist�
    ```bash
    git clone https://github.com/rzayevaga/raicx-downloader.git
    cd raicx-downloader
-
+   ```
 3. Skripti icra oluna bilən et:
    ```bash
    chmod +x lm.sh
-
+   ```
 4. Quraşdırmanı işə sal:
    ```bash
    ./lm.sh
-
+   ```
 Quraşdırma bitdikdən sonra sistem lm əmrini tanıyır və panelə daxil olmaq üçün sadəcə:
 
 `lm` yazmağın kifayətdir.
