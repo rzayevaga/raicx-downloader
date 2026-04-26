@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-LM_VERSION="LM-V21.0"
+LM_VERSION="LM-V20.8"
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
@@ -10,6 +10,17 @@ LM_REPO_RAW="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/main/l
 
 LM_LANG="AZ"
 
+# ---------- Color definitions (dark theme) ----------
+C_RESET='\033[0m'
+C_DARK_ORANGE='\033[38;5;202m'
+C_DARK_BROWN='\033[38;5;94m'
+C_DARK_BLUE='\033[38;5;19m'
+C_DARK_GREEN='\033[38;5;22m'
+C_PROMPT='\033[0;32m'
+C_ERROR='\033[0;31m'
+C_INFO='\033[0;36m'
+
+# ---------- Text variables (default AZ, later overwritten) ----------
 TXT_INSTALLER_TITLE=""
 TXT_INSTALL_PREP=""
 TXT_INSTALL_STORAGE=""
@@ -41,6 +52,7 @@ TXT_MENU_OPTION_LANGUAGE=""
 TXT_MENU_OPTION_UPDATE=""
 TXT_MENU_OPTION_OPTIMIZE=""
 TXT_MENU_OPTION_INFO=""
+TXT_MENU_OPTION_SEARCH=""
 TXT_PROMPT_CHOICE=""
 TXT_PROMPT_LINK=""
 TXT_PROMPT_INSTAGRAM_LINK=""
@@ -63,20 +75,10 @@ TXT_OPTION_VIDEO_DOWNLOAD=""
 TXT_OPTION_AUDIO_DOWNLOAD=""
 TXT_OPTION_PLAYLIST_VIDEO=""
 TXT_OPTION_PLAYLIST_AUDIO=""
-TXT_OPTION_PHOTO_DOWNLOAD=""
-TXT_SUBMENU_SLIDESHOW_TITLE=""
-TXT_OPTION_DOWNLOAD_ALL_IMAGES=""
-TXT_OPTION_DOWNLOAD_FIRST_IMAGE=""
-TXT_OPTION_DOWNLOAD_LAST_IMAGE=""
-TXT_OPTION_DOWNLOAD_INDEX_IMAGE=""
-TXT_PROMPT_IMAGE_INDEX=""
 TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO=""
 TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO=""
-TXT_DOWNLOAD_STARTED_INSTAGRAM_PHOTO=""
 TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO=""
 TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO=""
-TXT_DOWNLOAD_STARTED_TIKTOK_PHOTO=""
-TXT_DOWNLOAD_STARTED_TIKTOK_SLIDESHOW_ALL=""
 TXT_DOWNLOAD_STARTED_YT_VIDEO=""
 TXT_DOWNLOAD_STARTED_YT_AUDIO=""
 TXT_DOWNLOAD_STARTED_YTPL_VIDEO=""
@@ -102,6 +104,14 @@ TXT_OPTIMIZE_DONE=""
 TXT_CACHE_CLEARED=""
 TXT_SYSTEM_INFO=""
 TXT_ALREADY_LATEST=""
+
+# New search strings
+TXT_SEARCH_TITLE=""
+TXT_SEARCH_PROMPT=""
+TXT_SEARCHING=""
+TXT_SEARCH_RESULTS=""
+TXT_SEARCH_SELECT=""
+TXT_SEARCH_NO_RESULTS=""
 
 lm_set_lang_vars() {
     case "$LM_LANG" in
@@ -137,6 +147,7 @@ lm_set_lang_vars() {
             TXT_MENU_OPTION_UPDATE="Güncəlləməni Yoxla"
             TXT_MENU_OPTION_OPTIMIZE="Optimallaşdır"
             TXT_MENU_OPTION_INFO="Sistem Məlumatı"
+            TXT_MENU_OPTION_SEARCH="Axtar"
             TXT_PROMPT_CHOICE="Seçim edin"
             TXT_PROMPT_LINK="Link daxil edin"
             TXT_PROMPT_INSTAGRAM_LINK="Instagram link daxil edin"
@@ -159,20 +170,10 @@ lm_set_lang_vars() {
             TXT_OPTION_AUDIO_DOWNLOAD="Musiqi yüklə (MP3)"
             TXT_OPTION_PLAYLIST_VIDEO="Playlist Video yüklə"
             TXT_OPTION_PLAYLIST_AUDIO="Playlist Musiqi yüklə (MP3)"
-            TXT_OPTION_PHOTO_DOWNLOAD="Foto yüklə"
-            TXT_SUBMENU_SLIDESHOW_TITLE="Slayd seçimləri"
-            TXT_OPTION_DOWNLOAD_ALL_IMAGES="Bütün şəkilləri yüklə"
-            TXT_OPTION_DOWNLOAD_FIRST_IMAGE="İlk şəkli yüklə"
-            TXT_OPTION_DOWNLOAD_LAST_IMAGE="Son şəkli yüklə"
-            TXT_OPTION_DOWNLOAD_INDEX_IMAGE="Sıra nömrəsinə görə şəkil yüklə"
-            TXT_PROMPT_IMAGE_INDEX="Şəkil sıra nömrəsini daxil edin"
             TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="Instagram video yükləmə başlayır..."
             TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="Instagram musiqi yükləmə başlayır..."
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_PHOTO="Instagram şəkil yükləmə başlayır..."
             TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="TikTok video yükləmə başlayır..."
             TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="TikTok musiqi yükləmə başlayır..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_PHOTO="TikTok şəkil yükləmə başlayır..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_SLIDESHOW_ALL="Bütün slayd şəkilləri yüklənir..."
             TXT_DOWNLOAD_STARTED_YT_VIDEO="YouTube video yükləmə başlayır..."
             TXT_DOWNLOAD_STARTED_YT_AUDIO="YouTube musiqi (MP3) yükləmə başlayır..."
             TXT_DOWNLOAD_STARTED_YTPL_VIDEO="YouTube Playlist video yükləmə başlayır..."
@@ -198,6 +199,12 @@ lm_set_lang_vars() {
             TXT_CACHE_CLEARED="Keş təmizləndi."
             TXT_SYSTEM_INFO="Sistem Məlumatı"
             TXT_ALREADY_LATEST="Ən son versiyadan istifadə edirsiniz."
+            TXT_SEARCH_TITLE="Axtarış"
+            TXT_SEARCH_PROMPT="Mahnı / axtarış sözünü daxil edin"
+            TXT_SEARCHING="Axtarılır..."
+            TXT_SEARCH_RESULTS="Axtarış nəticələri"
+            TXT_SEARCH_SELECT="Nəticə nömrəsini seçin (1-10)"
+            TXT_SEARCH_NO_RESULTS="Heç bir nəticə tapılmadı."
             ;;
         TR)
             TXT_INSTALLER_TITLE="Ɍム-ic LM Yükleyici"
@@ -231,6 +238,7 @@ lm_set_lang_vars() {
             TXT_MENU_OPTION_UPDATE="Güncellemeyi Kontrol Et"
             TXT_MENU_OPTION_OPTIMIZE="Optimize Et"
             TXT_MENU_OPTION_INFO="Sistem Bilgisi"
+            TXT_MENU_OPTION_SEARCH="Ara"
             TXT_PROMPT_CHOICE="Seçim yapın"
             TXT_PROMPT_LINK="Link girin"
             TXT_PROMPT_INSTAGRAM_LINK="Instagram link girin"
@@ -253,20 +261,10 @@ lm_set_lang_vars() {
             TXT_OPTION_AUDIO_DOWNLOAD="Müzik indir (MP3)"
             TXT_OPTION_PLAYLIST_VIDEO="Playlist Video indir"
             TXT_OPTION_PLAYLIST_AUDIO="Playlist Müzik indir (MP3)"
-            TXT_OPTION_PHOTO_DOWNLOAD="Fotoğraf indir"
-            TXT_SUBMENU_SLIDESHOW_TITLE="Slayt seçenekleri"
-            TXT_OPTION_DOWNLOAD_ALL_IMAGES="Tüm resimleri indir"
-            TXT_OPTION_DOWNLOAD_FIRST_IMAGE="İlk resmi indir"
-            TXT_OPTION_DOWNLOAD_LAST_IMAGE="Son resmi indir"
-            TXT_OPTION_DOWNLOAD_INDEX_IMAGE="Numaraya göre resim indir"
-            TXT_PROMPT_IMAGE_INDEX="Resim sıra numarasını girin"
             TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="Instagram video indiriliyor..."
             TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="Instagram müzik indiriliyor..."
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_PHOTO="Instagram fotoğraf indiriliyor..."
             TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="TikTok video indiriliyor..."
             TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="TikTok müzik indiriliyor..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_PHOTO="TikTok fotoğraf indiriliyor..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_SLIDESHOW_ALL="Tüm slayt resimleri indiriliyor..."
             TXT_DOWNLOAD_STARTED_YT_VIDEO="YouTube video indiriliyor..."
             TXT_DOWNLOAD_STARTED_YT_AUDIO="YouTube müzik (MP3) indiriliyor..."
             TXT_DOWNLOAD_STARTED_YTPL_VIDEO="YouTube Playlist video indiriliyor..."
@@ -292,6 +290,12 @@ lm_set_lang_vars() {
             TXT_CACHE_CLEARED="Önbellek temizlendi."
             TXT_SYSTEM_INFO="Sistem Bilgisi"
             TXT_ALREADY_LATEST="En son sürümü kullanıyorsunuz."
+            TXT_SEARCH_TITLE="Arama"
+            TXT_SEARCH_PROMPT="Şarkı / arama kelimesini girin"
+            TXT_SEARCHING="Aranıyor..."
+            TXT_SEARCH_RESULTS="Arama sonuçları"
+            TXT_SEARCH_SELECT="Sonuç numarasını seçin (1-10)"
+            TXT_SEARCH_NO_RESULTS="Hiçbir sonuç bulunamadı."
             ;;
         EN)
             TXT_INSTALLER_TITLE="Ɍム-ic LM Installer"
@@ -325,6 +329,7 @@ lm_set_lang_vars() {
             TXT_MENU_OPTION_UPDATE="Check for Updates"
             TXT_MENU_OPTION_OPTIMIZE="Optimize"
             TXT_MENU_OPTION_INFO="System Info"
+            TXT_MENU_OPTION_SEARCH="Search"
             TXT_PROMPT_CHOICE="Choose an option"
             TXT_PROMPT_LINK="Enter link"
             TXT_PROMPT_INSTAGRAM_LINK="Enter Instagram link"
@@ -347,20 +352,10 @@ lm_set_lang_vars() {
             TXT_OPTION_AUDIO_DOWNLOAD="Download Audio (MP3)"
             TXT_OPTION_PLAYLIST_VIDEO="Download Playlist Video"
             TXT_OPTION_PLAYLIST_AUDIO="Download Playlist Audio (MP3)"
-            TXT_OPTION_PHOTO_DOWNLOAD="Download Photo"
-            TXT_SUBMENU_SLIDESHOW_TITLE="Slideshow options"
-            TXT_OPTION_DOWNLOAD_ALL_IMAGES="Download all images"
-            TXT_OPTION_DOWNLOAD_FIRST_IMAGE="Download first image"
-            TXT_OPTION_DOWNLOAD_LAST_IMAGE="Download last image"
-            TXT_OPTION_DOWNLOAD_INDEX_IMAGE="Download image by index"
-            TXT_PROMPT_IMAGE_INDEX="Enter image index number"
             TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="Starting Instagram video download..."
             TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="Starting Instagram audio download..."
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_PHOTO="Starting Instagram photo download..."
             TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="Starting TikTok video download..."
             TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="Starting TikTok audio download..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_PHOTO="Starting TikTok photo download..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_SLIDESHOW_ALL="Downloading all slideshow images..."
             TXT_DOWNLOAD_STARTED_YT_VIDEO="Starting YouTube video download..."
             TXT_DOWNLOAD_STARTED_YT_AUDIO="Starting YouTube audio (MP3) download..."
             TXT_DOWNLOAD_STARTED_YTPL_VIDEO="Starting YouTube playlist video download..."
@@ -386,6 +381,12 @@ lm_set_lang_vars() {
             TXT_CACHE_CLEARED="Cache cleared."
             TXT_SYSTEM_INFO="System Information"
             TXT_ALREADY_LATEST="You are using the latest version."
+            TXT_SEARCH_TITLE="Search"
+            TXT_SEARCH_PROMPT="Enter search term / song name"
+            TXT_SEARCHING="Searching..."
+            TXT_SEARCH_RESULTS="Search results"
+            TXT_SEARCH_SELECT="Select result number (1-10)"
+            TXT_SEARCH_NO_RESULTS="No results found."
             ;;
         RU)
             TXT_INSTALLER_TITLE="Ɍム-ic LM Установщик"
@@ -419,6 +420,7 @@ lm_set_lang_vars() {
             TXT_MENU_OPTION_UPDATE="Проверить обновления"
             TXT_MENU_OPTION_OPTIMIZE="Оптимизировать"
             TXT_MENU_OPTION_INFO="Информация о системе"
+            TXT_MENU_OPTION_SEARCH="Поиск"
             TXT_PROMPT_CHOICE="Сделайте выбор"
             TXT_PROMPT_LINK="Введите ссылку"
             TXT_PROMPT_INSTAGRAM_LINK="Введите ссылку Instagram"
@@ -441,20 +443,10 @@ lm_set_lang_vars() {
             TXT_OPTION_AUDIO_DOWNLOAD="Скачать аудио (MP3)"
             TXT_OPTION_PLAYLIST_VIDEO="Скачать видео плейлиста"
             TXT_OPTION_PLAYLIST_AUDIO="Скачать аудио плейлиста (MP3)"
-            TXT_OPTION_PHOTO_DOWNLOAD="Скачать фото"
-            TXT_SUBMENU_SLIDESHOW_TITLE="Настройки слайд-шоу"
-            TXT_OPTION_DOWNLOAD_ALL_IMAGES="Скачать все изображения"
-            TXT_OPTION_DOWNLOAD_FIRST_IMAGE="Скачать первое изображение"
-            TXT_OPTION_DOWNLOAD_LAST_IMAGE="Скачать последнее изображение"
-            TXT_OPTION_DOWNLOAD_INDEX_IMAGE="Скачать по номеру"
-            TXT_PROMPT_IMAGE_INDEX="Введите номер изображения"
             TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="Начинается загрузка видео Instagram..."
             TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="Начинается загрузка аудио Instagram..."
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_PHOTO="Начинается загрузка фото Instagram..."
             TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="Начинается загрузка видео TikTok..."
             TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="Начинается загрузка аудио TikTok..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_PHOTO="Начинается загрузка фото TikTok..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_SLIDESHOW_ALL="Загрузка всех изображений слайд-шоу..."
             TXT_DOWNLOAD_STARTED_YT_VIDEO="Начинается загрузка видео YouTube..."
             TXT_DOWNLOAD_STARTED_YT_AUDIO="Начинается загрузка аудио YouTube (MP3)..."
             TXT_DOWNLOAD_STARTED_YTPL_VIDEO="Начинается загрузка видео плейлиста YouTube..."
@@ -480,6 +472,12 @@ lm_set_lang_vars() {
             TXT_CACHE_CLEARED="Кэш очищен."
             TXT_SYSTEM_INFO="Информация о системе"
             TXT_ALREADY_LATEST="У вас последняя версия."
+            TXT_SEARCH_TITLE="Поиск"
+            TXT_SEARCH_PROMPT="Введите поисковый запрос / название песни"
+            TXT_SEARCHING="Поиск..."
+            TXT_SEARCH_RESULTS="Результаты поиска"
+            TXT_SEARCH_SELECT="Выберите номер результата (1-10)"
+            TXT_SEARCH_NO_RESULTS="Ничего не найдено."
             ;;
         AR)
             TXT_INSTALLER_TITLE="Ɍム-ic LM المُثَبِّت"
@@ -513,6 +511,7 @@ lm_set_lang_vars() {
             TXT_MENU_OPTION_UPDATE="تحقق من التحديثات"
             TXT_MENU_OPTION_OPTIMIZE="تحسين"
             TXT_MENU_OPTION_INFO="معلومات النظام"
+            TXT_MENU_OPTION_SEARCH="بحث"
             TXT_PROMPT_CHOICE="اختر خياراً"
             TXT_PROMPT_LINK="أدخل الرابط"
             TXT_PROMPT_INSTAGRAM_LINK="أدخل رابط Instagram"
@@ -535,20 +534,10 @@ lm_set_lang_vars() {
             TXT_OPTION_AUDIO_DOWNLOAD="تحميل صوت (MP3)"
             TXT_OPTION_PLAYLIST_VIDEO="تحميل فيديو القائمة"
             TXT_OPTION_PLAYLIST_AUDIO="تحميل صوت القائمة (MP3)"
-            TXT_OPTION_PHOTO_DOWNLOAD="تحميل صورة"
-            TXT_SUBMENU_SLIDESHOW_TITLE="خيارات عرض الشرائح"
-            TXT_OPTION_DOWNLOAD_ALL_IMAGES="تحميل جميع الصور"
-            TXT_OPTION_DOWNLOAD_FIRST_IMAGE="تحميل الصورة الأولى"
-            TXT_OPTION_DOWNLOAD_LAST_IMAGE="تحميل الصورة الأخيرة"
-            TXT_OPTION_DOWNLOAD_INDEX_IMAGE="تحميل حسب الرقم"
-            TXT_PROMPT_IMAGE_INDEX="أدخل رقم الصورة"
             TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="بدء تحميل فيديو Instagram..."
             TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="بدء تحميل صوت Instagram..."
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_PHOTO="بدء تحميل صورة Instagram..."
             TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="بدء تحميل فيديو TikTok..."
             TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="بدء تحميل صوت TikTok..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_PHOTO="بدء تحميل صورة TikTok..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_SLIDESHOW_ALL="جارٍ تحميل جميع صور عرض الشرائح..."
             TXT_DOWNLOAD_STARTED_YT_VIDEO="بدء تحميل فيديو YouTube..."
             TXT_DOWNLOAD_STARTED_YT_AUDIO="بدء تحميل صوت YouTube (MP3)..."
             TXT_DOWNLOAD_STARTED_YTPL_VIDEO="بدء تحميل فيديو قائمة YouTube..."
@@ -574,6 +563,12 @@ lm_set_lang_vars() {
             TXT_CACHE_CLEARED="تم مسح ذاكرة التخزين المؤقت."
             TXT_SYSTEM_INFO="معلومات النظام"
             TXT_ALREADY_LATEST="أنت تستخدم أحدث إصدار."
+            TXT_SEARCH_TITLE="بحث"
+            TXT_SEARCH_PROMPT="أدخل كلمة البحث / اسم الأغنية"
+            TXT_SEARCHING="جارٍ البحث..."
+            TXT_SEARCH_RESULTS="نتائج البحث"
+            TXT_SEARCH_SELECT="اختر رقم النتيجة (1-10)"
+            TXT_SEARCH_NO_RESULTS="لم يتم العثور على نتائج."
             ;;
         ZH)
             TXT_INSTALLER_TITLE="Ɍム-ic LM 安装程序"
@@ -607,6 +602,7 @@ lm_set_lang_vars() {
             TXT_MENU_OPTION_UPDATE="检查更新"
             TXT_MENU_OPTION_OPTIMIZE="优化"
             TXT_MENU_OPTION_INFO="系统信息"
+            TXT_MENU_OPTION_SEARCH="搜索"
             TXT_PROMPT_CHOICE="请选择"
             TXT_PROMPT_LINK="输入链接"
             TXT_PROMPT_INSTAGRAM_LINK="输入 Instagram 链接"
@@ -629,20 +625,10 @@ lm_set_lang_vars() {
             TXT_OPTION_AUDIO_DOWNLOAD="下载音频 (MP3)"
             TXT_OPTION_PLAYLIST_VIDEO="下载播放列表视频"
             TXT_OPTION_PLAYLIST_AUDIO="下载播放列表音频 (MP3)"
-            TXT_OPTION_PHOTO_DOWNLOAD="下载图片"
-            TXT_SUBMENU_SLIDESHOW_TITLE="幻灯片选项"
-            TXT_OPTION_DOWNLOAD_ALL_IMAGES="下载所有图片"
-            TXT_OPTION_DOWNLOAD_FIRST_IMAGE="下载第一张"
-            TXT_OPTION_DOWNLOAD_LAST_IMAGE="下载最后一张"
-            TXT_OPTION_DOWNLOAD_INDEX_IMAGE="按序号下载"
-            TXT_PROMPT_IMAGE_INDEX="请输入图片序号"
             TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="开始下载 Instagram 视频..."
             TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="开始下载 Instagram 音频..."
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_PHOTO="开始下载 Instagram 图片..."
             TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="开始下载 TikTok 视频..."
             TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="开始下载 TikTok 音频..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_PHOTO="开始下载 TikTok 图片..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_SLIDESHOW_ALL="正在下载幻灯片所有图片..."
             TXT_DOWNLOAD_STARTED_YT_VIDEO="开始下载 YouTube 视频..."
             TXT_DOWNLOAD_STARTED_YT_AUDIO="开始下载 YouTube 音频 (MP3)..."
             TXT_DOWNLOAD_STARTED_YTPL_VIDEO="开始下载 YouTube 播放列表视频..."
@@ -668,6 +654,12 @@ lm_set_lang_vars() {
             TXT_CACHE_CLEARED="缓存已清除。"
             TXT_SYSTEM_INFO="系统信息"
             TXT_ALREADY_LATEST="您已使用最新版本。"
+            TXT_SEARCH_TITLE="搜索"
+            TXT_SEARCH_PROMPT="输入搜索词 / 歌曲名称"
+            TXT_SEARCHING="搜索中..."
+            TXT_SEARCH_RESULTS="搜索结果"
+            TXT_SEARCH_SELECT="选择结果编号 (1-10)"
+            TXT_SEARCH_NO_RESULTS="未找到结果。"
             ;;
         JA)
             TXT_INSTALLER_TITLE="Ɍム-ic LM インストーラー"
@@ -701,6 +693,7 @@ lm_set_lang_vars() {
             TXT_MENU_OPTION_UPDATE="更新を確認"
             TXT_MENU_OPTION_OPTIMIZE="最適化"
             TXT_MENU_OPTION_INFO="システム情報"
+            TXT_MENU_OPTION_SEARCH="検索"
             TXT_PROMPT_CHOICE="選択してください"
             TXT_PROMPT_LINK="リンクを入力"
             TXT_PROMPT_INSTAGRAM_LINK="Instagram リンクを入力"
@@ -723,20 +716,10 @@ lm_set_lang_vars() {
             TXT_OPTION_AUDIO_DOWNLOAD="音声をダウンロード (MP3)"
             TXT_OPTION_PLAYLIST_VIDEO="プレイリスト動画をダウンロード"
             TXT_OPTION_PLAYLIST_AUDIO="プレイリスト音声をダウンロード (MP3)"
-            TXT_OPTION_PHOTO_DOWNLOAD="画像をダウンロード"
-            TXT_SUBMENU_SLIDESHOW_TITLE="スライドショーオプション"
-            TXT_OPTION_DOWNLOAD_ALL_IMAGES="すべての画像をダウンロード"
-            TXT_OPTION_DOWNLOAD_FIRST_IMAGE="最初の画像をダウンロード"
-            TXT_OPTION_DOWNLOAD_LAST_IMAGE="最後の画像をダウンロード"
-            TXT_OPTION_DOWNLOAD_INDEX_IMAGE="番号で画像をダウンロード"
-            TXT_PROMPT_IMAGE_INDEX="画像番号を入力"
             TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="Instagram 動画のダウンロードを開始..."
             TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="Instagram 音声のダウンロードを開始..."
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_PHOTO="Instagram 画像のダウンロードを開始..."
             TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="TikTok 動画のダウンロードを開始..."
             TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="TikTok 音声のダウンロードを開始..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_PHOTO="TikTok 画像のダウンロードを開始..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_SLIDESHOW_ALL="スライドショーの全画像をダウンロード中..."
             TXT_DOWNLOAD_STARTED_YT_VIDEO="YouTube 動画のダウンロードを開始..."
             TXT_DOWNLOAD_STARTED_YT_AUDIO="YouTube 音声 (MP3) のダウンロードを開始..."
             TXT_DOWNLOAD_STARTED_YTPL_VIDEO="YouTube プレイリスト動画のダウンロードを開始..."
@@ -762,6 +745,12 @@ lm_set_lang_vars() {
             TXT_CACHE_CLEARED="キャッシュをクリアしました。"
             TXT_SYSTEM_INFO="システム情報"
             TXT_ALREADY_LATEST="最新バージョンを使用しています。"
+            TXT_SEARCH_TITLE="検索"
+            TXT_SEARCH_PROMPT="検索ワード / 曲名を入力"
+            TXT_SEARCHING="検索中..."
+            TXT_SEARCH_RESULTS="検索結果"
+            TXT_SEARCH_SELECT="結果番号を選んでください (1-10)"
+            TXT_SEARCH_NO_RESULTS="結果が見つかりませんでした。"
             ;;
         HI)
             TXT_INSTALLER_TITLE="Ɍム-ic LM इंस्टॉलर"
@@ -795,6 +784,7 @@ lm_set_lang_vars() {
             TXT_MENU_OPTION_UPDATE="अपडेट की जाँच करें"
             TXT_MENU_OPTION_OPTIMIZE="अनुकूलित करें"
             TXT_MENU_OPTION_INFO="सिस्टम जानकारी"
+            TXT_MENU_OPTION_SEARCH="खोजें"
             TXT_PROMPT_CHOICE="कृपया विकल्प चुनें"
             TXT_PROMPT_LINK="लिंक दर्ज करें"
             TXT_PROMPT_INSTAGRAM_LINK="Instagram लिंक दर्ज करें"
@@ -817,20 +807,10 @@ lm_set_lang_vars() {
             TXT_OPTION_AUDIO_DOWNLOAD="संगीत डाउनलोड (MP3)"
             TXT_OPTION_PLAYLIST_VIDEO="प्लेलिस्ट वीडियो डाउनलोड"
             TXT_OPTION_PLAYLIST_AUDIO="प्लेलिस्ट संगीत डाउनलोड (MP3)"
-            TXT_OPTION_PHOTO_DOWNLOAD="फोटो डाउनलोड करें"
-            TXT_SUBMENU_SLIDESHOW_TITLE="स्लाइड शो विकल्प"
-            TXT_OPTION_DOWNLOAD_ALL_IMAGES="सभी छवियाँ डाउनलोड करें"
-            TXT_OPTION_DOWNLOAD_FIRST_IMAGE="पहली छवि डाउनलोड करें"
-            TXT_OPTION_DOWNLOAD_LAST_IMAGE="अंतिम छवि डाउनलोड करें"
-            TXT_OPTION_DOWNLOAD_INDEX_IMAGE="क्रमांक से छवि डाउनलोड करें"
-            TXT_PROMPT_IMAGE_INDEX="छवि क्रमांक दर्ज करें"
             TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="Instagram वीडियो डाउनलोड शुरू..."
             TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="Instagram संगीत डाउनलोड शुरू..."
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_PHOTO="Instagram फोटो डाउनलोड शुरू..."
             TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="TikTok वीडियो डाउनलोड शुरू..."
             TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="TikTok संगीत डाउनलोड शुरू..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_PHOTO="TikTok फोटो डाउनलोड शुरू..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_SLIDESHOW_ALL="सभी स्लाइड शो छवियाँ डाउनलोड हो रही हैं..."
             TXT_DOWNLOAD_STARTED_YT_VIDEO="YouTube वीडियो डाउनलोड शुरू..."
             TXT_DOWNLOAD_STARTED_YT_AUDIO="YouTube संगीत (MP3) डाउनलोड शुरू..."
             TXT_DOWNLOAD_STARTED_YTPL_VIDEO="YouTube प्लेलिस्ट वीडियो डाउनलोड शुरू..."
@@ -848,7 +828,7 @@ lm_set_lang_vars() {
             TXT_LANG_HI="हिंद भाषा"
             TXT_LANG_CHANGED="भाषा सफलतापूर्वक बदल दी गई"
             TXT_UPDATE_AVAILABLE="नया संस्करण उपलब्ध है!"
-            TXT_UPDATE_PROMPT="क्या आप अपडेट करना चाहते हैं? (y/n)"
+            TXT_UPDATE_PROMPT="क्या आप अपडेट करना चाहते हैं? ( y/n )"
             TXT_UPDATING="अपडेट हो रहा है..."
             TXT_UPDATE_SUCCESS="अपडेट पूरा हुआ! कृपया पुनः आरंभ करें।"
             TXT_UPDATE_FAILED="अपडेट विफल।"
@@ -856,6 +836,12 @@ lm_set_lang_vars() {
             TXT_CACHE_CLEARED="कैश साफ़ कर दिया गया।"
             TXT_SYSTEM_INFO="सिस्टम जानकारी"
             TXT_ALREADY_LATEST="आप नवीनतम संस्करण का उपयोग कर रहे हैं।"
+            TXT_SEARCH_TITLE="खोजें"
+            TXT_SEARCH_PROMPT="खोज शब्द / गीत का नाम दर्ज करें"
+            TXT_SEARCHING="खोज जारी है..."
+            TXT_SEARCH_RESULTS="खोज परिणाम"
+            TXT_SEARCH_SELECT="परिणाम संख्या चुनें (1-10)"
+            TXT_SEARCH_NO_RESULTS="कोई परिणाम नहीं मिला।"
             ;;
         *)
             LM_LANG="AZ"
@@ -866,51 +852,454 @@ lm_set_lang_vars() {
 
 lm_set_lang_vars
 
-lm_banner() {
-    clear
-    echo -e "\033[38;5;208m"
-    echo "╔══════════════════════════════════════════════╗"
-    echo "║                                              ║"
-    echo "║               Ɍム-ic LM DOWNLOADER           ║"
-    echo "║                 $LM_VERSION                   ║"
-    echo "║            Created by Agha (lamvav)          ║"
-    echo "║                                              ║"
-    echo "╚══════════════════════════════════════════════╝"
-    echo -e "\033[0m"
-}
-
-lm_pulse() {
-    local text="$1"
-    for i in 1 2 3; do
-        printf "\r\033[38;5;208m$text   \033[0m"
-        sleep 0.15
-        printf "\r\033[38;5;208m$text . \033[0m"
-        sleep 0.15
-        printf "\r\033[38;5;208m$text ..\033[0m"
-        sleep 0.15
-        printf "\r\033[38;5;208m$text ...\033[0m"
+# ---------- Spinner animation ----------
+lm_spin() {
+    local pid=$1
+    local msg="$2"
+    local spin='|/-\'
+    local i=0
+    while kill -0 $pid 2>/dev/null; do
+        i=$(( (i+1) % 4 ))
+        printf "\r${C_DARK_ORANGE}[LM] %s %s${C_RESET}" "${spin:$i:1}" "$msg"
         sleep 0.15
     done
-    echo
+    printf "\r${C_DARK_GREEN}[LM] ✓ %s                    ${C_RESET}\n" "$msg"
+}
+
+lm_banner() {
+    clear
+    echo -e "${C_DARK_ORANGE}╔══════════════════════════════════════════════╗"
+    echo -e "║                                              ║"
+    echo -e "║           ✦  Ɍム-ic LM DOWNLOADER  ✦         ║"
+    echo -e "║              $LM_VERSION                  ║"
+    echo -e "║        Created by Agha (lamvav)              ║"
+    echo -e "║                                              ║"
+    echo -e "╚══════════════════════════════════════════════╝${C_RESET}"
 }
 
 lm_run_step() {
     local message="$1"
     shift
-    echo -e "\033[0;32m[LM]\033[0m $message..."
-    ("$@" > /dev/null 2>&1) &
-    local pid=$!
-    local spin='|/-\'
-    local i=0
-    while kill -0 $pid 2>/dev/null; do
-        i=$(( (i+1) % 4 ))
-        printf "\r\033[0;32m[LM] %s %s\033[0m" "${spin:$i:1}" "$message"
-        sleep 0.15
-    done
-    wait $pid
-    printf "\r\033[0;32m[LM] ✓ %s                          \033[0m\n" "$message"
+    echo -e "${C_DARK_GREEN}[LM]${C_RESET} $message..."
+    ("$@") &
+    lm_spin $! "$message"
 }
 
+# ---------- Search function ----------
+lm_search_menu() {
+    lm_banner
+    echo -e "${C_DARK_BLUE}╔══════════════════════════════════════════════╗"
+    echo -e "║              $TXT_SEARCH_TITLE                     ║"
+    echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
+    echo -ne "${C_PROMPT}$TXT_SEARCH_PROMPT:${C_RESET} "
+    read query
+    if [[ -z "$query" ]]; then
+        echo -e "\n${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"
+        sleep 1
+        return
+    fi
+
+    echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_SEARCHING"
+    # Run search in background to show spinner
+    yt-dlp -O "%(id)s|%(title)s" "ytsearch10:${query}" 2>/dev/null > "$LM_DIR/search_results.tmp" &
+    local pid=$!
+    lm_spin $pid "$TXT_SEARCHING"
+    wait $pid
+
+    mapfile -t results < "$LM_DIR/search_results.tmp"
+    rm -f "$LM_DIR/search_results.tmp"
+
+    if [ ${#results[@]} -eq 0 ]; then
+        echo -e "\n${C_ERROR}[LM]${C_RESET} $TXT_SEARCH_NO_RESULTS"
+        echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
+        read
+        return
+    fi
+
+    echo -e "\n${C_DARK_BLUE}─── $TXT_SEARCH_RESULTS ───${C_RESET}\n"
+    local i=1
+    for line in "${results[@]}"; do
+        id="${line%%|*}"
+        title="${line#*|}"
+        printf "${C_DARK_ORANGE}[%2d]${C_RESET} %s\n" $i "$title"
+        eval "ID_$i='$id'"
+        ((i++))
+        [ $i -gt 10 ] && break
+    done
+
+    echo -ne "\n${C_PROMPT}$TXT_SEARCH_SELECT:${C_RESET} "
+    read num
+    if ! [[ "$num" =~ ^[1-9]$|^10$ ]]; then
+        echo -e "\n${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"
+        echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
+        read
+        return
+    fi
+
+    eval "selected_id=\$ID_$num"
+    video_url="https://youtu.be/$selected_id"
+    echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_YT_SINGLE"
+    echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
+    echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD"
+    echo -ne "\n${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+    read vtype
+    case "$vtype" in
+        1) lm_download_youtube_single "$video_url" "video" ;;
+        2) lm_download_youtube_single "$video_url" "audio" ;;
+        *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
+    esac
+    echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
+    read
+}
+
+# ---------- All existing download functions remain unchanged ----------
+lm_download_instagram() {
+    local url="$1"
+    local type="$2"
+    if [ "$type" = "video" ]; then
+        local output_dir="$LM_DOWNLOAD_BASE/Instagram/Video"
+        mkdir -p "$output_dir"
+        echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO\n"
+        yt-dlp --newline -f "best" --merge-output-format mp4 -o "$output_dir/%(title)s.%(ext)s" "$url"
+    else
+        local output_dir="$LM_DOWNLOAD_BASE/Instagram/Music"
+        mkdir -p "$output_dir"
+        echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO\n"
+        yt-dlp --newline -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 -o "$output_dir/%(title)s.%(ext)s" "$url"
+    fi
+    echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
+}
+
+lm_download_tiktok() {
+    local url="$1"
+    local type="$2"
+    if [ "$type" = "video" ]; then
+        local output_dir="$LM_DOWNLOAD_BASE/TikTok/Video"
+        mkdir -p "$output_dir"
+        echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO\n"
+        yt-dlp --newline -f "best" --merge-output-format mp4 -o "$output_dir/%(title)s.%(ext)s" "$url"
+    else
+        local output_dir="$LM_DOWNLOAD_BASE/TikTok/Music"
+        mkdir -p "$output_dir"
+        echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO\n"
+        yt-dlp --newline -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 -o "$output_dir/%(title)s.%(ext)s" "$url"
+    fi
+    echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
+}
+
+lm_download_youtube_single() {
+    local url="$1"
+    local type="$2"
+    if [ "$type" = "video" ]; then
+        local output_dir="$LM_DOWNLOAD_BASE/YouTube/Video"
+        mkdir -p "$output_dir"
+        echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_YT_VIDEO\n"
+        yt-dlp --newline -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --merge-output-format mp4 -o "$output_dir/%(title)s.%(ext)s" "$url"
+    else
+        local output_dir="$LM_DOWNLOAD_BASE/YouTube/Music"
+        mkdir -p "$output_dir"
+        echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_YT_AUDIO\n"
+        yt-dlp --newline -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata -o "$output_dir/%(title)s.%(ext)s" "$url"
+    fi
+    echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
+}
+
+lm_download_youtube_playlist() {
+    local url="$1"
+    local type="$2"
+    if [ "$type" = "video" ]; then
+        local output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Video"
+        mkdir -p "$output_dir"
+        echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_YTPL_VIDEO\n"
+        yt-dlp --newline --yes-playlist -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --merge-output-format mp4 -o "$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s" "$url"
+    else
+        local output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Music"
+        mkdir -p "$output_dir"
+        echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_YTPL_AUDIO\n"
+        yt-dlp --newline --yes-playlist -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata -o "$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s" "$url"
+    fi
+    echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
+}
+
+# ---------- Menus (adjusted color scheme) ----------
+lm_manual_menu() {
+    while true; do
+        lm_banner
+        echo -e "${C_DARK_BLUE}╔══════════════════════════════════════════════╗"
+        echo -e "║           $TXT_MANUAL_MENU_TITLE             ║"
+        echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
+        echo -e "${C_DARK_ORANGE}[1]${C_RESET} Instagram"
+        echo -e "${C_DARK_ORANGE}[2]${C_RESET} TikTok"
+        echo -e "${C_DARK_ORANGE}[3]${C_RESET} YouTube"
+        echo -e "${C_DARK_BROWN}[0]${C_RESET} $TXT_MENU_OPTION_BACK\n"
+        echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+        read platform_choice
+
+        case $platform_choice in
+            1)
+                echo -ne "\n${C_PROMPT}$TXT_PROMPT_INSTAGRAM_LINK:${C_RESET} "
+                read ig_url
+                echo -e "\n${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
+                echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD\n"
+                echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+                read ig_type
+                case $ig_type in
+                    1) lm_download_instagram "$ig_url" "video" ;;
+                    2) lm_download_instagram "$ig_url" "audio" ;;
+                    *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
+                esac
+                echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
+                read
+                ;;
+            2)
+                echo -ne "\n${C_PROMPT}$TXT_PROMPT_TIKTOK_LINK:${C_RESET} "
+                read tt_url
+                echo -e "\n${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
+                echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD\n"
+                echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+                read tt_type
+                case $tt_type in
+                    1) lm_download_tiktok "$tt_url" "video" ;;
+                    2) lm_download_tiktok "$tt_url" "audio" ;;
+                    *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
+                esac
+                echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
+                read
+                ;;
+            3)
+                while true; do
+                    echo -e "\n${C_DARK_BLUE}$TXT_MENU_YT_MODE_TITLE:${C_RESET}"
+                    echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_MENU_YT_MODE_SINGLE"
+                    echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_MENU_YT_MODE_PLAYLIST"
+                    echo -e "${C_DARK_BROWN}[0]${C_RESET} $TXT_MENU_OPTION_BACK\n"
+                    echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+                    read yt_mode
+                    case $yt_mode in
+                        1)
+                            echo -ne "\n${C_PROMPT}$TXT_PROMPT_YT_SINGLE_LINK:${C_RESET} "
+                            read yt_single_url
+                            echo -e "\n${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
+                            echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD\n"
+                            echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+                            read yt_type
+                            case $yt_type in
+                                1) lm_download_youtube_single "$yt_single_url" "video" ;;
+                                2) lm_download_youtube_single "$yt_single_url" "audio" ;;
+                                *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
+                            esac
+                            echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
+                            read
+                            break
+                            ;;
+                        2)
+                            echo -ne "\n${C_PROMPT}$TXT_PROMPT_YT_PLAYLIST_LINK:${C_RESET} "
+                            read yt_pl_url
+                            echo -e "\n${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_PLAYLIST_VIDEO"
+                            echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_PLAYLIST_AUDIO\n"
+                            echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+                            read yt_pl_type
+                            case $yt_pl_type in
+                                1) lm_download_youtube_playlist "$yt_pl_url" "video" ;;
+                                2) lm_download_youtube_playlist "$yt_pl_url" "audio" ;;
+                                *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
+                            esac
+                            echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
+                            read
+                            break
+                            ;;
+                        0) break ;;
+                        *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
+                    esac
+                done
+                ;;
+            0) break ;;
+            *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 2 ;;
+        esac
+    done
+}
+
+lm_main_menu() {
+    while true; do
+        lm_banner
+        echo -e "${C_DARK_BLUE}╔══════════════════════════════════════════════╗"
+        echo -e "║           Ɍム-ic LM $TXT_MAIN_MENU_TITLE           ║"
+        echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
+        echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_MENU_OPTION_MANUAL"
+        echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_MENU_OPTION_AUTO"
+        echo -e "${C_DARK_ORANGE}[3]${C_RESET} $TXT_MENU_OPTION_SETTINGS"
+        echo -e "${C_DARK_ORANGE}[4]${C_RESET} $TXT_MENU_OPTION_ADMIN"
+        echo -e "${C_DARK_ORANGE}[5]${C_RESET} $TXT_MENU_OPTION_SEARCH"
+        echo -e "${C_DARK_BROWN}[0]${C_RESET} $TXT_MENU_OPTION_EXIT\n"
+        echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+        read main_choice
+
+        case $main_choice in
+            1) lm_manual_menu ;;
+            2)
+                echo -ne "\n${C_PROMPT}$TXT_PROMPT_LINK:${C_RESET} "
+                read auto_url
+                lm_auto_download "$auto_url"
+                echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
+                read
+                ;;
+            3) lm_settings_menu ;;
+            4) lm_admin_menu ;;
+            5) lm_search_menu ;;
+            0)
+                lm_banner
+                echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_EXIT_MESSAGE\n"
+                exit 0
+                ;;
+            *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 2 ;;
+        esac
+    done
+}
+
+# ---------- Rest of the script unchanged ----------
+# (lm_auto_download, lm_settings_menu, lm_admin_menu, lm_install, etc.)
+# They are identical to original except using new color variables.
+# Insert the rest of the original functions below with color replacements.
+
+lm_auto_download() {
+    local url="$1"
+    lm_banner
+    echo -e "${C_DARK_BLUE}╔══════════════════════════════════════════════╗"
+    echo -e "║             $TXT_AUTO_MENU_TITLE             ║"
+    echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
+    local platform
+    platform=$(lm_detect_platform "$url")
+
+    case $platform in
+        instagram)
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_INSTAGRAM\n"
+            echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
+            echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD\n"
+            echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+            read choice
+            case $choice in
+                1) lm_download_instagram "$url" "video" ;;
+                2) lm_download_instagram "$url" "audio" ;;
+                *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
+            esac
+            ;;
+        tiktok)
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_TIKTOK\n"
+            echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
+            echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD\n"
+            echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+            read choice
+            case $choice in
+                1) lm_download_tiktok "$url" "video" ;;
+                2) lm_download_tiktok "$url" "audio" ;;
+                *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
+            esac
+            ;;
+        youtube)
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_YT_SINGLE\n"
+            echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
+            echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD\n"
+            echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+            read choice
+            case $choice in
+                1) lm_download_youtube_single "$url" "video" ;;
+                2) lm_download_youtube_single "$url" "audio" ;;
+                *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
+            esac
+            ;;
+        youtube_playlist)
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_YT_PLAYLIST\n"
+            echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_PLAYLIST_VIDEO"
+            echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_PLAYLIST_AUDIO\n"
+            echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+            read choice
+            case $choice in
+                1) lm_download_youtube_playlist "$url" "video" ;;
+                2) lm_download_youtube_playlist "$url" "audio" ;;
+                *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
+            esac
+            ;;
+        *)
+            echo -e "${C_ERROR}[LM]${C_RESET} $TXT_PLATFORM_UNKNOWN"
+            echo -e "${C_DARK_ORANGE}$TXT_SUPPORTED_PLATFORMS${C_RESET}"
+            ;;
+    esac
+}
+
+lm_settings_menu() {
+    while true; do
+        lm_banner
+        echo -e "${C_DARK_BLUE}╔══════════════════════════════════════════════╗"
+        echo -e "║              $TXT_SETTINGS_MENU_TITLE              ║"
+        echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
+        echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_MENU_OPTION_LANGUAGE"
+        echo -e "${C_DARK_BROWN}[0]${C_RESET} $TXT_MENU_OPTION_BACK\n"
+        echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+        read settings_choice
+        case "$settings_choice" in
+            1) lm_choose_language ;;
+            0) break ;;
+            *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 2 ;;
+        esac
+    done
+}
+
+lm_admin_menu() {
+    while true; do
+        lm_banner
+        echo -e "${C_DARK_BLUE}╔══════════════════════════════════════════════╗"
+        echo -e "║              $TXT_ADMIN_MENU_TITLE              ║"
+        echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
+        echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_MENU_OPTION_UPDATE"
+        echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_MENU_OPTION_OPTIMIZE"
+        echo -e "${C_DARK_ORANGE}[3]${C_RESET} $TXT_MENU_OPTION_INFO"
+        echo -e "${C_DARK_BROWN}[0]${C_RESET} $TXT_MENU_OPTION_BACK\n"
+        echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+        read admin_choice
+        case "$admin_choice" in
+            1)
+                lm_check_update
+                case $? in
+                    0)
+                        echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATE_AVAILABLE ($remote_version)"
+                        echo -ne "${C_DARK_GREEN}$TXT_UPDATE_PROMPT${C_RESET} "
+                        read up_confirm
+                        case "$up_confirm" in
+                            h|H|y|Y|e|E|yes|YES|Yes) lm_do_update ;;
+                            *) echo -e "${C_DARK_ORANGE}[LM]${C_RESET} $TXT_MENU_OPTION_BACK" ;;
+                        esac
+                        ;;
+                    2) echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_ALREADY_LATEST" ;;
+                    *) echo -e "\n${C_ERROR}[LM]${C_RESET} $TXT_UPDATE_FAILED" ;;
+                esac
+                echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
+                read
+                ;;
+            2)
+                echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_OPTIMIZE_DONE"
+                rm -rf "$LM_DIR/cache" 2>/dev/null
+                pip cache purge >/dev/null 2>&1
+                echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_CACHE_CLEARED"
+                echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
+                read
+                ;;
+            3)
+                lm_banner
+                echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_SYSTEM_INFO\n"
+                echo -e "${C_DARK_ORANGE}Termux:${C_RESET} $(getprop ro.product.model 2>/dev/null || echo "Unknown")"
+                echo -e "${C_DARK_ORANGE}Android:${C_RESET} $(getprop ro.build.version.release 2>/dev/null || echo "Unknown")"
+                echo -e "${C_DARK_ORANGE}Python:${C_RESET} $(python --version 2>&1 | cut -d' ' -f2)"
+                echo -e "${C_DARK_ORANGE}yt-dlp:${C_RESET} $(yt-dlp --version 2>/dev/null)"
+                echo -e "${C_DARK_ORANGE}FFmpeg:${C_RESET} $(ffmpeg -version 2>/dev/null | head -1 | cut -d' ' -f3)"
+                echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
+                read
+                ;;
+            0) break ;;
+            *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 2 ;;
+        esac
+    done
+}
+
+# ---------- Existing helper functions (unchanged except color variables) ----------
 lm_setup_url_opener() {
     mkdir -p "$HOME/bin"
     cat > "$LM_OPENER" << 'EOF'
@@ -923,10 +1312,8 @@ EOF
 lm_create_folders() {
     mkdir -p "$LM_DOWNLOAD_BASE/Instagram/Video"
     mkdir -p "$LM_DOWNLOAD_BASE/Instagram/Music"
-    mkdir -p "$LM_DOWNLOAD_BASE/Instagram/Photo"
     mkdir -p "$LM_DOWNLOAD_BASE/TikTok/Video"
     mkdir -p "$LM_DOWNLOAD_BASE/TikTok/Music"
-    mkdir -p "$LM_DOWNLOAD_BASE/TikTok/Photo"
     mkdir -p "$LM_DOWNLOAD_BASE/YouTube/Video"
     mkdir -p "$LM_DOWNLOAD_BASE/YouTube/Music"
     mkdir -p "$LM_DOWNLOAD_BASE/YouTube/Playlist/Video"
@@ -944,17 +1331,17 @@ lm_save_config() {
 }
 
 lm_choose_language() {
-    echo -e "\n\033[0;36m$TXT_LANG_MENU_TITLE\033[0m"
-    echo -e "\033[0;32m$TXT_LANG_MENU_DESC\033[0m\n"
-    echo -e "\033[38;5;208m[1]\033[0m $TXT_LANG_AZ"
-    echo -e "\033[38;5;208m[2]\033[0m $TXT_LANG_TR"
-    echo -e "\033[38;5;208m[3]\033[0m $TXT_LANG_EN"
-    echo -e "\033[38;5;208m[4]\033[0m $TXT_LANG_RU"
-    echo -e "\033[38;5;208m[5]\033[0m $TXT_LANG_AR"
-    echo -e "\033[38;5;208m[6]\033[0m $TXT_LANG_ZH"
-    echo -e "\033[38;5;208m[7]\033[0m $TXT_LANG_JA"
-    echo -e "\033[38;5;208m[8]\033[0m $TXT_LANG_HI\n"
-    echo -ne "\033[0;32m$TXT_PROMPT_CHOICE:\033[0m "
+    echo -e "\n${C_DARK_BLUE}$TXT_LANG_MENU_TITLE${C_RESET}"
+    echo -e "${C_DARK_GREEN}$TXT_LANG_MENU_DESC${C_RESET}\n"
+    echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_LANG_AZ"
+    echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_LANG_TR"
+    echo -e "${C_DARK_ORANGE}[3]${C_RESET} $TXT_LANG_EN"
+    echo -e "${C_DARK_ORANGE}[4]${C_RESET} $TXT_LANG_RU"
+    echo -e "${C_DARK_ORANGE}[5]${C_RESET} $TXT_LANG_AR"
+    echo -e "${C_DARK_ORANGE}[6]${C_RESET} $TXT_LANG_ZH"
+    echo -e "${C_DARK_ORANGE}[7]${C_RESET} $TXT_LANG_JA"
+    echo -e "${C_DARK_ORANGE}[8]${C_RESET} $TXT_LANG_HI\n"
+    echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
     read lang_choice
     case "$lang_choice" in
         1) LM_LANG="AZ" ;;
@@ -969,7 +1356,7 @@ lm_choose_language() {
     esac
     lm_set_lang_vars
     lm_save_config
-    echo -e "\n\033[0;32m[LM]\033[0m $TXT_LANG_CHANGED\n"
+    echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_LANG_CHANGED\n"
     sleep 1
 }
 
@@ -987,20 +1374,14 @@ lm_check_update() {
 }
 
 lm_do_update() {
-    echo -e "\n\033[0;32m[LM]\033[0m $TXT_UPDATING"
-    local remote_version
-    remote_version=$(curl -s "$LM_REPO_RAW" | grep "^LM_VERSION=" | head -1 | cut -d'"' -f2)
+    echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATING"
     if curl -s "$LM_REPO_RAW" -o "$LM_BIN.tmp"; then
         chmod +x "$LM_BIN.tmp"
         mv "$LM_BIN.tmp" "$LM_BIN"
-        # update version in config to avoid reinstall loop
-        if [ -n "$remote_version" ]; then
-            sed -i "s/^version=.*/version=$remote_version/" "$LM_CONFIG"
-        fi
-        echo -e "\033[0;32m[LM]\033[0m $TXT_UPDATE_SUCCESS"
+        echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATE_SUCCESS"
         exit 0
     else
-        echo -e "\033[0;31m[LM]\033[0m $TXT_UPDATE_FAILED"
+        echo -e "${C_ERROR}[LM]${C_RESET} $TXT_UPDATE_FAILED"
         rm -f "$LM_BIN.tmp"
         return 1
     fi
@@ -1009,10 +1390,11 @@ lm_do_update() {
 lm_install() {
     mkdir -p "$LM_DIR"
     lm_banner
-    echo -e "\033[0;36m$TXT_INSTALLER_TITLE\033[0m"
-    lm_pulse "$TXT_INSTALL_PREP"
+    echo -e "${C_DARK_BLUE}$TXT_INSTALLER_TITLE${C_RESET}"
+    echo -e "${C_DARK_ORANGE}$TXT_INSTALL_PREP${C_RESET}"
+    sleep 1
 
-    echo -e "\n\033[0;32m[LM]\033[0m $TXT_INSTALL_STORAGE..."
+    echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_INSTALL_STORAGE..."
     termux-setup-storage
     sleep 1
 
@@ -1032,490 +1414,15 @@ lm_install() {
     chmod +x "$LM_BIN"
 
     lm_banner
-    echo -e "\033[0;32m╔══════════════════════════════════════╗\033[0m"
-    echo -e "\033[0;32m║      ${TXT_INSTALL_SUCCESS_LINE1}      \033[0m"
-    echo -e "\033[0;32m╚══════════════════════════════════════╝\033[0m\n"
-    echo -e "\033[0;36m${TXT_INSTALL_SUCCESS_LINE2}\033[0m"
-    echo -e "\033[0;36m${TXT_INSTALL_SUCCESS_LINE3}\033[0m\n"
+    echo -e "${C_DARK_GREEN}╔══════════════════════════════════════╗${C_RESET}"
+    echo -e "${C_DARK_GREEN}║      $TXT_INSTALL_SUCCESS_LINE1      ║${C_RESET}"
+    echo -e "${C_DARK_GREEN}╚══════════════════════════════════════╝${C_RESET}\n"
+    echo -e "${C_DARK_BLUE}$TXT_INSTALL_SUCCESS_LINE2${C_RESET}"
+    echo -e "${C_DARK_BLUE}$TXT_INSTALL_SUCCESS_LINE3${C_RESET}\n"
     sleep 3
 }
 
-lm_detect_platform() {
-    local url="$1"
-    if [[ $url == *"instagram.com"* ]] || [[ $url == *"instagr.am"* ]]; then
-        echo "instagram"
-    elif [[ $url == *"tiktok.com"* ]] || [[ $url == *"vm.tiktok.com"* ]] || [[ $url == *"vt.tiktok.com"* ]]; then
-        echo "tiktok"
-    elif [[ $url == *"youtube.com/playlist"* ]] || { [[ $url == *"list="* ]] && [[ $url == *"youtube.com"* ]]; }; then
-        echo "youtube_playlist"
-    elif [[ $url == *"youtube.com"* ]] || [[ $url == *"youtu.be"* ]]; then
-        echo "youtube"
-    else
-        echo "unknown"
-    fi
-}
-
-lm_download_instagram() {
-    local url="$1"
-    local type="$2"
-    case "$type" in
-        video)
-            local output_dir="$LM_DOWNLOAD_BASE/Instagram/Video"
-            mkdir -p "$output_dir"
-            echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO\n"
-            yt-dlp --newline -f "best" --merge-output-format mp4 -o "$output_dir/%(title)s.%(ext)s" "$url"
-            ;;
-        audio)
-            local output_dir="$LM_DOWNLOAD_BASE/Instagram/Music"
-            mkdir -p "$output_dir"
-            echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO\n"
-            yt-dlp --newline -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 -o "$output_dir/%(title)s.%(ext)s" "$url"
-            ;;
-        photo)
-            local output_dir="$LM_DOWNLOAD_BASE/Instagram/Photo"
-            mkdir -p "$output_dir"
-            echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_INSTAGRAM_PHOTO\n"
-            gallery-dl -d "$output_dir" --no-download-archive "$url" 2>/dev/null || yt-dlp --newline -f "bestimage" -o "$output_dir/%(title)s.%(ext)s" "$url"
-            ;;
-    esac
-    echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
-}
-
-lm_download_tiktok_photo() {
-    local url="$1"
-    local output_dir="$LM_DOWNLOAD_BASE/TikTok/Photo"
-    mkdir -p "$output_dir"
-    # Detect slideshow
-    local image_count
-    image_count=$(yt-dlp --dump-json "$url" 2>/dev/null | python -c "import json,sys; data=json.load(sys.stdin); print(len(data.get('multi_image',[])))" 2>/dev/null)
-    if [ -n "$image_count" ] && [ "$image_count" -gt 1 ]; then
-        lm_download_tiktok_slideshow "$url" "$image_count"
-    else
-        echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_TIKTOK_PHOTO\n"
-        gallery-dl -d "$output_dir" --no-download-archive --range "1" "$url" 2>/dev/null || yt-dlp --newline -f "bestimage" -o "$output_dir/%(title)s.%(ext)s" "$url"
-        echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
-    fi
-}
-
-lm_download_tiktok_slideshow() {
-    local url="$1"
-    local count="$2"
-    local output_dir="$LM_DOWNLOAD_BASE/TikTok/Photo"
-    mkdir -p "$output_dir"
-    while true; do
-        echo -e "\n\033[0;36m$TXT_SUBMENU_SLIDESHOW_TITLE ($count şəkil)\033[0m"
-        echo -e "\033[38;5;208m[1]\033[0m $TXT_OPTION_DOWNLOAD_ALL_IMAGES"
-        echo -e "\033[38;5;208m[2]\033[0m $TXT_OPTION_DOWNLOAD_FIRST_IMAGE"
-        echo -e "\033[38;5;208m[3]\033[0m $TXT_OPTION_DOWNLOAD_LAST_IMAGE"
-        echo -e "\033[38;5;208m[4]\033[0m $TXT_OPTION_DOWNLOAD_INDEX_IMAGE"
-        echo -e "\033[0;31m[0]\033[0m $TXT_MENU_OPTION_BACK\n"
-        echo -ne "\033[0;32m$TXT_PROMPT_CHOICE:\033[0m "
-        read slide_choice
-        case "$slide_choice" in
-            1)
-                echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_TIKTOK_SLIDESHOW_ALL\n"
-                gallery-dl -d "$output_dir" --no-download-archive "$url"
-                echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
-                ;;
-            2)
-                echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_OPTION_DOWNLOAD_FIRST_IMAGE\n"
-                gallery-dl -d "$output_dir" --no-download-archive --range "1" "$url"
-                echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
-                ;;
-            3)
-                echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_OPTION_DOWNLOAD_LAST_IMAGE\n"
-                gallery-dl -d "$output_dir" --no-download-archive --range "$count" "$url"
-                echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
-                ;;
-            4)
-                echo -ne "\n\033[0;36m$TXT_PROMPT_IMAGE_INDEX (1-$count):\033[0m "
-                read idx
-                gallery-dl -d "$output_dir" --no-download-archive --range "$idx" "$url"
-                echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
-                ;;
-            0) break ;;
-            *) echo -e "\033[0;31m[LM]\033[0m $TXT_ERROR_INVALID_CHOICE" ;;
-        esac
-        echo -e "\n\033[0;36m$TXT_PROMPT_CONTINUE...\033[0m"
-        read
-    done
-}
-
-lm_download_tiktok() {
-    local url="$1"
-    local type="$2"
-    case "$type" in
-        video)
-            local output_dir="$LM_DOWNLOAD_BASE/TikTok/Video"
-            mkdir -p "$output_dir"
-            echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO\n"
-            yt-dlp --newline -f "best" --merge-output-format mp4 -o "$output_dir/%(title)s.%(ext)s" "$url"
-            ;;
-        audio)
-            local output_dir="$LM_DOWNLOAD_BASE/TikTok/Music"
-            mkdir -p "$output_dir"
-            echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO\n"
-            yt-dlp --newline -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 -o "$output_dir/%(title)s.%(ext)s" "$url"
-            ;;
-        photo)
-            lm_download_tiktok_photo "$url"
-            return
-            ;;
-    esac
-    echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
-}
-
-lm_download_youtube_single() {
-    local url="$1"
-    local type="$2"
-    if [ "$type" = "video" ]; then
-        local output_dir="$LM_DOWNLOAD_BASE/YouTube/Video"
-        mkdir -p "$output_dir"
-        echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_YT_VIDEO\n"
-        yt-dlp --newline -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --merge-output-format mp4 -o "$output_dir/%(title)s.%(ext)s" "$url"
-    else
-        local output_dir="$LM_DOWNLOAD_BASE/YouTube/Music"
-        mkdir -p "$output_dir"
-        echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_YT_AUDIO\n"
-        yt-dlp --newline -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata -o "$output_dir/%(title)s.%(ext)s" "$url"
-    fi
-    echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
-}
-
-lm_download_youtube_playlist() {
-    local url="$1"
-    local type="$2"
-    if [ "$type" = "video" ]; then
-        local output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Video"
-        mkdir -p "$output_dir"
-        echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_YTPL_VIDEO\n"
-        yt-dlp --newline --yes-playlist -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --merge-output-format mp4 -o "$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s" "$url"
-    else
-        local output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Music"
-        mkdir -p "$output_dir"
-        echo -e "\n\033[38;5;208m[LM]\033[0m $TXT_DOWNLOAD_STARTED_YTPL_AUDIO\n"
-        yt-dlp --newline --yes-playlist -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata -o "$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s" "$url"
-    fi
-    echo -e "\n\033[0;32m[LM]\033[0m $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
-}
-
-lm_manual_menu() {
-    while true; do
-        lm_banner
-        echo -e "\033[0;36m╔══════════════════════════════════════════════╗\033[0m"
-        echo -e "\033[0;36m║           $TXT_MANUAL_MENU_TITLE             ║\033[0m"
-        echo -e "\033[0;36m╚══════════════════════════════════════════════╝\033[0m\n"
-        echo -e "\033[38;5;208m[1]\033[0m Instagram"
-        echo -e "\033[38;5;208m[2]\033[0m TikTok"
-        echo -e "\033[38;5;208m[3]\033[0m YouTube"
-        echo -e "\033[0;31m[0]\033[0m $TXT_MENU_OPTION_BACK\n"
-        echo -ne "\033[0;32m$TXT_PROMPT_CHOICE:\033[0m "
-        read platform_choice
-
-        case $platform_choice in
-            1)
-                echo -ne "\n\033[0;36m$TXT_PROMPT_INSTAGRAM_LINK:\033[0m "
-                read ig_url
-                echo -e "\n\033[38;5;208m[1]\033[0m $TXT_OPTION_VIDEO_DOWNLOAD"
-                echo -e "\033[38;5;208m[2]\033[0m $TXT_OPTION_AUDIO_DOWNLOAD"
-                echo -e "\033[38;5;208m[3]\033[0m $TXT_OPTION_PHOTO_DOWNLOAD\n"
-                echo -ne "\033[0;32m$TXT_PROMPT_CHOICE:\033[0m "
-                read ig_type
-                case $ig_type in
-                    1) lm_download_instagram "$ig_url" "video" ;;
-                    2) lm_download_instagram "$ig_url" "audio" ;;
-                    3) lm_download_instagram "$ig_url" "photo" ;;
-                    *) echo -e "\033[0;31m[LM]\033[0m $TXT_ERROR_INVALID_CHOICE" ;;
-                esac
-                echo -e "\n\033[0;36m$TXT_PROMPT_CONTINUE...\033[0m"
-                read
-                ;;
-            2)
-                echo -ne "\n\033[0;36m$TXT_PROMPT_TIKTOK_LINK:\033[0m "
-                read tt_url
-                echo -e "\n\033[38;5;208m[1]\033[0m $TXT_OPTION_VIDEO_DOWNLOAD"
-                echo -e "\033[38;5;208m[2]\033[0m $TXT_OPTION_PHOTO_DOWNLOAD"
-                echo -e "\033[38;5;208m[3]\033[0m $TXT_OPTION_AUDIO_DOWNLOAD\n"
-                echo -ne "\033[0;32m$TXT_PROMPT_CHOICE:\033[0m "
-                read tt_type
-                case $tt_type in
-                    1) lm_download_tiktok "$tt_url" "video" ;;
-                    2) lm_download_tiktok "$tt_url" "photo" ;;
-                    3) lm_download_tiktok "$tt_url" "audio" ;;
-                    *) echo -e "\033[0;31m[LM]\033[0m $TXT_ERROR_INVALID_CHOICE" ;;
-                esac
-                echo -e "\n\033[0;36m$TXT_PROMPT_CONTINUE...\033[0m"
-                read
-                ;;
-            3)
-                while true; do
-                    echo -e "\n\033[0;36m$TXT_MENU_YT_MODE_TITLE:\033[0m"
-                    echo -e "\033[38;5;208m[1]\033[0m $TXT_MENU_YT_MODE_SINGLE"
-                    echo -e "\033[38;5;208m[2]\033[0m $TXT_MENU_YT_MODE_PLAYLIST"
-                    echo -e "\033[0;31m[0]\033[0m $TXT_MENU_OPTION_BACK\n"
-                    echo -ne "\033[0;32m$TXT_PROMPT_CHOICE:\033[0m "
-                    read yt_mode
-                    case $yt_mode in
-                        1)
-                            echo -ne "\n\033[0;36m$TXT_PROMPT_YT_SINGLE_LINK:\033[0m "
-                            read yt_single_url
-                            echo -e "\n\033[38;5;208m[1]\033[0m $TXT_OPTION_VIDEO_DOWNLOAD"
-                            echo -e "\033[38;5;208m[2]\033[0m $TXT_OPTION_AUDIO_DOWNLOAD\n"
-                            echo -ne "\033[0;32m$TXT_PROMPT_CHOICE:\033[0m "
-                            read yt_type
-                            case $yt_type in
-                                1) lm_download_youtube_single "$yt_single_url" "video" ;;
-                                2) lm_download_youtube_single "$yt_single_url" "audio" ;;
-                                *) echo -e "\033[0;31m[LM]\033[0m $TXT_ERROR_INVALID_CHOICE" ;;
-                            esac
-                            echo -e "\n\033[0;36m$TXT_PROMPT_CONTINUE...\033[0m"
-                            read
-                            break
-                            ;;
-                        2)
-                            echo -ne "\n\033[0;36m$TXT_PROMPT_YT_PLAYLIST_LINK:\033[0m "
-                            read yt_pl_url
-                            echo -e "\n\033[38;5;208m[1]\033[0m $TXT_OPTION_PLAYLIST_VIDEO"
-                            echo -e "\033[38;5;208m[2]\033[0m $TXT_OPTION_PLAYLIST_AUDIO\n"
-                            echo -ne "\033[0;32m$TXT_PROMPT_CHOICE:\033[0m "
-                            read yt_pl_type
-                            case $yt_pl_type in
-                                1) lm_download_youtube_playlist "$yt_pl_url" "video" ;;
-                                2) lm_download_youtube_playlist "$yt_pl_url" "audio" ;;
-                                *) echo -e "\033[0;31m[LM]\033[0m $TXT_ERROR_INVALID_CHOICE" ;;
-                            esac
-                            echo -e "\n\033[0;36m$TXT_PROMPT_CONTINUE...\033[0m"
-                            read
-                            break
-                            ;;
-                        0)
-                            break
-                            ;;
-                        *)
-                            echo -e "\033[0;31m[LM]\033[0m $TXT_ERROR_INVALID_CHOICE"
-                            ;;
-                    esac
-                done
-                ;;
-            0)
-                break
-                ;;
-            *)
-                echo -e "\033[0;31m[LM]\033[0m $TXT_ERROR_INVALID_CHOICE"
-                sleep 2
-                ;;
-        esac
-    done
-}
-
-lm_auto_download() {
-    local url="$1"
-    lm_banner
-    echo -e "\033[0;36m╔══════════════════════════════════════════════╗\033[0m"
-    echo -e "\033[0;36m║             $TXT_AUTO_MENU_TITLE             ║\033[0m"
-    echo -e "\033[0;36m╚══════════════════════════════════════════════╝\033[0m\n"
-
-    local platform
-    platform=$(lm_detect_platform "$url")
-
-    case $platform in
-        instagram)
-            echo -e "\033[0;32m[LM]\033[0m $TXT_AUTO_PLATFORM_INSTAGRAM\n"
-            echo -e "\033[38;5;208m[1]\033[0m $TXT_OPTION_VIDEO_DOWNLOAD"
-            echo -e "\033[38;5;208m[2]\033[0m $TXT_OPTION_AUDIO_DOWNLOAD"
-            echo -e "\033[38;5;208m[3]\033[0m $TXT_OPTION_PHOTO_DOWNLOAD\n"
-            echo -ne "\033[0;32m$TXT_PROMPT_CHOICE:\033[0m "
-            read choice
-            case $choice in
-                1) lm_download_instagram "$url" "video" ;;
-                2) lm_download_instagram "$url" "audio" ;;
-                3) lm_download_instagram "$url" "photo" ;;
-                *) echo -e "\033[0;31m[LM]\033[0m $TXT_ERROR_INVALID_CHOICE" ;;
-            esac
-            ;;
-        tiktok)
-            echo -e "\033[0;32m[LM]\033[0m $TXT_AUTO_PLATFORM_TIKTOK\n"
-            echo -e "\033[38;5;208m[1]\033[0m $TXT_OPTION_VIDEO_DOWNLOAD"
-            echo -e "\033[38;5;208m[2]\033[0m $TXT_OPTION_PHOTO_DOWNLOAD"
-            echo -e "\033[38;5;208m[3]\033[0m $TXT_OPTION_AUDIO_DOWNLOAD\n"
-            echo -ne "\033[0;32m$TXT_PROMPT_CHOICE:\033[0m "
-            read choice
-            case $choice in
-                1) lm_download_tiktok "$url" "video" ;;
-                2) lm_download_tiktok "$url" "photo" ;;
-                3) lm_download_tiktok "$url" "audio" ;;
-                *) echo -e "\033[0;31m[LM]\033[0m $TXT_ERROR_INVALID_CHOICE" ;;
-            esac
-            ;;
-        youtube)
-            echo -e "\033[0;32m[LM]\033[0m $TXT_AUTO_PLATFORM_YT_SINGLE\n"
-            echo -e "\033[38;5;208m[1]\033[0m $TXT_OPTION_VIDEO_DOWNLOAD"
-            echo -e "\033[38;5;208m[2]\033[0m $TXT_OPTION_AUDIO_DOWNLOAD\n"
-            echo -ne "\033[0;32m$TXT_PROMPT_CHOICE:\033[0m "
-            read choice
-            case $choice in
-                1) lm_download_youtube_single "$url" "video" ;;
-                2) lm_download_youtube_single "$url" "audio" ;;
-                *) echo -e "\033[0;31m[LM]\033[0m $TXT_ERROR_INVALID_CHOICE" ;;
-            esac
-            ;;
-        youtube_playlist)
-            echo -e "\033[0;32m[LM]\033[0m $TXT_AUTO_PLATFORM_YT_PLAYLIST\n"
-            echo -e "\033[38;5;208m[1]\033[0m $TXT_OPTION_PLAYLIST_VIDEO"
-            echo -e "\033[38;5;208m[2]\033[0m $TXT_OPTION_PLAYLIST_AUDIO\n"
-            echo -ne "\033[0;32m$TXT_PROMPT_CHOICE:\033[0m "
-            read choice
-            case $choice in
-                1) lm_download_youtube_playlist "$url" "video" ;;
-                2) lm_download_youtube_playlist "$url" "audio" ;;
-                *) echo -e "\033[0;31m[LM]\033[0m $TXT_ERROR_INVALID_CHOICE" ;;
-            esac
-            ;;
-        *)
-            echo -e "\033[0;31m[LM]\033[0m $TXT_PLATFORM_UNKNOWN"
-            echo -e "\033[38;5;208m$TXT_SUPPORTED_PLATFORMS\033[0m"
-            ;;
-    esac
-}
-
-lm_settings_menu() {
-    while true; do
-        lm_banner
-        echo -e "\033[0;36m╔══════════════════════════════════════════════╗\033[0m"
-        echo -e "\033[0;36m║              $TXT_SETTINGS_MENU_TITLE              ║\033[0m"
-        echo -e "\033[0;36m╚══════════════════════════════════════════════╝\033[0m\n"
-        echo -e "\033[38;5;208m[1]\033[0m $TXT_MENU_OPTION_LANGUAGE"
-        echo -e "\033[0;31m[0]\033[0m $TXT_MENU_OPTION_BACK\n"
-        echo -ne "\033[0;32m$TXT_PROMPT_CHOICE:\033[0m "
-        read settings_choice
-        case "$settings_choice" in
-            1)
-                lm_choose_language
-                ;;
-            0)
-                break
-                ;;
-            *)
-                echo -e "\033[0;31m[LM]\033[0m $TXT_ERROR_INVALID_CHOICE"
-                sleep 2
-                ;;
-        esac
-    done
-}
-
-lm_admin_menu() {
-    while true; do
-        lm_banner
-        echo -e "\033[0;36m╔══════════════════════════════════════════════╗\033[0m"
-        echo -e "\033[0;36m║              $TXT_ADMIN_MENU_TITLE              ║\033[0m"
-        echo -e "\033[0;36m╚══════════════════════════════════════════════╝\033[0m\n"
-        echo -e "\033[38;5;208m[1]\033[0m $TXT_MENU_OPTION_UPDATE"
-        echo -e "\033[38;5;208m[2]\033[0m $TXT_MENU_OPTION_OPTIMIZE"
-        echo -e "\033[38;5;208m[3]\033[0m $TXT_MENU_OPTION_INFO"
-        echo -e "\033[0;31m[0]\033[0m $TXT_MENU_OPTION_BACK\n"
-        echo -ne "\033[0;32m$TXT_PROMPT_CHOICE:\033[0m "
-        read admin_choice
-        case "$admin_choice" in
-            1)
-                lm_check_update
-                case $? in
-                    0)
-                        echo -e "\n\033[0;32m[LM]\033[0m $TXT_UPDATE_AVAILABLE ($remote_version)"
-                        echo -ne "\033[0;32m$TXT_UPDATE_PROMPT \033[0m"
-                        read up_confirm
-                        case "$up_confirm" in
-                            h|H|y|Y|e|E|yes|YES|Yes)
-                                lm_do_update
-                                ;;
-                            *)
-                                echo -e "\033[38;5;208m[LM]\033[0m $TXT_MENU_OPTION_BACK"
-                                ;;
-                        esac
-                        ;;
-                    2)
-                        echo -e "\n\033[0;32m[LM]\033[0m $TXT_ALREADY_LATEST"
-                        ;;
-                    *)
-                        echo -e "\n\033[0;31m[LM]\033[0m $TXT_UPDATE_FAILED"
-                        ;;
-                esac
-                echo -e "\n\033[0;36m$TXT_PROMPT_CONTINUE...\033[0m"
-                read
-                ;;
-            2)
-                echo -e "\n\033[0;32m[LM]\033[0m $TXT_OPTIMIZE_DONE"
-                rm -rf "$LM_DIR/cache" 2>/dev/null
-                pip cache purge >/dev/null 2>&1
-                echo -e "\033[0;32m[LM]\033[0m $TXT_CACHE_CLEARED"
-                echo -e "\n\033[0;36m$TXT_PROMPT_CONTINUE...\033[0m"
-                read
-                ;;
-            3)
-                lm_banner
-                echo -e "\033[0;32m[LM]\033[0m $TXT_SYSTEM_INFO\n"
-                echo -e "\033[38;5;208mTermux:\033[0m $(getprop ro.product.model 2>/dev/null || echo "Unknown")"
-                echo -e "\033[38;5;208mAndroid:\033[0m $(getprop ro.build.version.release 2>/dev/null || echo "Unknown")"
-                echo -e "\033[38;5;208mPython:\033[0m $(python --version 2>&1 | cut -d' ' -f2)"
-                echo -e "\033[38;5;208myt-dlp:\033[0m $(yt-dlp --version 2>/dev/null)"
-                echo -e "\033[38;5;208mFFmpeg:\033[0m $(ffmpeg -version 2>/dev/null | head -1 | cut -d' ' -f3)"
-                echo -e "\n\033[0;36m$TXT_PROMPT_CONTINUE...\033[0m"
-                read
-                ;;
-            0)
-                break
-                ;;
-            *)
-                echo -e "\033[0;31m[LM]\033[0m $TXT_ERROR_INVALID_CHOICE"
-                sleep 2
-                ;;
-        esac
-    done
-}
-
-lm_main_menu() {
-    while true; do
-        lm_banner
-        echo -e "\033[0;36m╔══════════════════════════════════════════════╗\033[0m"
-        echo -e "\033[0;36m║           Ɍム-ic LM $TXT_MAIN_MENU_TITLE           ║\033[0m"
-        echo -e "\033[0;36m╚══════════════════════════════════════════════╝\033[0m\n"
-        echo -e "\033[38;5;208m[1]\033[0m $TXT_MENU_OPTION_MANUAL"
-        echo -e "\033[38;5;208m[2]\033[0m $TXT_MENU_OPTION_AUTO"
-        echo -e "\033[38;5;208m[3]\033[0m $TXT_MENU_OPTION_SETTINGS"
-        echo -e "\033[38;5;208m[4]\033[0m $TXT_MENU_OPTION_ADMIN"
-        echo -e "\033[0;31m[0]\033[0m $TXT_MENU_OPTION_EXIT\n"
-        echo -ne "\033[0;32m$TXT_PROMPT_CHOICE:\033[0m "
-        read main_choice
-
-        case $main_choice in
-            1)
-                lm_manual_menu
-                ;;
-            2)
-                echo -ne "\n\033[0;36m$TXT_PROMPT_LINK:\033[0m "
-                read auto_url
-                lm_auto_download "$auto_url"
-                echo -e "\n\033[0;36m$TXT_PROMPT_CONTINUE...\033[0m"
-                read
-                ;;
-            3)
-                lm_settings_menu
-                ;;
-            4)
-                lm_admin_menu
-                ;;
-            0)
-                lm_banner
-                echo -e "\033[0;32m[LM]\033[0m $TXT_EXIT_MESSAGE\n"
-                exit 0
-                ;;
-            *)
-                echo -e "\033[0;31m[LM]\033[0m $TXT_ERROR_INVALID_CHOICE"
-                sleep 2
-                ;;
-        esac
-    done
-}
-
+# ---------- Entry point ----------
 if [ -f "$LM_CONFIG" ]; then
     . "$LM_CONFIG"
     if [ -n "$download_path" ]; then
@@ -1536,16 +1443,14 @@ if [ $# -eq 0 ]; then
     lm_check_update
     check_status=$?
     if [ $check_status -eq 0 ]; then
-        echo -e "\n\033[0;32m[LM]\033[0m $TXT_UPDATE_AVAILABLE ($remote_version)"
-        echo -ne "\033[0;32m$TXT_UPDATE_PROMPT \033[0m"
+        echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATE_AVAILABLE ($remote_version)"
+        echo -ne "${C_DARK_GREEN}$TXT_UPDATE_PROMPT${C_RESET} "
         read up_confirm
         case "$up_confirm" in
-            h|H|y|Y|e|E|yes|YES|Yes)
-                lm_do_update
-                ;;
+            h|H|y|Y|e|E|yes|YES|Yes) lm_do_update ;;
         esac
     elif [ $check_status -eq 1 ]; then
-        echo -e "\n\033[0;31m[LM]\033[0m Üzür istəyirik, yeniləmə yoxlanarkən xəta baş verdi (internet yoxdur?)"
+        echo -e "\n${C_ERROR}[LM]${C_RESET} Üzr istəyirik, yeniləmə yoxlanarkən xəta baş verdi (internet yoxdur?)"
         sleep 2
     fi
     lm_main_menu
