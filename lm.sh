@@ -10,7 +10,6 @@ LM_REPO_RAW="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/main/l
 
 LM_LANG="AZ"
 
-# ---------- Color definitions (dark theme) ----------
 C_RESET='\033[0m'
 C_DARK_ORANGE='\033[38;5;202m'
 C_DARK_BROWN='\033[38;5;94m'
@@ -20,7 +19,6 @@ C_PROMPT='\033[0;32m'
 C_ERROR='\033[0;31m'
 C_INFO='\033[0;36m'
 
-# ---------- Text variables (default AZ, later overwritten) ----------
 TXT_INSTALLER_TITLE=""
 TXT_INSTALL_PREP=""
 TXT_INSTALL_STORAGE=""
@@ -105,13 +103,13 @@ TXT_CACHE_CLEARED=""
 TXT_SYSTEM_INFO=""
 TXT_ALREADY_LATEST=""
 
-# New search strings
 TXT_SEARCH_TITLE=""
 TXT_SEARCH_PROMPT=""
 TXT_SEARCHING=""
 TXT_SEARCH_RESULTS=""
 TXT_SEARCH_SELECT=""
 TXT_SEARCH_NO_RESULTS=""
+TXT_SEARCH_AGAIN=""
 
 lm_set_lang_vars() {
     case "$LM_LANG" in
@@ -205,6 +203,7 @@ lm_set_lang_vars() {
             TXT_SEARCH_RESULTS="Axtarış nəticələri"
             TXT_SEARCH_SELECT="Nəticə nömrəsini seçin (1-10)"
             TXT_SEARCH_NO_RESULTS="Heç bir nəticə tapılmadı."
+            TXT_SEARCH_AGAIN="Yenidən axtarış etmək istəyirsiniz? (h/y)"
             ;;
         TR)
             TXT_INSTALLER_TITLE="Ɍム-ic LM Yükleyici"
@@ -296,6 +295,7 @@ lm_set_lang_vars() {
             TXT_SEARCH_RESULTS="Arama sonuçları"
             TXT_SEARCH_SELECT="Sonuç numarasını seçin (1-10)"
             TXT_SEARCH_NO_RESULTS="Hiçbir sonuç bulunamadı."
+            TXT_SEARCH_AGAIN="Yeniden aramak istiyor musunuz? (e/h)"
             ;;
         EN)
             TXT_INSTALLER_TITLE="Ɍム-ic LM Installer"
@@ -387,6 +387,7 @@ lm_set_lang_vars() {
             TXT_SEARCH_RESULTS="Search results"
             TXT_SEARCH_SELECT="Select result number (1-10)"
             TXT_SEARCH_NO_RESULTS="No results found."
+            TXT_SEARCH_AGAIN="Search again? (y/n)"
             ;;
         RU)
             TXT_INSTALLER_TITLE="Ɍム-ic LM Установщик"
@@ -478,6 +479,7 @@ lm_set_lang_vars() {
             TXT_SEARCH_RESULTS="Результаты поиска"
             TXT_SEARCH_SELECT="Выберите номер результата (1-10)"
             TXT_SEARCH_NO_RESULTS="Ничего не найдено."
+            TXT_SEARCH_AGAIN="Искать снова? (д/н)"
             ;;
         AR)
             TXT_INSTALLER_TITLE="Ɍム-ic LM المُثَبِّت"
@@ -569,6 +571,7 @@ lm_set_lang_vars() {
             TXT_SEARCH_RESULTS="نتائج البحث"
             TXT_SEARCH_SELECT="اختر رقم النتيجة (1-10)"
             TXT_SEARCH_NO_RESULTS="لم يتم العثور على نتائج."
+            TXT_SEARCH_AGAIN="هل تريد البحث مرة أخرى؟ (ن/خ)"
             ;;
         ZH)
             TXT_INSTALLER_TITLE="Ɍム-ic LM 安装程序"
@@ -660,6 +663,7 @@ lm_set_lang_vars() {
             TXT_SEARCH_RESULTS="搜索结果"
             TXT_SEARCH_SELECT="选择结果编号 (1-10)"
             TXT_SEARCH_NO_RESULTS="未找到结果。"
+            TXT_SEARCH_AGAIN="再次搜索？ (y/n)"
             ;;
         JA)
             TXT_INSTALLER_TITLE="Ɍム-ic LM インストーラー"
@@ -751,6 +755,7 @@ lm_set_lang_vars() {
             TXT_SEARCH_RESULTS="検索結果"
             TXT_SEARCH_SELECT="結果番号を選んでください (1-10)"
             TXT_SEARCH_NO_RESULTS="結果が見つかりませんでした。"
+            TXT_SEARCH_AGAIN="もう一度検索しますか？ (y/n)"
             ;;
         HI)
             TXT_INSTALLER_TITLE="Ɍム-ic LM इंस्टॉलर"
@@ -828,7 +833,7 @@ lm_set_lang_vars() {
             TXT_LANG_HI="हिंद भाषा"
             TXT_LANG_CHANGED="भाषा सफलतापूर्वक बदल दी गई"
             TXT_UPDATE_AVAILABLE="नया संस्करण उपलब्ध है!"
-            TXT_UPDATE_PROMPT="क्या आप अपडेट करना चाहते हैं? ( y/n )"
+            TXT_UPDATE_PROMPT="क्या आप अपडेट करना चाहते हैं? (y/n)"
             TXT_UPDATING="अपडेट हो रहा है..."
             TXT_UPDATE_SUCCESS="अपडेट पूरा हुआ! कृपया पुनः आरंभ करें।"
             TXT_UPDATE_FAILED="अपडेट विफल।"
@@ -842,6 +847,7 @@ lm_set_lang_vars() {
             TXT_SEARCH_RESULTS="खोज परिणाम"
             TXT_SEARCH_SELECT="परिणाम संख्या चुनें (1-10)"
             TXT_SEARCH_NO_RESULTS="कोई परिणाम नहीं मिला।"
+            TXT_SEARCH_AGAIN="पुनः खोजें? (y/n)"
             ;;
         *)
             LM_LANG="AZ"
@@ -852,7 +858,21 @@ lm_set_lang_vars() {
 
 lm_set_lang_vars
 
-# ---------- Spinner animation ----------
+lm_detect_platform() {
+    local url_lower=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+    if [[ $url_lower == *"instagram.com"* ]] || [[ $url_lower == *"instagr.am"* ]]; then
+        echo "instagram"
+    elif [[ $url_lower == *"tiktok.com"* ]] || [[ $url_lower == *"vm.tiktok.com"* ]] || [[ $url_lower == *"vt.tiktok.com"* ]] || [[ $url_lower == *"m.tiktok.com"* ]]; then
+        echo "tiktok"
+    elif [[ $url_lower == *"youtube.com/playlist"* ]] || { [[ $url_lower == *"list="* ]] && { [[ $url_lower == *"youtube.com"* ]] || [[ $url_lower == *"youtu.be"* ]]; }; }; then
+        echo "youtube_playlist"
+    elif [[ $url_lower == *"youtube.com"* ]] || [[ $url_lower == *"youtu.be"* ]]; then
+        echo "youtube"
+    else
+        echo "unknown"
+    fi
+}
+
 lm_spin() {
     local pid=$1
     local msg="$2"
@@ -864,6 +884,93 @@ lm_spin() {
         sleep 0.15
     done
     printf "\r${C_DARK_GREEN}[LM] ✓ %s                    ${C_RESET}\n" "$msg"
+}
+
+lm_setup_url_opener() {
+    mkdir -p "$HOME/bin"
+    cat > "$LM_OPENER" << 'EOF'
+#!/data/data/com.termux/files/usr/bin/bash
+lm "$1"
+EOF
+    chmod +x "$LM_OPENER"
+}
+
+lm_create_folders() {
+    mkdir -p "$LM_DOWNLOAD_BASE/Instagram/Video"
+    mkdir -p "$LM_DOWNLOAD_BASE/Instagram/Music"
+    mkdir -p "$LM_DOWNLOAD_BASE/TikTok/Video"
+    mkdir -p "$LM_DOWNLOAD_BASE/TikTok/Music"
+    mkdir -p "$LM_DOWNLOAD_BASE/YouTube/Video"
+    mkdir -p "$LM_DOWNLOAD_BASE/YouTube/Music"
+    mkdir -p "$LM_DOWNLOAD_BASE/YouTube/Playlist/Video"
+    mkdir -p "$LM_DOWNLOAD_BASE/YouTube/Playlist/Music"
+}
+
+lm_save_config() {
+    mkdir -p "$LM_DIR"
+    {
+        echo "installed=true"
+        echo "version=$LM_VERSION"
+        echo "download_path=$LM_DOWNLOAD_BASE"
+        echo "lang=$LM_LANG"
+    } > "$LM_CONFIG"
+}
+
+lm_choose_language() {
+    echo -e "\n${C_DARK_BLUE}$TXT_LANG_MENU_TITLE${C_RESET}"
+    echo -e "${C_DARK_GREEN}$TXT_LANG_MENU_DESC${C_RESET}\n"
+    echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_LANG_AZ"
+    echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_LANG_TR"
+    echo -e "${C_DARK_ORANGE}[3]${C_RESET} $TXT_LANG_EN"
+    echo -e "${C_DARK_ORANGE}[4]${C_RESET} $TXT_LANG_RU"
+    echo -e "${C_DARK_ORANGE}[5]${C_RESET} $TXT_LANG_AR"
+    echo -e "${C_DARK_ORANGE}[6]${C_RESET} $TXT_LANG_ZH"
+    echo -e "${C_DARK_ORANGE}[7]${C_RESET} $TXT_LANG_JA"
+    echo -e "${C_DARK_ORANGE}[8]${C_RESET} $TXT_LANG_HI\n"
+    echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+    read lang_choice
+    case "$lang_choice" in
+        1) LM_LANG="AZ" ;;
+        2) LM_LANG="TR" ;;
+        3) LM_LANG="EN" ;;
+        4) LM_LANG="RU" ;;
+        5) LM_LANG="AR" ;;
+        6) LM_LANG="ZH" ;;
+        7) LM_LANG="JA" ;;
+        8) LM_LANG="HI" ;;
+        *) LM_LANG="AZ" ;;
+    esac
+    lm_set_lang_vars
+    lm_save_config
+    echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_LANG_CHANGED\n"
+    sleep 1
+}
+
+lm_check_update() {
+    local remote_version
+    remote_version=$(curl -s "$LM_REPO_RAW" | grep "^LM_VERSION=" | head -1 | cut -d'"' -f2)
+    if [[ -z "$remote_version" ]]; then
+        return 1
+    fi
+    if [[ "$remote_version" != "$LM_VERSION" ]]; then
+        return 0
+    else
+        return 2
+    fi
+}
+
+lm_do_update() {
+    echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATING"
+    if curl -s "$LM_REPO_RAW" -o "$LM_BIN.tmp"; then
+        chmod +x "$LM_BIN.tmp"
+        mv "$LM_BIN.tmp" "$LM_BIN"
+        echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATE_SUCCESS"
+        exit 0
+    else
+        echo -e "${C_ERROR}[LM]${C_RESET} $TXT_UPDATE_FAILED"
+        rm -f "$LM_BIN.tmp"
+        return 1
+    fi
 }
 
 lm_banner() {
@@ -885,74 +992,6 @@ lm_run_step() {
     lm_spin $! "$message"
 }
 
-# ---------- Search function ----------
-lm_search_menu() {
-    lm_banner
-    echo -e "${C_DARK_BLUE}╔══════════════════════════════════════════════╗"
-    echo -e "║              $TXT_SEARCH_TITLE                     ║"
-    echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
-    echo -ne "${C_PROMPT}$TXT_SEARCH_PROMPT:${C_RESET} "
-    read query
-    if [[ -z "$query" ]]; then
-        echo -e "\n${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"
-        sleep 1
-        return
-    fi
-
-    echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_SEARCHING"
-    # Run search in background to show spinner
-    yt-dlp -O "%(id)s|%(title)s" "ytsearch10:${query}" 2>/dev/null > "$LM_DIR/search_results.tmp" &
-    local pid=$!
-    lm_spin $pid "$TXT_SEARCHING"
-    wait $pid
-
-    mapfile -t results < "$LM_DIR/search_results.tmp"
-    rm -f "$LM_DIR/search_results.tmp"
-
-    if [ ${#results[@]} -eq 0 ]; then
-        echo -e "\n${C_ERROR}[LM]${C_RESET} $TXT_SEARCH_NO_RESULTS"
-        echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
-        read
-        return
-    fi
-
-    echo -e "\n${C_DARK_BLUE}─── $TXT_SEARCH_RESULTS ───${C_RESET}\n"
-    local i=1
-    for line in "${results[@]}"; do
-        id="${line%%|*}"
-        title="${line#*|}"
-        printf "${C_DARK_ORANGE}[%2d]${C_RESET} %s\n" $i "$title"
-        eval "ID_$i='$id'"
-        ((i++))
-        [ $i -gt 10 ] && break
-    done
-
-    echo -ne "\n${C_PROMPT}$TXT_SEARCH_SELECT:${C_RESET} "
-    read num
-    if ! [[ "$num" =~ ^[1-9]$|^10$ ]]; then
-        echo -e "\n${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"
-        echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
-        read
-        return
-    fi
-
-    eval "selected_id=\$ID_$num"
-    video_url="https://youtu.be/$selected_id"
-    echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_YT_SINGLE"
-    echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
-    echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD"
-    echo -ne "\n${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
-    read vtype
-    case "$vtype" in
-        1) lm_download_youtube_single "$video_url" "video" ;;
-        2) lm_download_youtube_single "$video_url" "audio" ;;
-        *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
-    esac
-    echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
-    read
-}
-
-# ---------- All existing download functions remain unchanged ----------
 lm_download_instagram() {
     local url="$1"
     local type="$2"
@@ -1021,7 +1060,72 @@ lm_download_youtube_playlist() {
     echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
 }
 
-# ---------- Menus (adjusted color scheme) ----------
+lm_search_menu() {
+    while true; do
+        lm_banner
+        echo -e "${C_DARK_BLUE}╔══════════════════════════════════════════════╗"
+        echo -e "║              $TXT_SEARCH_TITLE                     ║"
+        echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
+        echo -ne "${C_PROMPT}$TXT_SEARCH_PROMPT:${C_RESET} "
+        read query
+        if [[ -z "$query" ]]; then
+            echo -e "\n${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"
+            sleep 1
+            continue
+        fi
+
+        echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_SEARCHING"
+        yt-dlp -O "%(id)s|%(title)s" "ytsearch10:${query}" 2>/dev/null > "$LM_DIR/search_results.tmp" &
+        local pid=$!
+        lm_spin $pid "$TXT_SEARCHING"
+        wait $pid
+
+        mapfile -t results < "$LM_DIR/search_results.tmp"
+        rm -f "$LM_DIR/search_results.tmp"
+
+        if [ ${#results[@]} -eq 0 ]; then
+            echo -e "\n${C_ERROR}[LM]${C_RESET} $TXT_SEARCH_NO_RESULTS"
+        else
+            echo -e "\n${C_DARK_BLUE}─── $TXT_SEARCH_RESULTS ───${C_RESET}\n"
+            local i=1
+            for line in "${results[@]}"; do
+                id="${line%%|*}"
+                title="${line#*|}"
+                printf "${C_DARK_ORANGE}[%2d]${C_RESET} %s\n" $i "$title"
+                eval "ID_$i='$id'"
+                ((i++))
+                [ $i -gt 10 ] && break
+            done
+
+            echo -ne "\n${C_PROMPT}$TXT_SEARCH_SELECT:${C_RESET} "
+            read num
+            if [[ "$num" =~ ^[1-9]$|^10$ ]]; then
+                eval "selected_id=\$ID_$num"
+                video_url="https://youtu.be/$selected_id"
+                echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_YT_SINGLE"
+                echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
+                echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD"
+                echo -ne "\n${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+                read vtype
+                case "$vtype" in
+                    1) lm_download_youtube_single "$video_url" "video" ;;
+                    2) lm_download_youtube_single "$video_url" "audio" ;;
+                    *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
+                esac
+            else
+                echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"
+            fi
+        fi
+
+        echo -ne "\n${C_PROMPT}$TXT_SEARCH_AGAIN${C_RESET} "
+        read again
+        case "$again" in
+            h|H|y|Y|e|E|yes|YES|Yes) continue ;;
+            *) break ;;
+        esac
+    done
+}
+
 lm_manual_menu() {
     while true; do
         lm_banner
@@ -1117,48 +1221,6 @@ lm_manual_menu() {
         esac
     done
 }
-
-lm_main_menu() {
-    while true; do
-        lm_banner
-        echo -e "${C_DARK_BLUE}╔══════════════════════════════════════════════╗"
-        echo -e "║           Ɍム-ic LM $TXT_MAIN_MENU_TITLE           ║"
-        echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
-        echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_MENU_OPTION_MANUAL"
-        echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_MENU_OPTION_AUTO"
-        echo -e "${C_DARK_ORANGE}[3]${C_RESET} $TXT_MENU_OPTION_SETTINGS"
-        echo -e "${C_DARK_ORANGE}[4]${C_RESET} $TXT_MENU_OPTION_ADMIN"
-        echo -e "${C_DARK_ORANGE}[5]${C_RESET} $TXT_MENU_OPTION_SEARCH"
-        echo -e "${C_DARK_BROWN}[0]${C_RESET} $TXT_MENU_OPTION_EXIT\n"
-        echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
-        read main_choice
-
-        case $main_choice in
-            1) lm_manual_menu ;;
-            2)
-                echo -ne "\n${C_PROMPT}$TXT_PROMPT_LINK:${C_RESET} "
-                read auto_url
-                lm_auto_download "$auto_url"
-                echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
-                read
-                ;;
-            3) lm_settings_menu ;;
-            4) lm_admin_menu ;;
-            5) lm_search_menu ;;
-            0)
-                lm_banner
-                echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_EXIT_MESSAGE\n"
-                exit 0
-                ;;
-            *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 2 ;;
-        esac
-    done
-}
-
-# ---------- Rest of the script unchanged ----------
-# (lm_auto_download, lm_settings_menu, lm_admin_menu, lm_install, etc.)
-# They are identical to original except using new color variables.
-# Insert the rest of the original functions below with color replacements.
 
 lm_auto_download() {
     local url="$1"
@@ -1299,92 +1361,41 @@ lm_admin_menu() {
     done
 }
 
-# ---------- Existing helper functions (unchanged except color variables) ----------
-lm_setup_url_opener() {
-    mkdir -p "$HOME/bin"
-    cat > "$LM_OPENER" << 'EOF'
-#!/data/data/com.termux/files/usr/bin/bash
-lm "$1"
-EOF
-    chmod +x "$LM_OPENER"
-}
+lm_main_menu() {
+    while true; do
+        lm_banner
+        echo -e "${C_DARK_BLUE}╔══════════════════════════════════════════════╗"
+        echo -e "║           Ɍム-ic LM $TXT_MAIN_MENU_TITLE           ║"
+        echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
+        echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_MENU_OPTION_MANUAL"
+        echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_MENU_OPTION_AUTO"
+        echo -e "${C_DARK_ORANGE}[3]${C_RESET} $TXT_MENU_OPTION_SETTINGS"
+        echo -e "${C_DARK_ORANGE}[4]${C_RESET} $TXT_MENU_OPTION_ADMIN"
+        echo -e "${C_DARK_ORANGE}[5]${C_RESET} $TXT_MENU_OPTION_SEARCH"
+        echo -e "${C_DARK_BROWN}[0]${C_RESET} $TXT_MENU_OPTION_EXIT\n"
+        echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+        read main_choice
 
-lm_create_folders() {
-    mkdir -p "$LM_DOWNLOAD_BASE/Instagram/Video"
-    mkdir -p "$LM_DOWNLOAD_BASE/Instagram/Music"
-    mkdir -p "$LM_DOWNLOAD_BASE/TikTok/Video"
-    mkdir -p "$LM_DOWNLOAD_BASE/TikTok/Music"
-    mkdir -p "$LM_DOWNLOAD_BASE/YouTube/Video"
-    mkdir -p "$LM_DOWNLOAD_BASE/YouTube/Music"
-    mkdir -p "$LM_DOWNLOAD_BASE/YouTube/Playlist/Video"
-    mkdir -p "$LM_DOWNLOAD_BASE/YouTube/Playlist/Music"
-}
-
-lm_save_config() {
-    mkdir -p "$LM_DIR"
-    {
-        echo "installed=true"
-        echo "version=$LM_VERSION"
-        echo "download_path=$LM_DOWNLOAD_BASE"
-        echo "lang=$LM_LANG"
-    } > "$LM_CONFIG"
-}
-
-lm_choose_language() {
-    echo -e "\n${C_DARK_BLUE}$TXT_LANG_MENU_TITLE${C_RESET}"
-    echo -e "${C_DARK_GREEN}$TXT_LANG_MENU_DESC${C_RESET}\n"
-    echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_LANG_AZ"
-    echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_LANG_TR"
-    echo -e "${C_DARK_ORANGE}[3]${C_RESET} $TXT_LANG_EN"
-    echo -e "${C_DARK_ORANGE}[4]${C_RESET} $TXT_LANG_RU"
-    echo -e "${C_DARK_ORANGE}[5]${C_RESET} $TXT_LANG_AR"
-    echo -e "${C_DARK_ORANGE}[6]${C_RESET} $TXT_LANG_ZH"
-    echo -e "${C_DARK_ORANGE}[7]${C_RESET} $TXT_LANG_JA"
-    echo -e "${C_DARK_ORANGE}[8]${C_RESET} $TXT_LANG_HI\n"
-    echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
-    read lang_choice
-    case "$lang_choice" in
-        1) LM_LANG="AZ" ;;
-        2) LM_LANG="TR" ;;
-        3) LM_LANG="EN" ;;
-        4) LM_LANG="RU" ;;
-        5) LM_LANG="AR" ;;
-        6) LM_LANG="ZH" ;;
-        7) LM_LANG="JA" ;;
-        8) LM_LANG="HI" ;;
-        *) LM_LANG="AZ" ;;
-    esac
-    lm_set_lang_vars
-    lm_save_config
-    echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_LANG_CHANGED\n"
-    sleep 1
-}
-
-lm_check_update() {
-    local remote_version
-    remote_version=$(curl -s "$LM_REPO_RAW" | grep "^LM_VERSION=" | head -1 | cut -d'"' -f2)
-    if [[ -z "$remote_version" ]]; then
-        return 1
-    fi
-    if [[ "$remote_version" != "$LM_VERSION" ]]; then
-        return 0
-    else
-        return 2
-    fi
-}
-
-lm_do_update() {
-    echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATING"
-    if curl -s "$LM_REPO_RAW" -o "$LM_BIN.tmp"; then
-        chmod +x "$LM_BIN.tmp"
-        mv "$LM_BIN.tmp" "$LM_BIN"
-        echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATE_SUCCESS"
-        exit 0
-    else
-        echo -e "${C_ERROR}[LM]${C_RESET} $TXT_UPDATE_FAILED"
-        rm -f "$LM_BIN.tmp"
-        return 1
-    fi
+        case $main_choice in
+            1) lm_manual_menu ;;
+            2)
+                echo -ne "\n${C_PROMPT}$TXT_PROMPT_LINK:${C_RESET} "
+                read auto_url
+                lm_auto_download "$auto_url"
+                echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
+                read
+                ;;
+            3) lm_settings_menu ;;
+            4) lm_admin_menu ;;
+            5) lm_search_menu ;;
+            0)
+                lm_banner
+                echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_EXIT_MESSAGE\n"
+                exit 0
+                ;;
+            *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 2 ;;
+        esac
+    done
 }
 
 lm_install() {
@@ -1422,7 +1433,6 @@ lm_install() {
     sleep 3
 }
 
-# ---------- Entry point ----------
 if [ -f "$LM_CONFIG" ]; then
     . "$LM_CONFIG"
     if [ -n "$download_path" ]; then
