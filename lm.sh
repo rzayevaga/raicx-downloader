@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-LM_VERSION="LM-V20.8"
+LM_VERSION="LM-V21.0"
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
