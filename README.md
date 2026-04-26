@@ -26,7 +26,7 @@ Məqsəd: reklamsız, ağır tətbiqlərsiz, sadə bir terminal paneli ilə ist�
     - Playlist (bütün video və ya bütün audio)
 
 - 🔄 **Auto-share dəstəyi:**
-  - İstənilən tətbiqdən “Paylaş / Share → Termux” edərək linki birbaşa `rxd` panelinə ötürmə
+  - İstənilən tətbiqdən “Paylaş / Share → Termux” edərək linki birbaşa `lm` panelinə ötürmə
 
 - 🌐 **Çoxdilli sistem:**
   - Azərbaycan dili (defolt)
@@ -132,6 +132,6 @@ Repo-ya star verə bilərsən
 Bug / xəta ilə qarşılaşsan, Issues bölməsindən yaza bilərsən
 
 
-Ɍム-ic [✘] Downloader – sadəcə rxd yaz, qalanını özü həll edir.
+Ɍム-ic [✘] Downloader – sadəcə lm yaz, qalanını özü həll edir.
 
 > License: Custom, All Rights Reserved – personal use only, no modification or redistribution without permission.
