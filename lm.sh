@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-LM_VERSION="LM-V22.1"
+LM_VERSION="LM-V22.2"
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
@@ -1347,14 +1347,35 @@ lm_admin_menu() {
             3)
                 lm_banner
                 echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_SYSTEM_INFO\n"
-                echo -e "${C_DARK_ORANGE}Termux:${C_RESET} $(getprop ro.product.model 2>/dev/null || echo "Unknown")"
-                echo -e "${C_DARK_ORANGE}Android:${C_RESET} $(getprop ro.build.version.release 2>/dev/null || echo "Unknown")"
+
+                echo -e "${C_DARK_ORANGE}Device Model:${C_RESET} $(getprop ro.product.model 2>/dev/null || echo 'N/A')"
+                echo -e "${C_DARK_ORANGE}Manufacturer:${C_RESET} $(getprop ro.product.manufacturer 2>/dev/null || echo 'N/A')"
+                echo -e "${C_DARK_ORANGE}Android Version:${C_RESET} $(getprop ro.build.version.release 2>/dev/null || echo 'N/A')"
+                echo -e "${C_DARK_ORANGE}SDK Level:${C_RESET} $(getprop ro.build.version.sdk 2>/dev/null || echo 'N/A')"
+                echo -e "${C_DARK_ORANGE}Architecture:${C_RESET} $(uname -m)"
+                echo -e "${C_DARK_ORANGE}CPU Cores:${C_RESET} $(nproc)"
+
+                local load=$(cat /proc/loadavg 2>/dev/null | awk '{print $1, $2, $3}')
+                [[ -n "$load" ]] && echo -e "${C_DARK_ORANGE}CPU Load (1,5,15 min):${C_RESET} $load"
+
+                echo -e "${C_DARK_ORANGE}RAM Usage:${C_RESET}"
+                free -h | grep -v "Swap" | sed 's/^/  /'
+
+                echo -e "${C_DARK_ORANGE}Storage (/data):${C_RESET}"
+                df -h /data 2>/dev/null | tail -1 | awk '{print "  Total: "$2" Used: "$3" Free: "$4" Use%: "$5}'
+
+                echo -e "${C_DARK_ORANGE}Shell:${C_RESET} ${SHELL}"
+                echo -e "${C_DARK_ORANGE}Termux Version:${C_RESET} ${TERMUX_VERSION:-N/A}"
+
                 echo -e "${C_DARK_ORANGE}Python:${C_RESET} $(python --version 2>&1 | cut -d' ' -f2)"
-                echo -e "${C_DARK_ORANGE}yt-dlp:${C_RESET} $(yt-dlp --version 2>/dev/null)"
-                echo -e "${C_DARK_ORANGE}FFmpeg:${C_RESET} $(ffmpeg -version 2>/dev/null | head -1 | cut -d' ' -f3)"
+                echo -e "${C_DARK_ORANGE}yt-dlp:${C_RESET} $(yt-dlp --version 2>/dev/null || echo 'Not installed')"
+                echo -e "${C_DARK_ORANGE}FFmpeg:${C_RESET} $(ffmpeg -version 2>/dev/null | head -1 | cut -d' ' -f3 || echo 'Not installed')"
+                echo -e "${C_DARK_ORANGE}gallery-dl:${C_RESET} $(gallery-dl --version 2>/dev/null || echo 'Not installed')"
+                echo -e "${C_DARK_ORANGE}pip:${C_RESET} $(pip --version 2>/dev/null | awk '{print $2}')"
+
                 echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
                 read
-                ;;
+                ;;             
             0) break ;;
             *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 2 ;;
         esac
