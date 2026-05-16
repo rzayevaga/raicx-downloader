@@ -1,14 +1,22 @@
 #!/data/data/com.termux/files/usr/bin/bash
+set -o pipefail
 
-LM_VERSION="LM-V22.2"
+LM_VERSION="LM-V22.4"
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
 LM_OPENER="$HOME/bin/termux-url-opener"
 LM_DOWNLOAD_BASE="/sdcard/raicXD"
 LM_REPO_RAW="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/main/lm.sh"
-
 LM_LANG="AZ"
+LM_REMOTE_VERSION=""
+
+SOURCE_PATH="${BASH_SOURCE[0]:-$0}"
+SCRIPT_DIR="$(cd "$(dirname "$SOURCE_PATH")" && pwd)"
+LM_LANG_SOURCE="$LM_DIR/lm_lang.sh"
+if [ -f "$SCRIPT_DIR/lm_lang.sh" ]; then
+    LM_LANG_SOURCE="$SCRIPT_DIR/lm_lang.sh"
+fi
 
 C_RESET='\033[0m'
 C_DARK_ORANGE='\033[38;5;202m'
@@ -19,847 +27,14 @@ C_PROMPT='\033[0;32m'
 C_ERROR='\033[0;31m'
 C_INFO='\033[0;36m'
 
-TXT_INSTALLER_TITLE=""
-TXT_INSTALL_PREP=""
-TXT_INSTALL_STORAGE=""
-TXT_STEP_UPDATE_PKGS=""
-TXT_STEP_INSTALL_PYTHON=""
-TXT_STEP_INSTALL_FFMPEG=""
-TXT_STEP_INSTALL_GIT=""
-TXT_STEP_UPDATE_YTDLP=""
-TXT_STEP_UPDATE_INSTALOADER=""
-TXT_STEP_UPDATE_GDL=""
-TXT_STEP_CREATE_DIRS=""
-TXT_STEP_SETUP_URL_OPENER=""
-TXT_INSTALL_SUCCESS_LINE1=""
-TXT_INSTALL_SUCCESS_LINE2=""
-TXT_INSTALL_SUCCESS_LINE3=""
-
-TXT_MAIN_MENU_TITLE=""
-TXT_MANUAL_MENU_TITLE=""
-TXT_AUTO_MENU_TITLE=""
-TXT_SETTINGS_MENU_TITLE=""
-TXT_ADMIN_MENU_TITLE=""
-TXT_MENU_OPTION_MANUAL=""
-TXT_MENU_OPTION_AUTO=""
-TXT_MENU_OPTION_SETTINGS=""
-TXT_MENU_OPTION_ADMIN=""
-TXT_MENU_OPTION_EXIT=""
-TXT_MENU_OPTION_BACK=""
-TXT_MENU_OPTION_LANGUAGE=""
-TXT_MENU_OPTION_UPDATE=""
-TXT_MENU_OPTION_OPTIMIZE=""
-TXT_MENU_OPTION_INFO=""
-TXT_MENU_OPTION_SEARCH=""
-TXT_PROMPT_CHOICE=""
-TXT_PROMPT_LINK=""
-TXT_PROMPT_INSTAGRAM_LINK=""
-TXT_PROMPT_TIKTOK_LINK=""
-TXT_PROMPT_YT_SINGLE_LINK=""
-TXT_PROMPT_YT_PLAYLIST_LINK=""
-TXT_PROMPT_CONTINUE=""
-TXT_ERROR_INVALID_CHOICE=""
-TXT_EXIT_MESSAGE=""
-TXT_AUTO_PLATFORM_INSTAGRAM=""
-TXT_AUTO_PLATFORM_TIKTOK=""
-TXT_AUTO_PLATFORM_YT_SINGLE=""
-TXT_AUTO_PLATFORM_YT_PLAYLIST=""
-TXT_PLATFORM_UNKNOWN=""
-TXT_SUPPORTED_PLATFORMS=""
-TXT_MENU_YT_MODE_TITLE=""
-TXT_MENU_YT_MODE_SINGLE=""
-TXT_MENU_YT_MODE_PLAYLIST=""
-TXT_OPTION_VIDEO_DOWNLOAD=""
-TXT_OPTION_AUDIO_DOWNLOAD=""
-TXT_OPTION_PLAYLIST_VIDEO=""
-TXT_OPTION_PLAYLIST_AUDIO=""
-TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO=""
-TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO=""
-TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO=""
-TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO=""
-TXT_DOWNLOAD_STARTED_YT_VIDEO=""
-TXT_DOWNLOAD_STARTED_YT_AUDIO=""
-TXT_DOWNLOAD_STARTED_YTPL_VIDEO=""
-TXT_DOWNLOAD_STARTED_YTPL_AUDIO=""
-TXT_DOWNLOAD_DONE_PREFIX=""
-TXT_LANG_MENU_TITLE=""
-TXT_LANG_MENU_DESC=""
-TXT_LANG_AZ=""
-TXT_LANG_TR=""
-TXT_LANG_EN=""
-TXT_LANG_RU=""
-TXT_LANG_AR=""
-TXT_LANG_ZH=""
-TXT_LANG_JA=""
-TXT_LANG_HI=""
-TXT_LANG_CHANGED=""
-TXT_UPDATE_AVAILABLE=""
-TXT_UPDATE_PROMPT=""
-TXT_UPDATING=""
-TXT_UPDATE_SUCCESS=""
-TXT_UPDATE_FAILED=""
-TXT_OPTIMIZE_DONE=""
-TXT_CACHE_CLEARED=""
-TXT_SYSTEM_INFO=""
-TXT_ALREADY_LATEST=""
-
-TXT_SEARCH_TITLE=""
-TXT_SEARCH_PROMPT=""
-TXT_SEARCHING=""
-TXT_SEARCH_RESULTS=""
-TXT_SEARCH_SELECT=""
-TXT_SEARCH_NO_RESULTS=""
-TXT_SEARCH_AGAIN=""
-
-lm_set_lang_vars() {
-    case "$LM_LANG" in
-        AZ)
-            TXT_INSTALLER_TITLE="Ɍム-ic LM Quraşdırıcı"
-            TXT_INSTALL_PREP="Hazırlıq gedir"
-            TXT_INSTALL_STORAGE="Storage icazəsi tələb olunur"
-            TXT_STEP_UPDATE_PKGS="Paketlər yenilənir"
-            TXT_STEP_INSTALL_PYTHON="Python quraşdırılır"
-            TXT_STEP_INSTALL_FFMPEG="FFmpeg quraşdırılır"
-            TXT_STEP_INSTALL_GIT="Git quraşdırılır"
-            TXT_STEP_UPDATE_YTDLP="yt-dlp yenilənir"
-            TXT_STEP_UPDATE_INSTALOADER="instaloader yenilənir"
-            TXT_STEP_UPDATE_GDL="gallery-dl yenilənir"
-            TXT_STEP_CREATE_DIRS="Qovluqlar yaradılır"
-            TXT_STEP_SETUP_URL_OPENER="Termux URL Opener quraşdırılır"
-            TXT_INSTALL_SUCCESS_LINE1="Ɍム-ic LM UĞURLA QURAŞDIRILDI!"
-            TXT_INSTALL_SUCCESS_LINE2="İndi terminalda lm yazaraq panelə daxil ola bilərsiniz."
-            TXT_INSTALL_SUCCESS_LINE3="Həmçinin istənilən linki Termux ilə paylaşa bilərsiniz."
-
-            TXT_MAIN_MENU_TITLE="ƏSAS PANEL"
-            TXT_MANUAL_MENU_TITLE="MANUAL YÜKLƏMƏ"
-            TXT_AUTO_MENU_TITLE="AUTO YÜKLƏMƏ"
-            TXT_SETTINGS_MENU_TITLE="PARAMETRLƏR"
-            TXT_ADMIN_MENU_TITLE="ADMIN PANELİ"
-            TXT_MENU_OPTION_MANUAL="Manual Yükləmə"
-            TXT_MENU_OPTION_AUTO="Auto Yükləmə"
-            TXT_MENU_OPTION_SETTINGS="Parametrlər"
-            TXT_MENU_OPTION_ADMIN="Admin Panel"
-            TXT_MENU_OPTION_EXIT="Çıxış"
-            TXT_MENU_OPTION_BACK="Geri"
-            TXT_MENU_OPTION_LANGUAGE="Dil"
-            TXT_MENU_OPTION_UPDATE="Güncəlləməni Yoxla"
-            TXT_MENU_OPTION_OPTIMIZE="Optimallaşdır"
-            TXT_MENU_OPTION_INFO="Sistem Məlumatı"
-            TXT_MENU_OPTION_SEARCH="Axtar"
-            TXT_PROMPT_CHOICE="Seçim edin"
-            TXT_PROMPT_LINK="Link daxil edin"
-            TXT_PROMPT_INSTAGRAM_LINK="Instagram link daxil edin"
-            TXT_PROMPT_TIKTOK_LINK="TikTok link daxil edin"
-            TXT_PROMPT_YT_SINGLE_LINK="YouTube video link daxil edin"
-            TXT_PROMPT_YT_PLAYLIST_LINK="YouTube Playlist link daxil edin"
-            TXT_PROMPT_CONTINUE="Davam etmək üçün Enter basın"
-            TXT_ERROR_INVALID_CHOICE="Səhv seçim!"
-            TXT_EXIT_MESSAGE="Sağ olun!"
-            TXT_AUTO_PLATFORM_INSTAGRAM="Platform: Instagram"
-            TXT_AUTO_PLATFORM_TIKTOK="Platform: TikTok"
-            TXT_AUTO_PLATFORM_YT_SINGLE="Platform: YouTube (Tək Video)"
-            TXT_AUTO_PLATFORM_YT_PLAYLIST="Platform: YouTube Playlist"
-            TXT_PLATFORM_UNKNOWN="Platform tanınmadı!"
-            TXT_SUPPORTED_PLATFORMS="Dəstəklənən platformalar: Instagram, TikTok, YouTube"
-            TXT_MENU_YT_MODE_TITLE="YouTube rejimi seçin"
-            TXT_MENU_YT_MODE_SINGLE="Tək Video"
-            TXT_MENU_YT_MODE_PLAYLIST="Playlist"
-            TXT_OPTION_VIDEO_DOWNLOAD="Video yüklə"
-            TXT_OPTION_AUDIO_DOWNLOAD="Musiqi yüklə (MP3)"
-            TXT_OPTION_PLAYLIST_VIDEO="Playlist Video yüklə"
-            TXT_OPTION_PLAYLIST_AUDIO="Playlist Musiqi yüklə (MP3)"
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="Instagram video yükləmə başlayır..."
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="Instagram musiqi yükləmə başlayır..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="TikTok video yükləmə başlayır..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="TikTok musiqi yükləmə başlayır..."
-            TXT_DOWNLOAD_STARTED_YT_VIDEO="YouTube video yükləmə başlayır..."
-            TXT_DOWNLOAD_STARTED_YT_AUDIO="YouTube musiqi (MP3) yükləmə başlayır..."
-            TXT_DOWNLOAD_STARTED_YTPL_VIDEO="YouTube Playlist video yükləmə başlayır..."
-            TXT_DOWNLOAD_STARTED_YTPL_AUDIO="YouTube Playlist musiqi (MP3) yükləmə başlayır..."
-            TXT_DOWNLOAD_DONE_PREFIX="Yükləmə tamamlandı"
-            TXT_LANG_MENU_TITLE="Dil seçimi"
-            TXT_LANG_MENU_DESC="Zəhmət olmasa dil seçin"
-            TXT_LANG_AZ="Azərbaycan dili"
-            TXT_LANG_TR="Türkçe"
-            TXT_LANG_EN="English"
-            TXT_LANG_RU="Русский"
-            TXT_LANG_AR="اللغة العربية"
-            TXT_LANG_ZH="中國人"
-            TXT_LANG_JA="日本語"
-            TXT_LANG_HI="हिंद भाषा"
-            TXT_LANG_CHANGED="Dil uğurla dəyişdirildi"
-            TXT_UPDATE_AVAILABLE="Yeni versiya mövcuddur!"
-            TXT_UPDATE_PROMPT="Yeniləmək istəyirsiniz? (h/y)"
-            TXT_UPDATING="Yeniləmə aparılır..."
-            TXT_UPDATE_SUCCESS="Yeniləmə tamamlandı! Zəhmət olmasa yenidən başladın."
-            TXT_UPDATE_FAILED="Yeniləmə uğursuz oldu."
-            TXT_OPTIMIZE_DONE="Optimallaşdırma tamamlandı."
-            TXT_CACHE_CLEARED="Keş təmizləndi."
-            TXT_SYSTEM_INFO="Sistem Məlumatı"
-            TXT_ALREADY_LATEST="Ən son versiyadan istifadə edirsiniz."
-            TXT_SEARCH_TITLE="Axtarış"
-            TXT_SEARCH_PROMPT="Mahnı / axtarış sözünü daxil edin"
-            TXT_SEARCHING="Axtarılır..."
-            TXT_SEARCH_RESULTS="Axtarış nəticələri"
-            TXT_SEARCH_SELECT="Nəticə nömrəsini seçin (1-10)"
-            TXT_SEARCH_NO_RESULTS="Heç bir nəticə tapılmadı."
-            TXT_SEARCH_AGAIN="Yenidən axtarış etmək istəyirsiniz? (h/y)"
-            ;;
-        TR)
-            TXT_INSTALLER_TITLE="Ɍム-ic LM Yükleyici"
-            TXT_INSTALL_PREP="Hazırlık yapılıyor"
-            TXT_INSTALL_STORAGE="Depolama izni gerekiyor"
-            TXT_STEP_UPDATE_PKGS="Paketler güncelleniyor"
-            TXT_STEP_INSTALL_PYTHON="Python kuruluyor"
-            TXT_STEP_INSTALL_FFMPEG="FFmpeg kuruluyor"
-            TXT_STEP_INSTALL_GIT="Git kuruluyor"
-            TXT_STEP_UPDATE_YTDLP="yt-dlp güncelleniyor"
-            TXT_STEP_UPDATE_INSTALOADER="instaloader güncelleniyor"
-            TXT_STEP_UPDATE_GDL="gallery-dl güncelleniyor"
-            TXT_STEP_CREATE_DIRS="Klasörler oluşturuluyor"
-            TXT_STEP_SETUP_URL_OPENER="Termux URL Opener ayarlanıyor"
-            TXT_INSTALL_SUCCESS_LINE1="Ɍム-ic LM BAŞARIYLA KURULDU!"
-            TXT_INSTALL_SUCCESS_LINE2="Artık terminalde lm yazarak panele girebilirsiniz."
-            TXT_INSTALL_SUCCESS_LINE3="Ayrıca herhangi bir linki Termux ile paylaşabilirsiniz."
-
-            TXT_MAIN_MENU_TITLE="ANA PANEL"
-            TXT_MANUAL_MENU_TITLE="MANUEL İNDİRME"
-            TXT_AUTO_MENU_TITLE="OTOMATİK İNDİRME"
-            TXT_SETTINGS_MENU_TITLE="AYARLAR"
-            TXT_ADMIN_MENU_TITLE="ADMIN PANELİ"
-            TXT_MENU_OPTION_MANUAL="Manuel İndirme"
-            TXT_MENU_OPTION_AUTO="Otomatik İndirme"
-            TXT_MENU_OPTION_SETTINGS="Ayarlar"
-            TXT_MENU_OPTION_ADMIN="Admin Panel"
-            TXT_MENU_OPTION_EXIT="Çıkış"
-            TXT_MENU_OPTION_BACK="Geri"
-            TXT_MENU_OPTION_LANGUAGE="Dil"
-            TXT_MENU_OPTION_UPDATE="Güncellemeyi Kontrol Et"
-            TXT_MENU_OPTION_OPTIMIZE="Optimize Et"
-            TXT_MENU_OPTION_INFO="Sistem Bilgisi"
-            TXT_MENU_OPTION_SEARCH="Ara"
-            TXT_PROMPT_CHOICE="Seçim yapın"
-            TXT_PROMPT_LINK="Link girin"
-            TXT_PROMPT_INSTAGRAM_LINK="Instagram link girin"
-            TXT_PROMPT_TIKTOK_LINK="TikTok link girin"
-            TXT_PROMPT_YT_SINGLE_LINK="YouTube video link girin"
-            TXT_PROMPT_YT_PLAYLIST_LINK="YouTube Playlist link girin"
-            TXT_PROMPT_CONTINUE="Devam etmek için Enter'a basın"
-            TXT_ERROR_INVALID_CHOICE="Hatalı seçim!"
-            TXT_EXIT_MESSAGE="Hoşçakal!"
-            TXT_AUTO_PLATFORM_INSTAGRAM="Platform: Instagram"
-            TXT_AUTO_PLATFORM_TIKTOK="Platform: TikTok"
-            TXT_AUTO_PLATFORM_YT_SINGLE="Platform: YouTube (Tek Video)"
-            TXT_AUTO_PLATFORM_YT_PLAYLIST="Platform: YouTube Playlist"
-            TXT_PLATFORM_UNKNOWN="Platform tanınmadı!"
-            TXT_SUPPORTED_PLATFORMS="Desteklenen platformlar: Instagram, TikTok, YouTube"
-            TXT_MENU_YT_MODE_TITLE="YouTube modunu seçin"
-            TXT_MENU_YT_MODE_SINGLE="Tek Video"
-            TXT_MENU_YT_MODE_PLAYLIST="Playlist"
-            TXT_OPTION_VIDEO_DOWNLOAD="Video indir"
-            TXT_OPTION_AUDIO_DOWNLOAD="Müzik indir (MP3)"
-            TXT_OPTION_PLAYLIST_VIDEO="Playlist Video indir"
-            TXT_OPTION_PLAYLIST_AUDIO="Playlist Müzik indir (MP3)"
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="Instagram video indiriliyor..."
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="Instagram müzik indiriliyor..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="TikTok video indiriliyor..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="TikTok müzik indiriliyor..."
-            TXT_DOWNLOAD_STARTED_YT_VIDEO="YouTube video indiriliyor..."
-            TXT_DOWNLOAD_STARTED_YT_AUDIO="YouTube müzik (MP3) indiriliyor..."
-            TXT_DOWNLOAD_STARTED_YTPL_VIDEO="YouTube Playlist video indiriliyor..."
-            TXT_DOWNLOAD_STARTED_YTPL_AUDIO="YouTube Playlist müzik (MP3) indiriliyor..."
-            TXT_DOWNLOAD_DONE_PREFIX="İndirme tamamlandı"
-            TXT_LANG_MENU_TITLE="Dil seçimi"
-            TXT_LANG_MENU_DESC="Lütfen dil seçin"
-            TXT_LANG_AZ="Azərbaycan dili"
-            TXT_LANG_TR="Türkçe"
-            TXT_LANG_EN="English"
-            TXT_LANG_RU="Русский"
-            TXT_LANG_AR="اللغة العربية"
-            TXT_LANG_ZH="中國人"
-            TXT_LANG_JA="日本語"
-            TXT_LANG_HI="हिंद भाषा"
-            TXT_LANG_CHANGED="Dil başarıyla değiştirildi"
-            TXT_UPDATE_AVAILABLE="Yeni sürüm mevcut!"
-            TXT_UPDATE_PROMPT="Güncellemek istiyor musunuz? (e/h)"
-            TXT_UPDATING="Güncelleme yapılıyor..."
-            TXT_UPDATE_SUCCESS="Güncelleme tamamlandı! Lütfen yeniden başlatın."
-            TXT_UPDATE_FAILED="Güncelleme başarısız."
-            TXT_OPTIMIZE_DONE="Optimizasyon tamamlandı."
-            TXT_CACHE_CLEARED="Önbellek temizlendi."
-            TXT_SYSTEM_INFO="Sistem Bilgisi"
-            TXT_ALREADY_LATEST="En son sürümü kullanıyorsunuz."
-            TXT_SEARCH_TITLE="Arama"
-            TXT_SEARCH_PROMPT="Şarkı / arama kelimesini girin"
-            TXT_SEARCHING="Aranıyor..."
-            TXT_SEARCH_RESULTS="Arama sonuçları"
-            TXT_SEARCH_SELECT="Sonuç numarasını seçin (1-10)"
-            TXT_SEARCH_NO_RESULTS="Hiçbir sonuç bulunamadı."
-            TXT_SEARCH_AGAIN="Yeniden aramak istiyor musunuz? (e/h)"
-            ;;
-        EN)
-            TXT_INSTALLER_TITLE="Ɍム-ic LM Installer"
-            TXT_INSTALL_PREP="Preparing"
-            TXT_INSTALL_STORAGE="Storage permission required"
-            TXT_STEP_UPDATE_PKGS="Updating packages"
-            TXT_STEP_INSTALL_PYTHON="Installing Python"
-            TXT_STEP_INSTALL_FFMPEG="Installing FFmpeg"
-            TXT_STEP_INSTALL_GIT="Installing Git"
-            TXT_STEP_UPDATE_YTDLP="Updating yt-dlp"
-            TXT_STEP_UPDATE_INSTALOADER="Updating instaloader"
-            TXT_STEP_UPDATE_GDL="Updating gallery-dl"
-            TXT_STEP_CREATE_DIRS="Creating folders"
-            TXT_STEP_SETUP_URL_OPENER="Setting up Termux URL Opener"
-            TXT_INSTALL_SUCCESS_LINE1="Ɍム-ic LM INSTALLED SUCCESSFULLY!"
-            TXT_INSTALL_SUCCESS_LINE2="Now you can run lm in terminal to open the panel."
-            TXT_INSTALL_SUCCESS_LINE3="You can also share any link directly to Termux."
-
-            TXT_MAIN_MENU_TITLE="MAIN PANEL"
-            TXT_MANUAL_MENU_TITLE="MANUAL DOWNLOAD"
-            TXT_AUTO_MENU_TITLE="AUTO DOWNLOAD"
-            TXT_SETTINGS_MENU_TITLE="SETTINGS"
-            TXT_ADMIN_MENU_TITLE="ADMIN PANEL"
-            TXT_MENU_OPTION_MANUAL="Manual Download"
-            TXT_MENU_OPTION_AUTO="Auto Download"
-            TXT_MENU_OPTION_SETTINGS="Settings"
-            TXT_MENU_OPTION_ADMIN="Admin Panel"
-            TXT_MENU_OPTION_EXIT="Exit"
-            TXT_MENU_OPTION_BACK="Back"
-            TXT_MENU_OPTION_LANGUAGE="Language"
-            TXT_MENU_OPTION_UPDATE="Check for Updates"
-            TXT_MENU_OPTION_OPTIMIZE="Optimize"
-            TXT_MENU_OPTION_INFO="System Info"
-            TXT_MENU_OPTION_SEARCH="Search"
-            TXT_PROMPT_CHOICE="Choose an option"
-            TXT_PROMPT_LINK="Enter link"
-            TXT_PROMPT_INSTAGRAM_LINK="Enter Instagram link"
-            TXT_PROMPT_TIKTOK_LINK="Enter TikTok link"
-            TXT_PROMPT_YT_SINGLE_LINK="Enter YouTube video link"
-            TXT_PROMPT_YT_PLAYLIST_LINK="Enter YouTube Playlist link"
-            TXT_PROMPT_CONTINUE="Press Enter to continue"
-            TXT_ERROR_INVALID_CHOICE="Invalid choice!"
-            TXT_EXIT_MESSAGE="Goodbye!"
-            TXT_AUTO_PLATFORM_INSTAGRAM="Platform: Instagram"
-            TXT_AUTO_PLATFORM_TIKTOK="Platform: TikTok"
-            TXT_AUTO_PLATFORM_YT_SINGLE="Platform: YouTube (Single Video)"
-            TXT_AUTO_PLATFORM_YT_PLAYLIST="Platform: YouTube Playlist"
-            TXT_PLATFORM_UNKNOWN="Unknown platform!"
-            TXT_SUPPORTED_PLATFORMS="Supported platforms: Instagram, TikTok, YouTube"
-            TXT_MENU_YT_MODE_TITLE="Select YouTube mode"
-            TXT_MENU_YT_MODE_SINGLE="Single Video"
-            TXT_MENU_YT_MODE_PLAYLIST="Playlist"
-            TXT_OPTION_VIDEO_DOWNLOAD="Download Video"
-            TXT_OPTION_AUDIO_DOWNLOAD="Download Audio (MP3)"
-            TXT_OPTION_PLAYLIST_VIDEO="Download Playlist Video"
-            TXT_OPTION_PLAYLIST_AUDIO="Download Playlist Audio (MP3)"
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="Starting Instagram video download..."
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="Starting Instagram audio download..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="Starting TikTok video download..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="Starting TikTok audio download..."
-            TXT_DOWNLOAD_STARTED_YT_VIDEO="Starting YouTube video download..."
-            TXT_DOWNLOAD_STARTED_YT_AUDIO="Starting YouTube audio (MP3) download..."
-            TXT_DOWNLOAD_STARTED_YTPL_VIDEO="Starting YouTube playlist video download..."
-            TXT_DOWNLOAD_STARTED_YTPL_AUDIO="Starting YouTube playlist audio (MP3) download..."
-            TXT_DOWNLOAD_DONE_PREFIX="Download finished"
-            TXT_LANG_MENU_TITLE="Language selection"
-            TXT_LANG_MENU_DESC="Please choose a language"
-            TXT_LANG_AZ="Azərbaycan dili"
-            TXT_LANG_TR="Türkçe"
-            TXT_LANG_EN="English"
-            TXT_LANG_RU="Русский"
-            TXT_LANG_AR="اللغة العربية"
-            TXT_LANG_ZH="中國人"
-            TXT_LANG_JA="日本語"
-            TXT_LANG_HI="हिंद भाषा"
-            TXT_LANG_CHANGED="Language changed successfully"
-            TXT_UPDATE_AVAILABLE="New version available!"
-            TXT_UPDATE_PROMPT="Do you want to update? (y/n)"
-            TXT_UPDATING="Updating..."
-            TXT_UPDATE_SUCCESS="Update completed! Please restart."
-            TXT_UPDATE_FAILED="Update failed."
-            TXT_OPTIMIZE_DONE="Optimization completed."
-            TXT_CACHE_CLEARED="Cache cleared."
-            TXT_SYSTEM_INFO="System Information"
-            TXT_ALREADY_LATEST="You are using the latest version."
-            TXT_SEARCH_TITLE="Search"
-            TXT_SEARCH_PROMPT="Enter search term / song name"
-            TXT_SEARCHING="Searching..."
-            TXT_SEARCH_RESULTS="Search results"
-            TXT_SEARCH_SELECT="Select result number (1-10)"
-            TXT_SEARCH_NO_RESULTS="No results found."
-            TXT_SEARCH_AGAIN="Search again? (y/n)"
-            ;;
-        RU)
-            TXT_INSTALLER_TITLE="Ɍム-ic LM Установщик"
-            TXT_INSTALL_PREP="Подготовка"
-            TXT_INSTALL_STORAGE="Требуется доступ к памяти"
-            TXT_STEP_UPDATE_PKGS="Обновление пакетов"
-            TXT_STEP_INSTALL_PYTHON="Установка Python"
-            TXT_STEP_INSTALL_FFMPEG="Установка FFmpeg"
-            TXT_STEP_INSTALL_GIT="Установка Git"
-            TXT_STEP_UPDATE_YTDLP="Обновление yt-dlp"
-            TXT_STEP_UPDATE_INSTALOADER="Обновление instaloader"
-            TXT_STEP_UPDATE_GDL="Обновление gallery-dl"
-            TXT_STEP_CREATE_DIRS="Создание папок"
-            TXT_STEP_SETUP_URL_OPENER="Настройка Termux URL Opener"
-            TXT_INSTALL_SUCCESS_LINE1="Ɍム-ic LM УСПЕШНО УСТАНОВЛЕН!"
-            TXT_INSTALL_SUCCESS_LINE2="Теперь вы можете запустить lm в терминале."
-            TXT_INSTALL_SUCCESS_LINE3="Также можете делиться ссылками через Termux."
-
-            TXT_MAIN_MENU_TITLE="ГЛАВНАЯ ПАНЕЛЬ"
-            TXT_MANUAL_MENU_TITLE="РУЧНАЯ ЗАГРУЗКА"
-            TXT_AUTO_MENU_TITLE="АВТОЗАГРУЗКА"
-            TXT_SETTINGS_MENU_TITLE="НАСТРОЙКИ"
-            TXT_ADMIN_MENU_TITLE="АДМИН ПАНЕЛЬ"
-            TXT_MENU_OPTION_MANUAL="Ручная загрузка"
-            TXT_MENU_OPTION_AUTO="Авто-загрузка"
-            TXT_MENU_OPTION_SETTINGS="Настройки"
-            TXT_MENU_OPTION_ADMIN="Админ панель"
-            TXT_MENU_OPTION_EXIT="Выход"
-            TXT_MENU_OPTION_BACK="Назад"
-            TXT_MENU_OPTION_LANGUAGE="Язык"
-            TXT_MENU_OPTION_UPDATE="Проверить обновления"
-            TXT_MENU_OPTION_OPTIMIZE="Оптимизировать"
-            TXT_MENU_OPTION_INFO="Информация о системе"
-            TXT_MENU_OPTION_SEARCH="Поиск"
-            TXT_PROMPT_CHOICE="Сделайте выбор"
-            TXT_PROMPT_LINK="Введите ссылку"
-            TXT_PROMPT_INSTAGRAM_LINK="Введите ссылку Instagram"
-            TXT_PROMPT_TIKTOK_LINK="Введите ссылку TikTok"
-            TXT_PROMPT_YT_SINGLE_LINK="Введите ссылку YouTube видео"
-            TXT_PROMPT_YT_PLAYLIST_LINK="Введите ссылку YouTube плейлиста"
-            TXT_PROMPT_CONTINUE="Нажмите Enter для продолжения"
-            TXT_ERROR_INVALID_CHOICE="Неверный выбор!"
-            TXT_EXIT_MESSAGE="До свидания!"
-            TXT_AUTO_PLATFORM_INSTAGRAM="Платформа: Instagram"
-            TXT_AUTO_PLATFORM_TIKTOK="Платформа: TikTok"
-            TXT_AUTO_PLATFORM_YT_SINGLE="Платформа: YouTube (одно видео)"
-            TXT_AUTO_PLATFORM_YT_PLAYLIST="Платформа: YouTube плейлист"
-            TXT_PLATFORM_UNKNOWN="Неизвестная платформа!"
-            TXT_SUPPORTED_PLATFORMS="Поддерживаемые платформы: Instagram, TikTok, YouTube"
-            TXT_MENU_YT_MODE_TITLE="Выберите режим YouTube"
-            TXT_MENU_YT_MODE_SINGLE="Одно видео"
-            TXT_MENU_YT_MODE_PLAYLIST="Плейлист"
-            TXT_OPTION_VIDEO_DOWNLOAD="Скачать видео"
-            TXT_OPTION_AUDIO_DOWNLOAD="Скачать аудио (MP3)"
-            TXT_OPTION_PLAYLIST_VIDEO="Скачать видео плейлиста"
-            TXT_OPTION_PLAYLIST_AUDIO="Скачать аудио плейлиста (MP3)"
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="Начинается загрузка видео Instagram..."
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="Начинается загрузка аудио Instagram..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="Начинается загрузка видео TikTok..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="Начинается загрузка аудио TikTok..."
-            TXT_DOWNLOAD_STARTED_YT_VIDEO="Начинается загрузка видео YouTube..."
-            TXT_DOWNLOAD_STARTED_YT_AUDIO="Начинается загрузка аудио YouTube (MP3)..."
-            TXT_DOWNLOAD_STARTED_YTPL_VIDEO="Начинается загрузка видео плейлиста YouTube..."
-            TXT_DOWNLOAD_STARTED_YTPL_AUDIO="Начинается загрузка аудио плейлиста YouTube (MP3)..."
-            TXT_DOWNLOAD_DONE_PREFIX="Загрузка завершена"
-            TXT_LANG_MENU_TITLE="Выбор языка"
-            TXT_LANG_MENU_DESC="Пожалуйста, выберите язык"
-            TXT_LANG_AZ="Azərbaycan dili"
-            TXT_LANG_TR="Türkçe"
-            TXT_LANG_EN="English"
-            TXT_LANG_RU="Русский"
-            TXT_LANG_AR="اللغة العربية"
-            TXT_LANG_ZH="中國人"
-            TXT_LANG_JA="日本語"
-            TXT_LANG_HI="हिंद भाषा"
-            TXT_LANG_CHANGED="Язык успешно изменён"
-            TXT_UPDATE_AVAILABLE="Доступна новая версия!"
-            TXT_UPDATE_PROMPT="Хотите обновить? (д/н)"
-            TXT_UPDATING="Обновление..."
-            TXT_UPDATE_SUCCESS="Обновление завершено! Пожалуйста, перезапустите."
-            TXT_UPDATE_FAILED="Ошибка обновления."
-            TXT_OPTIMIZE_DONE="Оптимизация завершена."
-            TXT_CACHE_CLEARED="Кэш очищен."
-            TXT_SYSTEM_INFO="Информация о системе"
-            TXT_ALREADY_LATEST="У вас последняя версия."
-            TXT_SEARCH_TITLE="Поиск"
-            TXT_SEARCH_PROMPT="Введите поисковый запрос / название песни"
-            TXT_SEARCHING="Поиск..."
-            TXT_SEARCH_RESULTS="Результаты поиска"
-            TXT_SEARCH_SELECT="Выберите номер результата (1-10)"
-            TXT_SEARCH_NO_RESULTS="Ничего не найдено."
-            TXT_SEARCH_AGAIN="Искать снова? (д/н)"
-            ;;
-        AR)
-            TXT_INSTALLER_TITLE="Ɍム-ic LM المُثَبِّت"
-            TXT_INSTALL_PREP="جارِ التحضير"
-            TXT_INSTALL_STORAGE="يلزم إذن الوصول للتخزين"
-            TXT_STEP_UPDATE_PKGS="جارِ تحديث الحزم"
-            TXT_STEP_INSTALL_PYTHON="جارِ تثبيت Python"
-            TXT_STEP_INSTALL_FFMPEG="جارِ تثبيت FFmpeg"
-            TXT_STEP_INSTALL_GIT="جارِ تثبيت Git"
-            TXT_STEP_UPDATE_YTDLP="جارِ تحديث yt-dlp"
-            TXT_STEP_UPDATE_INSTALOADER="جارِ تحديث instaloader"
-            TXT_STEP_UPDATE_GDL="جارِ تحديث gallery-dl"
-            TXT_STEP_CREATE_DIRS="جارِ إنشاء المجلدات"
-            TXT_STEP_SETUP_URL_OPENER="جارِ إعداد Termux URL Opener"
-            TXT_INSTALL_SUCCESS_LINE1="Ɍム-ic LM تَمَّ التثبيت بنجاح!"
-            TXT_INSTALL_SUCCESS_LINE2="الآن يمكنك تشغيل lm من الطرفية."
-            TXT_INSTALL_SUCCESS_LINE3="ويمكنك أيضًا مشاركة أي رابط إلى Termux."
-
-            TXT_MAIN_MENU_TITLE="اللوحة الرئيسية"
-            TXT_MANUAL_MENU_TITLE="تحميل يدوي"
-            TXT_AUTO_MENU_TITLE="تحميل تلقائي"
-            TXT_SETTINGS_MENU_TITLE="الإعدادات"
-            TXT_ADMIN_MENU_TITLE="لوحة الإدارة"
-            TXT_MENU_OPTION_MANUAL="تحميل يدوي"
-            TXT_MENU_OPTION_AUTO="تحميل تلقائي"
-            TXT_MENU_OPTION_SETTINGS="الإعدادات"
-            TXT_MENU_OPTION_ADMIN="لوحة الإدارة"
-            TXT_MENU_OPTION_EXIT="خروج"
-            TXT_MENU_OPTION_BACK="رجوع"
-            TXT_MENU_OPTION_LANGUAGE="اللغة"
-            TXT_MENU_OPTION_UPDATE="تحقق من التحديثات"
-            TXT_MENU_OPTION_OPTIMIZE="تحسين"
-            TXT_MENU_OPTION_INFO="معلومات النظام"
-            TXT_MENU_OPTION_SEARCH="بحث"
-            TXT_PROMPT_CHOICE="اختر خياراً"
-            TXT_PROMPT_LINK="أدخل الرابط"
-            TXT_PROMPT_INSTAGRAM_LINK="أدخل رابط Instagram"
-            TXT_PROMPT_TIKTOK_LINK="أدخل رابط TikTok"
-            TXT_PROMPT_YT_SINGLE_LINK="أدخل رابط فيديو YouTube"
-            TXT_PROMPT_YT_PLAYLIST_LINK="أدخل رابط قائمة YouTube"
-            TXT_PROMPT_CONTINUE="اضغط Enter للمتابعة"
-            TXT_ERROR_INVALID_CHOICE="اختيار غير صالح!"
-            TXT_EXIT_MESSAGE="إلى اللقاء!"
-            TXT_AUTO_PLATFORM_INSTAGRAM="المنصة: Instagram"
-            TXT_AUTO_PLATFORM_TIKTOK="المنصة: TikTok"
-            TXT_AUTO_PLATFORM_YT_SINGLE="المنصة: YouTube (فيديو واحد)"
-            TXT_AUTO_PLATFORM_YT_PLAYLIST="المنصة: قائمة YouTube"
-            TXT_PLATFORM_UNKNOWN="منصة غير معروفة!"
-            TXT_SUPPORTED_PLATFORMS="المنصات المدعومة: Instagram, TikTok, YouTube"
-            TXT_MENU_YT_MODE_TITLE="اختر وضع YouTube"
-            TXT_MENU_YT_MODE_SINGLE="فيديو واحد"
-            TXT_MENU_YT_MODE_PLAYLIST="قائمة تشغيل"
-            TXT_OPTION_VIDEO_DOWNLOAD="تحميل فيديو"
-            TXT_OPTION_AUDIO_DOWNLOAD="تحميل صوت (MP3)"
-            TXT_OPTION_PLAYLIST_VIDEO="تحميل فيديو القائمة"
-            TXT_OPTION_PLAYLIST_AUDIO="تحميل صوت القائمة (MP3)"
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="بدء تحميل فيديو Instagram..."
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="بدء تحميل صوت Instagram..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="بدء تحميل فيديو TikTok..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="بدء تحميل صوت TikTok..."
-            TXT_DOWNLOAD_STARTED_YT_VIDEO="بدء تحميل فيديو YouTube..."
-            TXT_DOWNLOAD_STARTED_YT_AUDIO="بدء تحميل صوت YouTube (MP3)..."
-            TXT_DOWNLOAD_STARTED_YTPL_VIDEO="بدء تحميل فيديو قائمة YouTube..."
-            TXT_DOWNLOAD_STARTED_YTPL_AUDIO="بدء تحميل صوت قائمة YouTube (MP3)..."
-            TXT_DOWNLOAD_DONE_PREFIX="اكتمل التحميل"
-            TXT_LANG_MENU_TITLE="اختيار اللغة"
-            TXT_LANG_MENU_DESC="يرجى اختيار اللغة"
-            TXT_LANG_AZ="Azərbaycan dili"
-            TXT_LANG_TR="Türkçe"
-            TXT_LANG_EN="English"
-            TXT_LANG_RU="Русский"
-            TXT_LANG_AR="اللغة العربية"
-            TXT_LANG_ZH="中國人"
-            TXT_LANG_JA="日本語"
-            TXT_LANG_HI="हिंद भाषा"
-            TXT_LANG_CHANGED="تم تغيير اللغة بنجاح"
-            TXT_UPDATE_AVAILABLE="يتوفر إصدار جديد!"
-            TXT_UPDATE_PROMPT="هل تريد التحديث؟ (ن/خ)"
-            TXT_UPDATING="جارِ التحديث..."
-            TXT_UPDATE_SUCCESS="اكتمل التحديث! يرجى إعادة التشغيل."
-            TXT_UPDATE_FAILED="فشل التحديث."
-            TXT_OPTIMIZE_DONE="اكتمل التحسين."
-            TXT_CACHE_CLEARED="تم مسح ذاكرة التخزين المؤقت."
-            TXT_SYSTEM_INFO="معلومات النظام"
-            TXT_ALREADY_LATEST="أنت تستخدم أحدث إصدار."
-            TXT_SEARCH_TITLE="بحث"
-            TXT_SEARCH_PROMPT="أدخل كلمة البحث / اسم الأغنية"
-            TXT_SEARCHING="جارٍ البحث..."
-            TXT_SEARCH_RESULTS="نتائج البحث"
-            TXT_SEARCH_SELECT="اختر رقم النتيجة (1-10)"
-            TXT_SEARCH_NO_RESULTS="لم يتم العثور على نتائج."
-            TXT_SEARCH_AGAIN="هل تريد البحث مرة أخرى؟ (ن/خ)"
-            ;;
-        ZH)
-            TXT_INSTALLER_TITLE="Ɍム-ic LM 安装程序"
-            TXT_INSTALL_PREP="正在准备"
-            TXT_INSTALL_STORAGE="需要存储权限"
-            TXT_STEP_UPDATE_PKGS="正在更新软件包"
-            TXT_STEP_INSTALL_PYTHON="正在安装 Python"
-            TXT_STEP_INSTALL_FFMPEG="正在安装 FFmpeg"
-            TXT_STEP_INSTALL_GIT="正在安装 Git"
-            TXT_STEP_UPDATE_YTDLP="正在更新 yt-dlp"
-            TXT_STEP_UPDATE_INSTALOADER="正在更新 instaloader"
-            TXT_STEP_UPDATE_GDL="正在更新 gallery-dl"
-            TXT_STEP_CREATE_DIRS="正在创建文件夹"
-            TXT_STEP_SETUP_URL_OPENER="正在配置 Termux URL Opener"
-            TXT_INSTALL_SUCCESS_LINE1="Ɍム-ic LM 安装成功!"
-            TXT_INSTALL_SUCCESS_LINE2="现在可以在终端中运行 lm 打开面板。"
-            TXT_INSTALL_SUCCESS_LINE3="也可以从其他应用分享链接到 Termux。"
-
-            TXT_MAIN_MENU_TITLE="主面板"
-            TXT_MANUAL_MENU_TITLE="手动下载"
-            TXT_AUTO_MENU_TITLE="自动下载"
-            TXT_SETTINGS_MENU_TITLE="设置"
-            TXT_ADMIN_MENU_TITLE="管理面板"
-            TXT_MENU_OPTION_MANUAL="手动下载"
-            TXT_MENU_OPTION_AUTO="自动下载"
-            TXT_MENU_OPTION_SETTINGS="设置"
-            TXT_MENU_OPTION_ADMIN="管理面板"
-            TXT_MENU_OPTION_EXIT="退出"
-            TXT_MENU_OPTION_BACK="返回"
-            TXT_MENU_OPTION_LANGUAGE="语言"
-            TXT_MENU_OPTION_UPDATE="检查更新"
-            TXT_MENU_OPTION_OPTIMIZE="优化"
-            TXT_MENU_OPTION_INFO="系统信息"
-            TXT_MENU_OPTION_SEARCH="搜索"
-            TXT_PROMPT_CHOICE="请选择"
-            TXT_PROMPT_LINK="输入链接"
-            TXT_PROMPT_INSTAGRAM_LINK="输入 Instagram 链接"
-            TXT_PROMPT_TIKTOK_LINK="输入 TikTok 链接"
-            TXT_PROMPT_YT_SINGLE_LINK="输入 YouTube 视频链接"
-            TXT_PROMPT_YT_PLAYLIST_LINK="输入 YouTube 播放列表链接"
-            TXT_PROMPT_CONTINUE="按 Enter 继续"
-            TXT_ERROR_INVALID_CHOICE="无效的选择!"
-            TXT_EXIT_MESSAGE="再见!"
-            TXT_AUTO_PLATFORM_INSTAGRAM="平台: Instagram"
-            TXT_AUTO_PLATFORM_TIKTOK="平台: TikTok"
-            TXT_AUTO_PLATFORM_YT_SINGLE="平台: YouTube（单个视频）"
-            TXT_AUTO_PLATFORM_YT_PLAYLIST="平台: YouTube 播放列表"
-            TXT_PLATFORM_UNKNOWN="未知平台!"
-            TXT_SUPPORTED_PLATFORMS="支持平台: Instagram, TikTok, YouTube"
-            TXT_MENU_YT_MODE_TITLE="选择 YouTube 模式"
-            TXT_MENU_YT_MODE_SINGLE="单个视频"
-            TXT_MENU_YT_MODE_PLAYLIST="播放列表"
-            TXT_OPTION_VIDEO_DOWNLOAD="下载视频"
-            TXT_OPTION_AUDIO_DOWNLOAD="下载音频 (MP3)"
-            TXT_OPTION_PLAYLIST_VIDEO="下载播放列表视频"
-            TXT_OPTION_PLAYLIST_AUDIO="下载播放列表音频 (MP3)"
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="开始下载 Instagram 视频..."
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="开始下载 Instagram 音频..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="开始下载 TikTok 视频..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="开始下载 TikTok 音频..."
-            TXT_DOWNLOAD_STARTED_YT_VIDEO="开始下载 YouTube 视频..."
-            TXT_DOWNLOAD_STARTED_YT_AUDIO="开始下载 YouTube 音频 (MP3)..."
-            TXT_DOWNLOAD_STARTED_YTPL_VIDEO="开始下载 YouTube 播放列表视频..."
-            TXT_DOWNLOAD_STARTED_YTPL_AUDIO="开始下载 YouTube 播放列表音频 (MP3)..."
-            TXT_DOWNLOAD_DONE_PREFIX="下载完成"
-            TXT_LANG_MENU_TITLE="语言选择"
-            TXT_LANG_MENU_DESC="请选择语言"
-            TXT_LANG_AZ="Azərbaycan dili"
-            TXT_LANG_TR="Türkçe"
-            TXT_LANG_EN="English"
-            TXT_LANG_RU="Русский"
-            TXT_LANG_AR="اللغة العربية"
-            TXT_LANG_ZH="中國人"
-            TXT_LANG_JA="日本語"
-            TXT_LANG_HI="हिंद भाषा"
-            TXT_LANG_CHANGED="语言已成功更改"
-            TXT_UPDATE_AVAILABLE="有新版本可用!"
-            TXT_UPDATE_PROMPT="是否更新? (y/n)"
-            TXT_UPDATING="正在更新..."
-            TXT_UPDATE_SUCCESS="更新完成! 请重新启动。"
-            TXT_UPDATE_FAILED="更新失败。"
-            TXT_OPTIMIZE_DONE="优化完成。"
-            TXT_CACHE_CLEARED="缓存已清除。"
-            TXT_SYSTEM_INFO="系统信息"
-            TXT_ALREADY_LATEST="您已使用最新版本。"
-            TXT_SEARCH_TITLE="搜索"
-            TXT_SEARCH_PROMPT="输入搜索词 / 歌曲名称"
-            TXT_SEARCHING="搜索中..."
-            TXT_SEARCH_RESULTS="搜索结果"
-            TXT_SEARCH_SELECT="选择结果编号 (1-10)"
-            TXT_SEARCH_NO_RESULTS="未找到结果。"
-            TXT_SEARCH_AGAIN="再次搜索？ (y/n)"
-            ;;
-        JA)
-            TXT_INSTALLER_TITLE="Ɍム-ic LM インストーラー"
-            TXT_INSTALL_PREP="準備中"
-            TXT_INSTALL_STORAGE="ストレージ権限が必要です"
-            TXT_STEP_UPDATE_PKGS="パッケージを更新中"
-            TXT_STEP_INSTALL_PYTHON="Python をインストール中"
-            TXT_STEP_INSTALL_FFMPEG="FFmpeg をインストール中"
-            TXT_STEP_INSTALL_GIT="Git をインストール中"
-            TXT_STEP_UPDATE_YTDLP="yt-dlp を更新中"
-            TXT_STEP_UPDATE_INSTALOADER="instaloader を更新中"
-            TXT_STEP_UPDATE_GDL="gallery-dl を更新中"
-            TXT_STEP_CREATE_DIRS="フォルダを作成中"
-            TXT_STEP_SETUP_URL_OPENER="Termux URL Opener を設定中"
-            TXT_INSTALL_SUCCESS_LINE1="Ɍム-ic LM のインストールが完了しました!"
-            TXT_INSTALL_SUCCESS_LINE2="ターミナルで lm と入力してパネルを開けます。"
-            TXT_INSTALL_SUCCESS_LINE3="他のアプリからリンクを Termux に共有することもできます。"
-
-            TXT_MAIN_MENU_TITLE="メインパネル"
-            TXT_MANUAL_MENU_TITLE="手動ダウンロード"
-            TXT_AUTO_MENU_TITLE="自動ダウンロード"
-            TXT_SETTINGS_MENU_TITLE="設定"
-            TXT_ADMIN_MENU_TITLE="管理パネル"
-            TXT_MENU_OPTION_MANUAL="手動ダウンロード"
-            TXT_MENU_OPTION_AUTO="自動ダウンロード"
-            TXT_MENU_OPTION_SETTINGS="設定"
-            TXT_MENU_OPTION_ADMIN="管理パネル"
-            TXT_MENU_OPTION_EXIT="終了"
-            TXT_MENU_OPTION_BACK="戻る"
-            TXT_MENU_OPTION_LANGUAGE="言語"
-            TXT_MENU_OPTION_UPDATE="更新を確認"
-            TXT_MENU_OPTION_OPTIMIZE="最適化"
-            TXT_MENU_OPTION_INFO="システム情報"
-            TXT_MENU_OPTION_SEARCH="検索"
-            TXT_PROMPT_CHOICE="選択してください"
-            TXT_PROMPT_LINK="リンクを入力"
-            TXT_PROMPT_INSTAGRAM_LINK="Instagram リンクを入力"
-            TXT_PROMPT_TIKTOK_LINK="TikTok リンクを入力"
-            TXT_PROMPT_YT_SINGLE_LINK="YouTube 動画リンクを入力"
-            TXT_PROMPT_YT_PLAYLIST_LINK="YouTube プレイリストリンクを入力"
-            TXT_PROMPT_CONTINUE="続行するには Enter を押してください"
-            TXT_ERROR_INVALID_CHOICE="無効な選択です!"
-            TXT_EXIT_MESSAGE="さようなら!"
-            TXT_AUTO_PLATFORM_INSTAGRAM="プラットフォーム: Instagram"
-            TXT_AUTO_PLATFORM_TIKTOK="プラットフォーム: TikTok"
-            TXT_AUTO_PLATFORM_YT_SINGLE="プラットフォーム: YouTube（単一動画）"
-            TXT_AUTO_PLATFORM_YT_PLAYLIST="プラットフォーム: YouTube プレイリスト"
-            TXT_PLATFORM_UNKNOWN="不明なプラットフォームです!"
-            TXT_SUPPORTED_PLATFORMS="対応プラットフォーム: Instagram, TikTok, YouTube"
-            TXT_MENU_YT_MODE_TITLE="YouTube モードを選択"
-            TXT_MENU_YT_MODE_SINGLE="単一動画"
-            TXT_MENU_YT_MODE_PLAYLIST="プレイリスト"
-            TXT_OPTION_VIDEO_DOWNLOAD="動画をダウンロード"
-            TXT_OPTION_AUDIO_DOWNLOAD="音声をダウンロード (MP3)"
-            TXT_OPTION_PLAYLIST_VIDEO="プレイリスト動画をダウンロード"
-            TXT_OPTION_PLAYLIST_AUDIO="プレイリスト音声をダウンロード (MP3)"
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="Instagram 動画のダウンロードを開始..."
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="Instagram 音声のダウンロードを開始..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="TikTok 動画のダウンロードを開始..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="TikTok 音声のダウンロードを開始..."
-            TXT_DOWNLOAD_STARTED_YT_VIDEO="YouTube 動画のダウンロードを開始..."
-            TXT_DOWNLOAD_STARTED_YT_AUDIO="YouTube 音声 (MP3) のダウンロードを開始..."
-            TXT_DOWNLOAD_STARTED_YTPL_VIDEO="YouTube プレイリスト動画のダウンロードを開始..."
-            TXT_DOWNLOAD_STARTED_YTPL_AUDIO="YouTube プレイリスト音声 (MP3) のダウンロードを開始..."
-            TXT_DOWNLOAD_DONE_PREFIX="ダウンロード完了"
-            TXT_LANG_MENU_TITLE="言語選択"
-            TXT_LANG_MENU_DESC="言語を選択してください"
-            TXT_LANG_AZ="Azərbaycan dili"
-            TXT_LANG_TR="Türkçe"
-            TXT_LANG_EN="English"
-            TXT_LANG_RU="Русский"
-            TXT_LANG_AR="اللغة العربية"
-            TXT_LANG_ZH="中國人"
-            TXT_LANG_JA="日本語"
-            TXT_LANG_HI="हिंद भाषा"
-            TXT_LANG_CHANGED="言語が変更されました"
-            TXT_UPDATE_AVAILABLE="新しいバージョンがあります!"
-            TXT_UPDATE_PROMPT="更新しますか? (y/n)"
-            TXT_UPDATING="更新中..."
-            TXT_UPDATE_SUCCESS="更新完了! 再起動してください。"
-            TXT_UPDATE_FAILED="更新に失敗しました。"
-            TXT_OPTIMIZE_DONE="最適化が完了しました。"
-            TXT_CACHE_CLEARED="キャッシュをクリアしました。"
-            TXT_SYSTEM_INFO="システム情報"
-            TXT_ALREADY_LATEST="最新バージョンを使用しています。"
-            TXT_SEARCH_TITLE="検索"
-            TXT_SEARCH_PROMPT="検索ワード / 曲名を入力"
-            TXT_SEARCHING="検索中..."
-            TXT_SEARCH_RESULTS="検索結果"
-            TXT_SEARCH_SELECT="結果番号を選んでください (1-10)"
-            TXT_SEARCH_NO_RESULTS="結果が見つかりませんでした。"
-            TXT_SEARCH_AGAIN="もう一度検索しますか？ (y/n)"
-            ;;
-        HI)
-            TXT_INSTALLER_TITLE="Ɍム-ic LM इंस्टॉलर"
-            TXT_INSTALL_PREP="तैयारी हो रही है"
-            TXT_INSTALL_STORAGE="स्टोरेज की अनुमति आवश्यक है"
-            TXT_STEP_UPDATE_PKGS="पैकेज अपडेट हो रहे हैं"
-            TXT_STEP_INSTALL_PYTHON="Python इंस्टॉल हो रहा है"
-            TXT_STEP_INSTALL_FFMPEG="FFmpeg इंस्टॉल हो रहा है"
-            TXT_STEP_INSTALL_GIT="Git इंस्टॉल हो रहा है"
-            TXT_STEP_UPDATE_YTDLP="yt-dlp अपडेट हो रहा है"
-            TXT_STEP_UPDATE_INSTALOADER="instaloader अपडेट हो रहा है"
-            TXT_STEP_UPDATE_GDL="gallery-dl अपडेट हो रहा है"
-            TXT_STEP_CREATE_DIRS="फ़ोल्डर बनाए जा रहे हैं"
-            TXT_STEP_SETUP_URL_OPENER="Termux URL Opener सेट किया जा रहा है"
-            TXT_INSTALL_SUCCESS_LINE1="Ɍム-ic LM सफलतापूर्वक इंस्टॉल हो गया!"
-            TXT_INSTALL_SUCCESS_LINE2="अब टर्मिनल में lm लिखकर पैनल खोल सकते हैं।"
-            TXT_INSTALL_SUCCESS_LINE3="आप किसी भी ऐप से लिंक को Termux के साथ शेयर कर सकते हैं।"
-
-            TXT_MAIN_MENU_TITLE="मुख्य पैनल"
-            TXT_MANUAL_MENU_TITLE="मैन्युअल डाउनलोड"
-            TXT_AUTO_MENU_TITLE="ऑटो डाउनलोड"
-            TXT_SETTINGS_MENU_TITLE="सेटिंग्स"
-            TXT_ADMIN_MENU_TITLE="एडमिन पैनल"
-            TXT_MENU_OPTION_MANUAL="मैन्युअल डाउनलोड"
-            TXT_MENU_OPTION_AUTO="ऑटो डाउनलोड"
-            TXT_MENU_OPTION_SETTINGS="सेटिंग्स"
-            TXT_MENU_OPTION_ADMIN="एडमिन पैनल"
-            TXT_MENU_OPTION_EXIT="बाहर निकलें"
-            TXT_MENU_OPTION_BACK="पीछे"
-            TXT_MENU_OPTION_LANGUAGE="भाषा"
-            TXT_MENU_OPTION_UPDATE="अपडेट की जाँच करें"
-            TXT_MENU_OPTION_OPTIMIZE="अनुकूलित करें"
-            TXT_MENU_OPTION_INFO="सिस्टम जानकारी"
-            TXT_MENU_OPTION_SEARCH="खोजें"
-            TXT_PROMPT_CHOICE="कृपया विकल्प चुनें"
-            TXT_PROMPT_LINK="लिंक दर्ज करें"
-            TXT_PROMPT_INSTAGRAM_LINK="Instagram लिंक दर्ज करें"
-            TXT_PROMPT_TIKTOK_LINK="TikTok लिंक दर्ज करें"
-            TXT_PROMPT_YT_SINGLE_LINK="YouTube वीडियो लिंक दर्ज करें"
-            TXT_PROMPT_YT_PLAYLIST_LINK="YouTube प्लेलिस्ट लिंक दर्ज करें"
-            TXT_PROMPT_CONTINUE="जारी रखने के लिए Enter दबाएँ"
-            TXT_ERROR_INVALID_CHOICE="गलत विकल्प!"
-            TXT_EXIT_MESSAGE="अलविदा!"
-            TXT_AUTO_PLATFORM_INSTAGRAM="प्लैटफ़ॉर्म: Instagram"
-            TXT_AUTO_PLATFORM_TIKTOK="प्लैटफ़ॉर्म: TikTok"
-            TXT_AUTO_PLATFORM_YT_SINGLE="प्लैटफ़ॉर्म: YouTube (एकल वीडियो)"
-            TXT_AUTO_PLATFORM_YT_PLAYLIST="प्लैटफ़ॉर्म: YouTube प्लेलिस्ट"
-            TXT_PLATFORM_UNKNOWN="अज्ञात प्लैटफ़ॉर्म!"
-            TXT_SUPPORTED_PLATFORMS="समर्थित प्लैटफ़ॉर्म: Instagram, TikTok, YouTube"
-            TXT_MENU_YT_MODE_TITLE="YouTube मोड चुनें"
-            TXT_MENU_YT_MODE_SINGLE="एकल वीडियो"
-            TXT_MENU_YT_MODE_PLAYLIST="प्लेलिस्ट"
-            TXT_OPTION_VIDEO_DOWNLOAD="वीडियो डाउनलोड"
-            TXT_OPTION_AUDIO_DOWNLOAD="संगीत डाउनलोड (MP3)"
-            TXT_OPTION_PLAYLIST_VIDEO="प्लेलिस्ट वीडियो डाउनलोड"
-            TXT_OPTION_PLAYLIST_AUDIO="प्लेलिस्ट संगीत डाउनलोड (MP3)"
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO="Instagram वीडियो डाउनलोड शुरू..."
-            TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO="Instagram संगीत डाउनलोड शुरू..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO="TikTok वीडियो डाउनलोड शुरू..."
-            TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO="TikTok संगीत डाउनलोड शुरू..."
-            TXT_DOWNLOAD_STARTED_YT_VIDEO="YouTube वीडियो डाउनलोड शुरू..."
-            TXT_DOWNLOAD_STARTED_YT_AUDIO="YouTube संगीत (MP3) डाउनलोड शुरू..."
-            TXT_DOWNLOAD_STARTED_YTPL_VIDEO="YouTube प्लेलिस्ट वीडियो डाउनलोड शुरू..."
-            TXT_DOWNLOAD_STARTED_YTPL_AUDIO="YouTube प्लेलिस्ट संगीत (MP3) डाउनलोड शुरू..."
-            TXT_DOWNLOAD_DONE_PREFIX="डाउनलोड पूरा हुआ"
-            TXT_LANG_MENU_TITLE="भाषा चयन"
-            TXT_LANG_MENU_DESC="कृपया भाषा चुनें"
-            TXT_LANG_AZ="Azərbaycan dili"
-            TXT_LANG_TR="Türkçe"
-            TXT_LANG_EN="English"
-            TXT_LANG_RU="Русский"
-            TXT_LANG_AR="اللغة العربية"
-            TXT_LANG_ZH="中國人"
-            TXT_LANG_JA="日本語"
-            TXT_LANG_HI="हिंद भाषा"
-            TXT_LANG_CHANGED="भाषा सफलतापूर्वक बदल दी गई"
-            TXT_UPDATE_AVAILABLE="नया संस्करण उपलब्ध है!"
-            TXT_UPDATE_PROMPT="क्या आप अपडेट करना चाहते हैं? (y/n)"
-            TXT_UPDATING="अपडेट हो रहा है..."
-            TXT_UPDATE_SUCCESS="अपडेट पूरा हुआ! कृपया पुनः आरंभ करें।"
-            TXT_UPDATE_FAILED="अपडेट विफल।"
-            TXT_OPTIMIZE_DONE="अनुकूलन पूरा हुआ।"
-            TXT_CACHE_CLEARED="कैश साफ़ कर दिया गया।"
-            TXT_SYSTEM_INFO="सिस्टम जानकारी"
-            TXT_ALREADY_LATEST="आप नवीनतम संस्करण का उपयोग कर रहे हैं।"
-            TXT_SEARCH_TITLE="खोजें"
-            TXT_SEARCH_PROMPT="खोज शब्द / गीत का नाम दर्ज करें"
-            TXT_SEARCHING="खोज जारी है..."
-            TXT_SEARCH_RESULTS="खोज परिणाम"
-            TXT_SEARCH_SELECT="परिणाम संख्या चुनें (1-10)"
-            TXT_SEARCH_NO_RESULTS="कोई परिणाम नहीं मिला।"
-            TXT_SEARCH_AGAIN="पुनः खोजें? (y/n)"
-            ;;
-        *)
-            LM_LANG="AZ"
-            lm_set_lang_vars
-            ;;
-    esac
-}
-
-lm_set_lang_vars
+if [ -f "$LM_LANG_SOURCE" ]; then
+    # shellcheck disable=SC1090
+    . "$LM_LANG_SOURCE"
+fi
 
 lm_detect_platform() {
-    local url_lower=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+    local url_lower
+    url_lower="$(echo "${1:-}" | tr '[:upper:]' '[:lower:]')"
     if [[ $url_lower == *"instagram.com"* ]] || [[ $url_lower == *"instagr.am"* ]]; then
         echo "instagram"
     elif [[ $url_lower == *"tiktok.com"* ]] || [[ $url_lower == *"vm.tiktok.com"* ]] || [[ $url_lower == *"vt.tiktok.com"* ]] || [[ $url_lower == *"m.tiktok.com"* ]]; then
@@ -878,12 +53,19 @@ lm_spin() {
     local msg="$2"
     local spin='|/-\'
     local i=0
-    while kill -0 $pid 2>/dev/null; do
+    while kill -0 "$pid" 2>/dev/null; do
         i=$(( (i+1) % 4 ))
         printf "\r${C_DARK_ORANGE}[LM] %s %s${C_RESET}" "${spin:$i:1}" "$msg"
         sleep 0.15
     done
-    printf "\r${C_DARK_GREEN}[LM] ✓ %s                    ${C_RESET}\n" "$msg"
+    wait "$pid" 2>/dev/null
+    local status=$?
+    if [ "$status" -eq 0 ]; then
+        printf "\r${C_DARK_GREEN}[LM] ✓ %s                    ${C_RESET}\n" "$msg"
+    else
+        printf "\r${C_ERROR}[LM] ✗ %s                    ${C_RESET}\n" "$msg"
+    fi
+    return "$status"
 }
 
 lm_setup_url_opener() {
@@ -916,6 +98,19 @@ lm_save_config() {
     } > "$LM_CONFIG"
 }
 
+lm_load_config() {
+    if [ -f "$LM_CONFIG" ]; then
+        # shellcheck disable=SC1090
+        . "$LM_CONFIG"
+        if [ -n "${download_path:-}" ]; then
+            LM_DOWNLOAD_BASE="$download_path"
+        fi
+        if [ -n "${lang:-}" ]; then
+            LM_LANG="$lang"
+        fi
+    fi
+}
+
 lm_choose_language() {
     echo -e "\n${C_DARK_BLUE}$TXT_LANG_MENU_TITLE${C_RESET}"
     echo -e "${C_DARK_GREEN}$TXT_LANG_MENU_DESC${C_RESET}\n"
@@ -928,7 +123,7 @@ lm_choose_language() {
     echo -e "${C_DARK_ORANGE}[7]${C_RESET} $TXT_LANG_JA"
     echo -e "${C_DARK_ORANGE}[8]${C_RESET} $TXT_LANG_HI\n"
     echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
-    read lang_choice
+    read -r lang_choice
     case "$lang_choice" in
         1) LM_LANG="AZ" ;;
         2) LM_LANG="TR" ;;
@@ -947,21 +142,26 @@ lm_choose_language() {
 }
 
 lm_check_update() {
-    local remote_version
-    remote_version=$(curl -s "$LM_REPO_RAW" | grep "^LM_VERSION=" | head -1 | cut -d'"' -f2)
-    if [[ -z "$remote_version" ]]; then
+    LM_REMOTE_VERSION=""
+    local remote_line
+    remote_line="$(curl -fsSL "$LM_REPO_RAW" 2>/dev/null | grep -m1 '^LM_VERSION=')"
+    if [ -z "$remote_line" ]; then
         return 1
     fi
-    if [[ "$remote_version" != "$LM_VERSION" ]]; then
+
+    LM_REMOTE_VERSION="${remote_line#LM_VERSION=}"
+    LM_REMOTE_VERSION="${LM_REMOTE_VERSION%\"}"
+    LM_REMOTE_VERSION="${LM_REMOTE_VERSION#\"}"
+
+    if [ "$LM_REMOTE_VERSION" != "$LM_VERSION" ]; then
         return 0
-    else
-        return 2
     fi
+    return 2
 }
 
 lm_do_update() {
     echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATING"
-    if curl -s "$LM_REPO_RAW" -o "$LM_BIN.tmp"; then
+    if curl -fsSL "$LM_REPO_RAW" -o "$LM_BIN.tmp"; then
         chmod +x "$LM_BIN.tmp"
         mv "$LM_BIN.tmp" "$LM_BIN"
         echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATE_SUCCESS"
@@ -988,142 +188,360 @@ lm_run_step() {
     local message="$1"
     shift
     echo -e "${C_DARK_GREEN}[LM]${C_RESET} $message..."
-    ("$@") &
-    lm_spin $! "$message"
+    "$@" &
+    local pid=$!
+    lm_spin "$pid" "$message"
+    return $?
 }
 
-lm_download_instagram() {
-    local url="$1"
-    local type="$2"
-    if [ "$type" = "video" ]; then
-        local output_dir="$LM_DOWNLOAD_BASE/Instagram/Video"
-        mkdir -p "$output_dir"
-        echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO\n"
-        yt-dlp --newline -f "best" --merge-output-format mp4 -o "$output_dir/%(title)s.%(ext)s" "$url"
-    else
-        local output_dir="$LM_DOWNLOAD_BASE/Instagram/Music"
-        mkdir -p "$output_dir"
-        echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO\n"
-        yt-dlp --newline -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 -o "$output_dir/%(title)s.%(ext)s" "$url"
-    fi
+lm_download_common() {
+    local platform="$1"
+    local mode="$2"
+    local url="$3"
+    local output_dir template format
+    local -a opts=()
+
+    case "${platform}:${mode}" in
+        instagram:video)
+            output_dir="$LM_DOWNLOAD_BASE/Instagram/Video"
+            template="$output_dir/%(title)s.%(ext)s"
+            format="best"
+            opts=(--merge-output-format mp4)
+            echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO\n"
+            ;;
+        instagram:audio)
+            output_dir="$LM_DOWNLOAD_BASE/Instagram/Music"
+            template="$output_dir/%(title)s.%(ext)s"
+            format="bestaudio/best"
+            opts=(--extract-audio --audio-format mp3 --audio-quality 0)
+            echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO\n"
+            ;;
+        tiktok:video)
+            output_dir="$LM_DOWNLOAD_BASE/TikTok/Video"
+            template="$output_dir/%(title)s.%(ext)s"
+            format="best"
+            opts=(--merge-output-format mp4)
+            echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO\n"
+            ;;
+        tiktok:audio)
+            output_dir="$LM_DOWNLOAD_BASE/TikTok/Music"
+            template="$output_dir/%(title)s.%(ext)s"
+            format="bestaudio/best"
+            opts=(--extract-audio --audio-format mp3 --audio-quality 0)
+            echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO\n"
+            ;;
+        youtube:video)
+            output_dir="$LM_DOWNLOAD_BASE/YouTube/Video"
+            template="$output_dir/%(title)s.%(ext)s"
+            format="bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
+            opts=(--merge-output-format mp4)
+            echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_YT_VIDEO\n"
+            ;;
+        youtube:audio)
+            output_dir="$LM_DOWNLOAD_BASE/YouTube/Music"
+            template="$output_dir/%(title)s.%(ext)s"
+            format="bestaudio/best"
+            opts=(--extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata)
+            echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_YT_AUDIO\n"
+            ;;
+        youtube_playlist:video)
+            output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Video"
+            template="$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s"
+            format="bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
+            opts=(--yes-playlist --merge-output-format mp4)
+            echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_YTPL_VIDEO\n"
+            ;;
+        youtube_playlist:audio)
+            output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Music"
+            template="$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s"
+            format="bestaudio/best"
+            opts=(--yes-playlist --extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata)
+            echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_YTPL_AUDIO\n"
+            ;;
+        *)
+            echo -e "${C_ERROR}[LM]${C_RESET} $TXT_PLATFORM_UNKNOWN"
+            echo -e "${C_DARK_ORANGE}$TXT_SUPPORTED_PLATFORMS${C_RESET}"
+            return 1
+            ;;
+    esac
+
+    mkdir -p "$output_dir"
+    yt-dlp --newline -f "$format" "${opts[@]}" -o "$template" "$url"
     echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
 }
 
-lm_download_tiktok() {
-    local url="$1"
-    local type="$2"
-    if [ "$type" = "video" ]; then
-        local output_dir="$LM_DOWNLOAD_BASE/TikTok/Video"
-        mkdir -p "$output_dir"
-        echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO\n"
-        yt-dlp --newline -f "best" --merge-output-format mp4 -o "$output_dir/%(title)s.%(ext)s" "$url"
-    else
-        local output_dir="$LM_DOWNLOAD_BASE/TikTok/Music"
-        mkdir -p "$output_dir"
-        echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO\n"
-        yt-dlp --newline -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 -o "$output_dir/%(title)s.%(ext)s" "$url"
+lm_download_for_platform() {
+    local platform="$1"
+    local url="$2"
+    local kind="$3"
+
+    if [ "$platform" = "unknown" ]; then
+        echo -e "${C_ERROR}[LM]${C_RESET} $TXT_PLATFORM_UNKNOWN"
+        echo -e "${C_DARK_ORANGE}$TXT_SUPPORTED_PLATFORMS${C_RESET}"
+        return 1
     fi
-    echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
+
+    if [ "$platform" = "youtube_playlist" ] && [ "$kind" != "video" ] && [ "$kind" != "audio" ]; then
+        kind="video"
+    fi
+
+    lm_download_common "$platform" "$kind" "$url"
 }
 
-lm_download_youtube_single() {
-    local url="$1"
-    local type="$2"
-    if [ "$type" = "video" ]; then
-        local output_dir="$LM_DOWNLOAD_BASE/YouTube/Video"
-        mkdir -p "$output_dir"
-        echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_YT_VIDEO\n"
-        yt-dlp --newline -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --merge-output-format mp4 -o "$output_dir/%(title)s.%(ext)s" "$url"
+lm_download_with_prompt() {
+    local platform="$1"
+    local url="$2"
+
+    case "$platform" in
+        instagram)
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_INSTAGRAM\n"
+            ;;
+        tiktok)
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_TIKTOK\n"
+            ;;
+        youtube)
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_YT_SINGLE\n"
+            ;;
+        youtube_playlist)
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_YT_PLAYLIST\n"
+            ;;
+        *)
+            echo -e "${C_ERROR}[LM]${C_RESET} $TXT_PLATFORM_UNKNOWN"
+            echo -e "${C_DARK_ORANGE}$TXT_SUPPORTED_PLATFORMS${C_RESET}"
+            return 1
+            ;;
+    esac
+
+    local opt1 opt2
+    if [ "$platform" = "youtube_playlist" ]; then
+        opt1="$TXT_OPTION_PLAYLIST_VIDEO"
+        opt2="$TXT_OPTION_PLAYLIST_AUDIO"
     else
-        local output_dir="$LM_DOWNLOAD_BASE/YouTube/Music"
-        mkdir -p "$output_dir"
-        echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_YT_AUDIO\n"
-        yt-dlp --newline -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata -o "$output_dir/%(title)s.%(ext)s" "$url"
+        opt1="$TXT_OPTION_VIDEO_DOWNLOAD"
+        opt2="$TXT_OPTION_AUDIO_DOWNLOAD"
     fi
-    echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
+
+    echo -e "${C_DARK_ORANGE}[1]${C_RESET} $opt1"
+    echo -e "${C_DARK_ORANGE}[2]${C_RESET} $opt2\n"
+    echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+    read -r choice
+    case "$choice" in
+        1) lm_download_for_platform "$platform" "$url" "video" ;;
+        2) lm_download_for_platform "$platform" "$url" "audio" ;;
+        *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
+    esac
 }
 
-lm_download_youtube_playlist() {
-    local url="$1"
-    local type="$2"
-    if [ "$type" = "video" ]; then
-        local output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Video"
-        mkdir -p "$output_dir"
-        echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_YTPL_VIDEO\n"
-        yt-dlp --newline --yes-playlist -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --merge-output-format mp4 -o "$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s" "$url"
-    else
-        local output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Music"
-        mkdir -p "$output_dir"
-        echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_YTPL_AUDIO\n"
-        yt-dlp --newline --yes-playlist -f "bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata -o "$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s" "$url"
+lm_search_fetch() {
+    local query="$1"
+    local tmp="$LM_DIR/search_results.tmp"
+    mkdir -p "$LM_DIR"
+    yt-dlp -O "%(id)s|%(title)s" "ytsearch30:${query}" 2>/dev/null > "$tmp"
+}
+
+lm_search_apply_filter() {
+    local filter="$1"
+    local in_file="$2"
+    local out_file="$3"
+
+    if [ -z "$filter" ]; then
+        cp "$in_file" "$out_file"
+        return 0
     fi
-    echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
+
+    : > "$out_file"
+    while IFS= read -r line; do
+        title="${line#*|}"
+        if printf '%s\n' "$title" | grep -i -F -- "$filter" >/dev/null 2>&1; then
+            printf '%s\n' "$line" >> "$out_file"
+        fi
+    done < "$in_file"
 }
 
 lm_search_menu() {
+    local page_size=10
+    local query filter
+    local tmp_raw="$LM_DIR/search_results_raw.tmp"
+    local tmp_filtered="$LM_DIR/search_results_filtered.tmp"
+
     while true; do
         lm_banner
         echo -e "${C_DARK_BLUE}╔══════════════════════════════════════════════╗"
-        echo -e "║              $TXT_SEARCH_TITLE                     ║"
+        echo -e "║                  $TXT_SEARCH_TITLE                  ║"
         echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
         echo -ne "${C_PROMPT}$TXT_SEARCH_PROMPT:${C_RESET} "
-        read query
-        if [[ -z "$query" ]]; then
+        read -r query
+
+        if [ -z "$query" ]; then
             echo -e "\n${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"
             sleep 1
             continue
         fi
 
+        echo -ne "\n${C_PROMPT}Filter (optional, Enter to skip):${C_RESET} "
+        read -r filter
+
         echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_SEARCHING"
-        yt-dlp -O "%(id)s|%(title)s" "ytsearch10:${query}" 2>/dev/null > "$LM_DIR/search_results.tmp" &
+        lm_search_fetch "$query" &
         local pid=$!
-        lm_spin $pid "$TXT_SEARCHING"
-        wait $pid
+        lm_spin "$pid" "$TXT_SEARCHING"
+        wait "$pid"
 
-        mapfile -t results < "$LM_DIR/search_results.tmp"
-        rm -f "$LM_DIR/search_results.tmp"
-
-        if [ ${#results[@]} -eq 0 ]; then
+        if [ ! -s "$LM_DIR/search_results.tmp" ]; then
+            rm -f "$LM_DIR/search_results.tmp" "$tmp_raw" "$tmp_filtered"
             echo -e "\n${C_ERROR}[LM]${C_RESET} $TXT_SEARCH_NO_RESULTS"
-        else
-            echo -e "\n${C_DARK_BLUE}─── $TXT_SEARCH_RESULTS ───${C_RESET}\n"
-            local i=1
-            for line in "${results[@]}"; do
-                id="${line%%|*}"
-                title="${line#*|}"
-                printf "${C_DARK_ORANGE}[%2d]${C_RESET} %s\n" $i "$title"
-                eval "ID_$i='$id'"
-                ((i++))
-                [ $i -gt 10 ] && break
-            done
-
-            echo -ne "\n${C_PROMPT}$TXT_SEARCH_SELECT:${C_RESET} "
-            read num
-            if [[ "$num" =~ ^[1-9]$|^10$ ]]; then
-                eval "selected_id=\$ID_$num"
-                video_url="https://youtu.be/$selected_id"
-                echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_YT_SINGLE"
-                echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
-                echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD"
-                echo -ne "\n${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
-                read vtype
-                case "$vtype" in
-                    1) lm_download_youtube_single "$video_url" "video" ;;
-                    2) lm_download_youtube_single "$video_url" "audio" ;;
-                    *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
-                esac
-            else
-                echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"
-            fi
+            sleep 1
+            continue
         fi
 
-        echo -ne "\n${C_PROMPT}$TXT_SEARCH_AGAIN${C_RESET} "
-        read again
-        case "$again" in
-            h|H|y|Y|e|E|yes|YES|Yes) continue ;;
-            *) break ;;
-        esac
+        cp "$LM_DIR/search_results.tmp" "$tmp_raw"
+        rm -f "$LM_DIR/search_results.tmp"
+        lm_search_apply_filter "$filter" "$tmp_raw" "$tmp_filtered"
+
+        mapfile -t search_results < "$tmp_filtered"
+        rm -f "$tmp_raw" "$tmp_filtered"
+
+        if [ "${#search_results[@]}" -eq 0 ]; then
+            echo -e "\n${C_ERROR}[LM]${C_RESET} $TXT_SEARCH_NO_RESULTS"
+            echo -ne "\n${C_PROMPT}$TXT_SEARCH_AGAIN${C_RESET} "
+            read -r again
+            case "$again" in
+                h|H|y|Y|e|E|yes|YES|Yes) continue ;;
+                *) break ;;
+            esac
+            continue
+        fi
+
+        local page=0
+        while true; do
+            local start=$((page * page_size))
+            local end=$((start + page_size))
+            local total=${#search_results[@]}
+
+            if [ "$start" -ge "$total" ]; then
+                page=0
+                start=0
+                end=$page_size
+            fi
+
+            echo -e "\n${C_DARK_BLUE}─── $TXT_SEARCH_RESULTS ───${C_RESET}\n"
+            local idx page_index=1
+            local page_ids=()
+
+            for ((idx=start; idx<end && idx<total; idx++)); do
+                local line="${search_results[$idx]}"
+                local id="${line%%|*}"
+                local title="${line#*|}"
+                page_ids+=("$id")
+                printf "${C_DARK_ORANGE}[%2d]${C_RESET} %s\n" "$page_index" "$title"
+                page_index=$((page_index + 1))
+            done
+
+            echo -e "\n${C_DARK_BROWN}[n] next  [p] prev  [f] new filter  [q] quit${C_RESET}"
+            echo -ne "${C_PROMPT}Select 1-10:${C_RESET} "
+            read -r num
+
+            case "$num" in
+                n|N)
+                    if (( end < total )); then
+                        page=$((page + 1))
+                    else
+                        echo -e "${C_DARK_ORANGE}[LM]${C_RESET} No more pages."
+                        sleep 1
+                    fi
+                    continue
+                    ;;
+                p|P)
+                    if (( page > 0 )); then
+                        page=$((page - 1))
+                    else
+                        echo -e "${C_DARK_ORANGE}[LM]${C_RESET} Already on first page."
+                        sleep 1
+                    fi
+                    continue
+                    ;;
+                f|F)
+                    echo -ne "${C_PROMPT}Filter (optional, Enter to skip):${C_RESET} "
+                    read -r filter
+                    lm_search_apply_filter "$filter" "$tmp_raw" "$tmp_filtered"
+                    mapfile -t search_results < "$tmp_filtered"
+                    rm -f "$tmp_filtered"
+                    page=0
+                    continue
+                    ;;
+                q|Q)
+                    rm -f "$tmp_raw" "$tmp_filtered"
+                    return 0
+                    ;;
+                *)
+                    if [[ "$num" =~ ^[1-9]$|^10$ ]]; then
+                        local choice=$((10#$num - 1))
+                        if [ "$choice" -ge 0 ] && [ "$choice" -lt "${#page_ids[@]}" ]; then
+                            local selected_id="${page_ids[$choice]}"
+                            local video_url="https://youtu.be/$selected_id"
+                            echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_YT_SINGLE"
+                            echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
+                            echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD"
+                            echo -ne "\n${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+                            read -r vtype
+                            case "$vtype" in
+                                1) lm_download_common youtube video "$video_url" ;;
+                                2) lm_download_common youtube audio "$video_url" ;;
+                                *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
+                            esac
+                            echo -ne "\n${C_PROMPT}$TXT_SEARCH_AGAIN${C_RESET} "
+                            read -r again
+                            case "$again" in
+                                h|H|y|Y|e|E|yes|YES|Yes) break ;;
+                                *) rm -f "$tmp_raw" "$tmp_filtered"; return 0 ;;
+                            esac
+                        else
+                            echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"
+                            sleep 1
+                        fi
+                    else
+                        echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"
+                        sleep 1
+                    fi
+                    ;;
+            esac
+        done
+
     done
+}
+
+
+lm_show_system_info() {
+    lm_banner
+    echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_SYSTEM_INFO\n"
+
+    echo -e "${C_DARK_ORANGE}Device Model:${C_RESET} $(getprop ro.product.model 2>/dev/null || echo 'N/A')"
+    echo -e "${C_DARK_ORANGE}Manufacturer:${C_RESET} $(getprop ro.product.manufacturer 2>/dev/null || echo 'N/A')"
+    echo -e "${C_DARK_ORANGE}Android Version:${C_RESET} $(getprop ro.build.version.release 2>/dev/null || echo 'N/A')"
+    echo -e "${C_DARK_ORANGE}SDK Level:${C_RESET} $(getprop ro.build.version.sdk 2>/dev/null || echo 'N/A')"
+    echo -e "${C_DARK_ORANGE}Architecture:${C_RESET} $(uname -m)"
+    echo -e "${C_DARK_ORANGE}CPU Cores:${C_RESET} $(nproc)"
+
+    local load
+    load="$(awk '{print $1, $2, $3}' /proc/loadavg 2>/dev/null)"
+    [ -n "$load" ] && echo -e "${C_DARK_ORANGE}CPU Load (1,5,15 min):${C_RESET} $load"
+
+    echo -e "${C_DARK_ORANGE}RAM Usage:${C_RESET}"
+    free -h 2>/dev/null | grep -v "Swap" | sed 's/^/  /'
+
+    echo -e "${C_DARK_ORANGE}Storage (/data):${C_RESET}"
+    df -h /data 2>/dev/null | tail -1 | awk '{print "  Total: "$2" Used: "$3" Free: "$4" Use%: "$5}'
+
+    echo -e "${C_DARK_ORANGE}Shell:${C_RESET} ${SHELL:-N/A}"
+    echo -e "${C_DARK_ORANGE}Termux Version:${C_RESET} ${TERMUX_VERSION:-N/A}"
+    echo -e "${C_DARK_ORANGE}Python:${C_RESET} $(python --version 2>&1 | awk '{print $2}')"
+    echo -e "${C_DARK_ORANGE}yt-dlp:${C_RESET} $(yt-dlp --version 2>/dev/null || echo 'Not installed')"
+    echo -e "${C_DARK_ORANGE}FFmpeg:${C_RESET} $(ffmpeg -version 2>/dev/null | head -1 | awk '{print $3}' || echo 'Not installed')"
+    echo -e "${C_DARK_ORANGE}gallery-dl:${C_RESET} $(gallery-dl --version 2>/dev/null || echo 'Not installed')"
+    echo -e "${C_DARK_ORANGE}pip:${C_RESET} $(pip --version 2>/dev/null | awk '{print $2}')"
+
+    echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
+    read -r
 }
 
 lm_manual_menu() {
@@ -1137,38 +555,22 @@ lm_manual_menu() {
         echo -e "${C_DARK_ORANGE}[3]${C_RESET} YouTube"
         echo -e "${C_DARK_BROWN}[0]${C_RESET} $TXT_MENU_OPTION_BACK\n"
         echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
-        read platform_choice
+        read -r platform_choice
 
-        case $platform_choice in
+        case "$platform_choice" in
             1)
                 echo -ne "\n${C_PROMPT}$TXT_PROMPT_INSTAGRAM_LINK:${C_RESET} "
-                read ig_url
-                echo -e "\n${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
-                echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD\n"
-                echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
-                read ig_type
-                case $ig_type in
-                    1) lm_download_instagram "$ig_url" "video" ;;
-                    2) lm_download_instagram "$ig_url" "audio" ;;
-                    *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
-                esac
+                read -r ig_url
+                lm_download_with_prompt instagram "$ig_url"
                 echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
-                read
+                read -r
                 ;;
             2)
                 echo -ne "\n${C_PROMPT}$TXT_PROMPT_TIKTOK_LINK:${C_RESET} "
-                read tt_url
-                echo -e "\n${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
-                echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD\n"
-                echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
-                read tt_type
-                case $tt_type in
-                    1) lm_download_tiktok "$tt_url" "video" ;;
-                    2) lm_download_tiktok "$tt_url" "audio" ;;
-                    *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
-                esac
+                read -r tt_url
+                lm_download_with_prompt tiktok "$tt_url"
                 echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
-                read
+                read -r
                 ;;
             3)
                 while true; do
@@ -1177,38 +579,22 @@ lm_manual_menu() {
                     echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_MENU_YT_MODE_PLAYLIST"
                     echo -e "${C_DARK_BROWN}[0]${C_RESET} $TXT_MENU_OPTION_BACK\n"
                     echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
-                    read yt_mode
-                    case $yt_mode in
+                    read -r yt_mode
+                    case "$yt_mode" in
                         1)
                             echo -ne "\n${C_PROMPT}$TXT_PROMPT_YT_SINGLE_LINK:${C_RESET} "
-                            read yt_single_url
-                            echo -e "\n${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
-                            echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD\n"
-                            echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
-                            read yt_type
-                            case $yt_type in
-                                1) lm_download_youtube_single "$yt_single_url" "video" ;;
-                                2) lm_download_youtube_single "$yt_single_url" "audio" ;;
-                                *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
-                            esac
+                            read -r yt_single_url
+                            lm_download_with_prompt youtube "$yt_single_url"
                             echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
-                            read
+                            read -r
                             break
                             ;;
                         2)
                             echo -ne "\n${C_PROMPT}$TXT_PROMPT_YT_PLAYLIST_LINK:${C_RESET} "
-                            read yt_pl_url
-                            echo -e "\n${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_PLAYLIST_VIDEO"
-                            echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_PLAYLIST_AUDIO\n"
-                            echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
-                            read yt_pl_type
-                            case $yt_pl_type in
-                                1) lm_download_youtube_playlist "$yt_pl_url" "video" ;;
-                                2) lm_download_youtube_playlist "$yt_pl_url" "audio" ;;
-                                *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
-                            esac
+                            read -r yt_pl_url
+                            lm_download_with_prompt youtube_playlist "$yt_pl_url"
                             echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
-                            read
+                            read -r
                             break
                             ;;
                         0) break ;;
@@ -1224,67 +610,14 @@ lm_manual_menu() {
 
 lm_auto_download() {
     local url="$1"
+    local platform
+
     lm_banner
     echo -e "${C_DARK_BLUE}╔══════════════════════════════════════════════╗"
     echo -e "║             $TXT_AUTO_MENU_TITLE             ║"
     echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
-    local platform
-    platform=$(lm_detect_platform "$url")
-
-    case $platform in
-        instagram)
-            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_INSTAGRAM\n"
-            echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
-            echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD\n"
-            echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
-            read choice
-            case $choice in
-                1) lm_download_instagram "$url" "video" ;;
-                2) lm_download_instagram "$url" "audio" ;;
-                *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
-            esac
-            ;;
-        tiktok)
-            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_TIKTOK\n"
-            echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
-            echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD\n"
-            echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
-            read choice
-            case $choice in
-                1) lm_download_tiktok "$url" "video" ;;
-                2) lm_download_tiktok "$url" "audio" ;;
-                *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
-            esac
-            ;;
-        youtube)
-            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_YT_SINGLE\n"
-            echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
-            echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD\n"
-            echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
-            read choice
-            case $choice in
-                1) lm_download_youtube_single "$url" "video" ;;
-                2) lm_download_youtube_single "$url" "audio" ;;
-                *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
-            esac
-            ;;
-        youtube_playlist)
-            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_YT_PLAYLIST\n"
-            echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_PLAYLIST_VIDEO"
-            echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_PLAYLIST_AUDIO\n"
-            echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
-            read choice
-            case $choice in
-                1) lm_download_youtube_playlist "$url" "video" ;;
-                2) lm_download_youtube_playlist "$url" "audio" ;;
-                *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
-            esac
-            ;;
-        *)
-            echo -e "${C_ERROR}[LM]${C_RESET} $TXT_PLATFORM_UNKNOWN"
-            echo -e "${C_DARK_ORANGE}$TXT_SUPPORTED_PLATFORMS${C_RESET}"
-            ;;
-    esac
+    platform="$(lm_detect_platform "$url")"
+    lm_download_with_prompt "$platform" "$url"
 }
 
 lm_settings_menu() {
@@ -1296,7 +629,7 @@ lm_settings_menu() {
         echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_MENU_OPTION_LANGUAGE"
         echo -e "${C_DARK_BROWN}[0]${C_RESET} $TXT_MENU_OPTION_BACK\n"
         echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
-        read settings_choice
+        read -r settings_choice
         case "$settings_choice" in
             1) lm_choose_language ;;
             0) break ;;
@@ -1316,25 +649,29 @@ lm_admin_menu() {
         echo -e "${C_DARK_ORANGE}[3]${C_RESET} $TXT_MENU_OPTION_INFO"
         echo -e "${C_DARK_BROWN}[0]${C_RESET} $TXT_MENU_OPTION_BACK\n"
         echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
-        read admin_choice
+        read -r admin_choice
         case "$admin_choice" in
             1)
                 lm_check_update
                 case $? in
                     0)
-                        echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATE_AVAILABLE ($remote_version)"
+                        echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATE_AVAILABLE ($LM_REMOTE_VERSION)"
                         echo -ne "${C_DARK_GREEN}$TXT_UPDATE_PROMPT${C_RESET} "
-                        read up_confirm
+                        read -r up_confirm
                         case "$up_confirm" in
                             h|H|y|Y|e|E|yes|YES|Yes) lm_do_update ;;
                             *) echo -e "${C_DARK_ORANGE}[LM]${C_RESET} $TXT_MENU_OPTION_BACK" ;;
                         esac
                         ;;
-                    2) echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_ALREADY_LATEST" ;;
-                    *) echo -e "\n${C_ERROR}[LM]${C_RESET} $TXT_UPDATE_FAILED" ;;
+                    2)
+                        echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_ALREADY_LATEST"
+                        ;;
+                    *)
+                        echo -e "\n${C_ERROR}[LM]${C_RESET} $TXT_UPDATE_FAILED"
+                        ;;
                 esac
                 echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
-                read
+                read -r
                 ;;
             2)
                 echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_OPTIMIZE_DONE"
@@ -1342,40 +679,11 @@ lm_admin_menu() {
                 pip cache purge >/dev/null 2>&1
                 echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_CACHE_CLEARED"
                 echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
-                read
+                read -r
                 ;;
             3)
-                lm_banner
-                echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_SYSTEM_INFO\n"
-
-                echo -e "${C_DARK_ORANGE}Device Model:${C_RESET} $(getprop ro.product.model 2>/dev/null || echo 'N/A')"
-                echo -e "${C_DARK_ORANGE}Manufacturer:${C_RESET} $(getprop ro.product.manufacturer 2>/dev/null || echo 'N/A')"
-                echo -e "${C_DARK_ORANGE}Android Version:${C_RESET} $(getprop ro.build.version.release 2>/dev/null || echo 'N/A')"
-                echo -e "${C_DARK_ORANGE}SDK Level:${C_RESET} $(getprop ro.build.version.sdk 2>/dev/null || echo 'N/A')"
-                echo -e "${C_DARK_ORANGE}Architecture:${C_RESET} $(uname -m)"
-                echo -e "${C_DARK_ORANGE}CPU Cores:${C_RESET} $(nproc)"
-
-                local load=$(cat /proc/loadavg 2>/dev/null | awk '{print $1, $2, $3}')
-                [[ -n "$load" ]] && echo -e "${C_DARK_ORANGE}CPU Load (1,5,15 min):${C_RESET} $load"
-
-                echo -e "${C_DARK_ORANGE}RAM Usage:${C_RESET}"
-                free -h | grep -v "Swap" | sed 's/^/  /'
-
-                echo -e "${C_DARK_ORANGE}Storage (/data):${C_RESET}"
-                df -h /data 2>/dev/null | tail -1 | awk '{print "  Total: "$2" Used: "$3" Free: "$4" Use%: "$5}'
-
-                echo -e "${C_DARK_ORANGE}Shell:${C_RESET} ${SHELL}"
-                echo -e "${C_DARK_ORANGE}Termux Version:${C_RESET} ${TERMUX_VERSION:-N/A}"
-
-                echo -e "${C_DARK_ORANGE}Python:${C_RESET} $(python --version 2>&1 | cut -d' ' -f2)"
-                echo -e "${C_DARK_ORANGE}yt-dlp:${C_RESET} $(yt-dlp --version 2>/dev/null || echo 'Not installed')"
-                echo -e "${C_DARK_ORANGE}FFmpeg:${C_RESET} $(ffmpeg -version 2>/dev/null | head -1 | cut -d' ' -f3 || echo 'Not installed')"
-                echo -e "${C_DARK_ORANGE}gallery-dl:${C_RESET} $(gallery-dl --version 2>/dev/null || echo 'Not installed')"
-                echo -e "${C_DARK_ORANGE}pip:${C_RESET} $(pip --version 2>/dev/null | awk '{print $2}')"
-
-                echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
-                read
-                ;;             
+                lm_show_system_info
+                ;;
             0) break ;;
             *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 2 ;;
         esac
@@ -1395,16 +703,16 @@ lm_main_menu() {
         echo -e "${C_DARK_ORANGE}[5]${C_RESET} $TXT_MENU_OPTION_SEARCH"
         echo -e "${C_DARK_BROWN}[0]${C_RESET} $TXT_MENU_OPTION_EXIT\n"
         echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
-        read main_choice
+        read -r main_choice
 
-        case $main_choice in
+        case "$main_choice" in
             1) lm_manual_menu ;;
             2)
                 echo -ne "\n${C_PROMPT}$TXT_PROMPT_LINK:${C_RESET} "
-                read auto_url
+                read -r auto_url
                 lm_auto_download "$auto_url"
                 echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
-                read
+                read -r
                 ;;
             3) lm_settings_menu ;;
             4) lm_admin_menu ;;
@@ -1442,8 +750,12 @@ lm_install() {
 
     lm_choose_language
 
-    cp "$0" "$LM_BIN"
+    cp "$SOURCE_PATH" "$LM_BIN"
     chmod +x "$LM_BIN"
+
+    if [ -f "$LM_LANG_SOURCE" ]; then
+        cp "$LM_LANG_SOURCE" "$LM_DIR/lm_lang.sh"
+    fi
 
     lm_banner
     echo -e "${C_DARK_GREEN}╔══════════════════════════════════════╗${C_RESET}"
@@ -1454,37 +766,33 @@ lm_install() {
     sleep 3
 }
 
-if [ -f "$LM_CONFIG" ]; then
-    . "$LM_CONFIG"
-    if [ -n "$download_path" ]; then
-        LM_DOWNLOAD_BASE="$download_path"
-    fi
-    if [ -n "$lang" ]; then
-        LM_LANG="$lang"
-    fi
-fi
+lm_main() {
+    lm_load_config
+    lm_set_lang_vars
 
-lm_set_lang_vars
-
-if [ "$installed" != "true" ] || [ "$version" != "$LM_VERSION" ]; then
-    lm_install
-fi
-
-if [ $# -eq 0 ]; then
-    lm_check_update
-    check_status=$?
-    if [ $check_status -eq 0 ]; then
-        echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATE_AVAILABLE ($remote_version)"
-        echo -ne "${C_DARK_GREEN}$TXT_UPDATE_PROMPT${C_RESET} "
-        read up_confirm
-        case "$up_confirm" in
-            h|H|y|Y|e|E|yes|YES|Yes) lm_do_update ;;
-        esac
-    elif [ $check_status -eq 1 ]; then
-        echo -e "\n${C_ERROR}[LM]${C_RESET} Üzr istəyirik, yeniləmə yoxlanarkən xəta baş verdi (internet yoxdur?)"
-        sleep 2
+    if [ "$installed" != "true" ] || [ "$version" != "$LM_VERSION" ]; then
+        lm_install
     fi
-    lm_main_menu
-else
-    lm_auto_download "$1"
-fi
+
+    if [ $# -eq 0 ]; then
+        if lm_check_update; then
+            echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATE_AVAILABLE ($LM_REMOTE_VERSION)"
+            echo -ne "${C_DARK_GREEN}$TXT_UPDATE_PROMPT${C_RESET} "
+            read -r up_confirm
+            case "$up_confirm" in
+                h|H|y|Y|e|E|yes|YES|Yes) lm_do_update ;;
+            esac
+        else
+            status=$?
+            if [ "$status" -eq 1 ]; then
+                echo -e "\n${C_ERROR}[LM]${C_RESET} Üzr istəyirik, yeniləmə yoxlanarkən xəta baş verdi (internet yoxdur?)"
+                sleep 2
+            fi
+        fi
+        lm_main_menu
+    else
+        lm_auto_download "$1"
+    fi
+}
+
+lm_main "$@"
