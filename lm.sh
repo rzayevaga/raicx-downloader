@@ -7,7 +7,8 @@ LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
 LM_OPENER="$HOME/bin/termux-url-opener"
 LM_DOWNLOAD_BASE="/sdcard/raicXD"
-LM_REPO_RAW="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/main/lm.sh"
+LM_REPO_RAW="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/raicX/lm.sh"
+
 LM_LANG="AZ"
 LM_REMOTE_VERSION=""
 
@@ -175,19 +176,27 @@ lm_check_update() {
     return 2
 }
 
+
 lm_do_update() {
     echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATING"
-    if curl -fsSL "$LM_REPO_RAW" -o "$LM_BIN.tmp"; then
-        chmod +x "$LM_BIN.tmp"
-        mv "$LM_BIN.tmp" "$LM_BIN"
+    local tmp_bin="$LM_BIN.tmp"
+    local tmp_lang="$LM_DIR/lm_lang.sh.tmp"
+    local lang_repo_raw="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/raicX/lm_lang.sh"
+
+    if curl -fsSL "$LM_REPO_RAW" -o "$tmp_bin" && \
+       curl -fsSL "$lang_repo_raw" -o "$tmp_lang"; then
+        chmod +x "$tmp_bin"
+        mv "$tmp_bin" "$LM_BIN"
+        mv "$tmp_lang" "$LM_LANG_SOURCE"
         echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATE_SUCCESS"
         exit 0
     else
         echo -e "${C_ERROR}[LM]${C_RESET} $TXT_UPDATE_FAILED"
-        rm -f "$LM_BIN.tmp"
+        rm -f "$tmp_bin" "$tmp_lang"
         return 1
     fi
 }
+
 
 lm_banner() {
     clear
