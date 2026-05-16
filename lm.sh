@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -o pipefail
 
-LM_VERSION="LM-V23.3"
+LM_VERSION="LM-V23.6"
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
@@ -160,20 +160,31 @@ lm_choose_language() {
     sleep 1
 }
 
+
 lm_check_update() {
     LM_REMOTE_VERSION=""
     local remote_line
     remote_line="$(curl -fsSL "$LM_REPO_RAW" 2>/dev/null | grep -m1 '^LM_VERSION=')"
     if [ -z "$remote_line" ]; then
-        return 1
+        return 1  
     fi
     LM_REMOTE_VERSION="${remote_line#LM_VERSION=}"
     LM_REMOTE_VERSION="${LM_REMOTE_VERSION%\"}"
     LM_REMOTE_VERSION="${LM_REMOTE_VERSION#\"}"
-    if [ "$LM_REMOTE_VERSION" != "$LM_VERSION" ]; then
-        return 0
+
+    local lang_repo_raw="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/raicX/lm_lang.sh"
+    local remote_lang_hash
+    remote_lang_hash="$(curl -fsSL "$lang_repo_raw" 2>/dev/null | sha256sum | cut -d' ' -f1)"
+    local local_lang_hash=""
+    if [ -f "$LM_DIR/lm_lang.sh" ]; then
+        local_lang_hash="$(sha256sum "$LM_DIR/lm_lang.sh" | cut -d' ' -f1)"
     fi
-    return 2
+
+    
+    if [ "$LM_REMOTE_VERSION" != "$LM_VERSION" ] || [ "$remote_lang_hash" != "$local_lang_hash" ]; then
+        return 0   
+    fi
+    return 2      
 }
 
 
@@ -187,8 +198,9 @@ lm_do_update() {
        curl -fsSL "$lang_repo_raw" -o "$tmp_lang"; then
         chmod +x "$tmp_bin"
         mv "$tmp_bin" "$LM_BIN"
-        mv "$tmp_lang" "$LM_LANG_SOURCE"
+        mv "$tmp_lang" "$LM_DIR/lm_lang.sh"
         echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATE_SUCCESS"
+        echo -e "${C_DARK_ORANGE}[LM]${C_RESET} Zəhmət olmasa yenidən başladın."
         exit 0
     else
         echo -e "${C_ERROR}[LM]${C_RESET} $TXT_UPDATE_FAILED"
@@ -196,6 +208,7 @@ lm_do_update() {
         return 1
     fi
 }
+
 
 
 lm_banner() {
