@@ -1021,4 +1021,22 @@ lm_set_lang_vars() {
             lm_set_lang_vars
             ;;
     esac
+
+    TXT_ERROR_EMPTY_URL="${TXT_ERROR_EMPTY_URL:-Link boşdur. Zəhmət olmasa düzgün link daxil edin.}"
+    TXT_ERROR_INVALID_URL="${TXT_ERROR_INVALID_URL:-Link formatı yanlışdır. Link http:// və ya https:// ilə başlamalıdır.}"
+    TXT_ERROR_MISSING_COMMAND="${TXT_ERROR_MISSING_COMMAND:-Lazımi proqram tapılmadı}"
+    TXT_ERROR_OUTPUT_DIR="${TXT_ERROR_OUTPUT_DIR:-Yükləmə qovluğuna yazmaq mümkün olmadı}"
+    TXT_ERROR_EXIT_CODE="${TXT_ERROR_EXIT_CODE:-Çıxış kodu}"
+    TXT_ERROR_REASON="${TXT_ERROR_REASON:-Səbəb}"
+    TXT_ERROR_LOG_FILE="${TXT_ERROR_LOG_FILE:-Detallı log faylı}"
+    TXT_ERROR_LAST_LINES="${TXT_ERROR_LAST_LINES:-Son log sətirləri:}"
+    TXT_ERROR_REASON_UNSUPPORTED="${TXT_ERROR_REASON_UNSUPPORTED:-Bu link və ya platforma yt-dlp tərəfindən dəstəklənmir.}"
+    TXT_ERROR_REASON_AUTH="${TXT_ERROR_REASON_AUTH:-Kontent giriş, cookie və ya şəxsi hesab icazəsi tələb edir.}"
+    TXT_ERROR_REASON_UNAVAILABLE="${TXT_ERROR_REASON_UNAVAILABLE:-Kontent silinib, bloklanıb və ya hazırda əlçatan deyil.}"
+    TXT_ERROR_REASON_NETWORK="${TXT_ERROR_REASON_NETWORK:-Şəbəkə, DNS, timeout və ya server bağlantısı xətası var.}"
+    TXT_ERROR_REASON_FFMPEG="${TXT_ERROR_REASON_FFMPEG:-FFmpeg və ya post-processing mərhələsində xəta baş verdi.}"
+    TXT_ERROR_REASON_STORAGE="${TXT_ERROR_REASON_STORAGE:-Yaddaş icazəsi, boş yer və ya yazma problemi var.}"
+    TXT_ERROR_REASON_UNKNOWN="${TXT_ERROR_REASON_UNKNOWN:-Naməlum xəta. Detallı log faylını yoxlayın.}"
+    TXT_LOG_DETAIL_FILE="${TXT_LOG_DETAIL_FILE:-Detallı log faylı}"
+    TXT_LOG_REASON_SUCCESS="${TXT_LOG_REASON_SUCCESS:-Yükləmə, metadata və info JSON uğurla tamamlandı.}"
 }

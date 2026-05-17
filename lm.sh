@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -o pipefail
 
-LM_VERSION="LM-V23.6"
+LM_VERSION="LM-V24.0-ULTRA"
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
@@ -11,6 +11,7 @@ LM_REPO_RAW="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/raicX/
 
 LM_LANG="AZ"
 LM_REMOTE_VERSION=""
+LM_LOG_DIR="$LM_DIR/logs"
 
 SOURCE_PATH="${BASH_SOURCE[0]:-$0}"
 SCRIPT_DIR="$(cd "$(dirname "$SOURCE_PATH")" && pwd)"
@@ -68,7 +69,7 @@ lm_spin() {
     while kill -0 "$pid" 2>/dev/null; do
         i=$(( (i+1) % 4 ))
         printf "\r${C_DARK_ORANGE}[LM] %s %s${C_RESET}" "${spin:$i:1}" "$msg"
-        sleep 0.15
+        sleep 0.08
     done
     wait "$pid" 2>/dev/null
     local status=$?
@@ -232,16 +233,115 @@ lm_run_step() {
     return $?
 }
 
-lm_log_download() {
-    local platform="$1"
-    local mode="$2"
-    local url="$3"
-    local title="$4"
-    local logfile="$LM_DIR/history.log"
-    mkdir -p "$LM_DIR"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Platform: $platform | Mode: $mode | URL: $url" >> "$logfile"
+lm_now_iso() {
+    date '+%Y-%m-%d %H:%M:%S %Z'
 }
 
+lm_log_kv() {
+    local file="$1"
+    local key="$2"
+    local value="${3:-}"
+    mkdir -p "$(dirname "$file")"
+    printf '[%s] %s=%s\n' "$(lm_now_iso)" "$key" "$value" >> "$file"
+}
+
+lm_quote_command() {
+    local arg
+    for arg in "$@"; do
+        printf '%q ' "$arg"
+    done
+}
+
+lm_log_download() {
+    local status="$1"
+    local platform="$2"
+    local mode="$3"
+    local url="$4"
+    local output_dir="$5"
+    local detail_log="$6"
+    local reason="${7:-}"
+    local logfile="$LM_DIR/history.log"
+    mkdir -p "$LM_DIR" "$LM_LOG_DIR"
+    printf '[%s] Status: %s | Platform: %s | Mode: %s | Output: %s | Reason: %s | DetailLog: %s | URL: %s\n' "$(lm_now_iso)" "$status" "$platform" "$mode" "$output_dir" "$reason" "$detail_log" "$url" >> "$logfile"
+}
+
+lm_validate_url() {
+    local url="$1"
+    if [ -z "$url" ]; then
+        echo "$TXT_ERROR_EMPTY_URL"
+        return 1
+    fi
+    if [[ ! "$url" =~ ^https?:// ]]; then
+        echo "$TXT_ERROR_INVALID_URL"
+        return 1
+    fi
+    return 0
+}
+
+lm_require_command() {
+    local cmd="$1"
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        echo "$TXT_ERROR_MISSING_COMMAND: $cmd"
+        return 1
+    fi
+    return 0
+}
+
+lm_prepare_output_dir() {
+    local output_dir="$1"
+    mkdir -p "$output_dir" 2>/dev/null || return 1
+    if [ ! -w "$output_dir" ]; then
+        return 1
+    fi
+    return 0
+}
+
+lm_error_reason_from_log() {
+    local ret="$1"
+    local log_file="$2"
+    if [ -f "$log_file" ]; then
+        if grep -qiE 'unsupported url|no suitable extractor|not a valid url' "$log_file"; then
+            echo "$TXT_ERROR_REASON_UNSUPPORTED"
+            return 0
+        fi
+        if grep -qiE 'private|login|sign in|cookies|authentication' "$log_file"; then
+            echo "$TXT_ERROR_REASON_AUTH"
+            return 0
+        fi
+        if grep -qiE 'copyright|blocked|not available|unavailable|removed|deleted' "$log_file"; then
+            echo "$TXT_ERROR_REASON_UNAVAILABLE"
+            return 0
+        fi
+        if grep -qiE 'network|timed out|timeout|connection|http error|temporary failure|unable to download' "$log_file"; then
+            echo "$TXT_ERROR_REASON_NETWORK"
+            return 0
+        fi
+        if grep -qiE 'ffmpeg|ffprobe|postprocessing|post-process' "$log_file"; then
+            echo "$TXT_ERROR_REASON_FFMPEG"
+            return 0
+        fi
+        if grep -qiE 'permission denied|no space left|read-only file system|cannot write|unable to open' "$log_file"; then
+            echo "$TXT_ERROR_REASON_STORAGE"
+            return 0
+        fi
+    fi
+    echo "$TXT_ERROR_REASON_UNKNOWN (exit=$ret)"
+}
+
+lm_print_error_details() {
+    local ret="$1"
+    local detail_log="$2"
+    local reason="$3"
+    echo -e "\n${C_ERROR}[LM]${C_RESET} $TXT_DOWNLOAD_FAILED"
+    echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_EXIT_CODE: $ret"
+    echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_REASON: $reason"
+    echo -e "${C_DARK_ORANGE}[LM]${C_RESET} $TXT_ERROR_LOG_FILE: $detail_log"
+    if [ -f "$detail_log" ]; then
+        echo -e "${C_DARK_ORANGE}[LM]${C_RESET} $TXT_ERROR_LAST_LINES"
+        tail -n 12 "$detail_log"
+    fi
+    echo
+}
 lm_select_quality() {
     echo -e "\n${C_DARK_BLUE}$TXT_QUALITY_PROMPT${C_RESET}"
     echo -e "${C_DARK_ORANGE}[1]${C_RESET} 1080p"
@@ -400,16 +500,63 @@ lm_download_common() {
             ;;
     esac
 
-    mkdir -p "$output_dir"
-    yt-dlp --newline -f "$format" "${opts[@]}" -o "$template" "$url"
-    local ret=$?
-    if [ $ret -eq 0 ]; then
-        echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
-        lm_log_download "$platform" "$mode" "$url" ""
-    else
-        echo -e "\n${C_ERROR}[LM]${C_RESET} $TXT_DOWNLOAD_FAILED\n"
+    local validation_error
+    if ! validation_error="$(lm_validate_url "$url")"; then
+        echo -e "\n${C_ERROR}[LM]${C_RESET} $validation_error\n"
+        return 1
     fi
-    return $ret
+
+    local command_error
+    if ! command_error="$(lm_require_command yt-dlp)"; then
+        echo -e "\n${C_ERROR}[LM]${C_RESET} $command_error\n"
+        return 127
+    fi
+
+    if ! lm_prepare_output_dir "$output_dir"; then
+        echo -e "\n${C_ERROR}[LM]${C_RESET} $TXT_ERROR_OUTPUT_DIR: $output_dir\n"
+        return 1
+    fi
+
+    mkdir -p "$LM_LOG_DIR"
+    local request_id detail_log started_at finished_at ret reason
+    request_id="$(date '+%Y%m%d-%H%M%S')-$$-${RANDOM:-0}"
+    detail_log="$LM_LOG_DIR/download-$request_id.log"
+    started_at="$(lm_now_iso)"
+
+    local -a cmd=(yt-dlp --newline --write-info-json --embed-metadata --no-overwrites -f "$format" "${opts[@]}" -o "$template" "$url")
+    lm_log_kv "$detail_log" "request_id" "$request_id"
+    lm_log_kv "$detail_log" "version" "$LM_VERSION"
+    lm_log_kv "$detail_log" "started_at" "$started_at"
+    lm_log_kv "$detail_log" "platform" "$platform"
+    lm_log_kv "$detail_log" "mode" "$mode"
+    lm_log_kv "$detail_log" "output_dir" "$output_dir"
+    lm_log_kv "$detail_log" "template" "$template"
+    lm_log_kv "$detail_log" "format" "$format"
+    lm_log_kv "$detail_log" "url" "$url"
+    lm_log_kv "$detail_log" "yt_dlp_version" "$(yt-dlp --version 2>/dev/null || echo unknown)"
+    lm_log_kv "$detail_log" "ffmpeg_version" "$(ffmpeg -version 2>/dev/null | head -1 || echo unknown)"
+    lm_log_kv "$detail_log" "command" "$(lm_quote_command "${cmd[@]}")"
+    echo -e "${C_DARK_ORANGE}[LM]${C_RESET} $TXT_LOG_DETAIL_FILE: $detail_log"
+
+    "${cmd[@]}" 2>&1 | tee -a "$detail_log"
+    ret=${PIPESTATUS[0]}
+    finished_at="$(lm_now_iso)"
+    lm_log_kv "$detail_log" "finished_at" "$finished_at"
+    lm_log_kv "$detail_log" "exit_code" "$ret"
+
+    if [ "$ret" -eq 0 ]; then
+        lm_log_kv "$detail_log" "status" "success"
+        echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
+        lm_log_download "SUCCESS" "$platform" "$mode" "$url" "$output_dir" "$detail_log" "$TXT_LOG_REASON_SUCCESS"
+    else
+        reason="$(lm_error_reason_from_log "$ret" "$detail_log")"
+        lm_log_kv "$detail_log" "status" "failed"
+        lm_log_kv "$detail_log" "reason" "$reason"
+        lm_log_download "FAILED" "$platform" "$mode" "$url" "$output_dir" "$detail_log" "$reason"
+        lm_print_error_details "$ret" "$detail_log" "$reason"
+    fi
+    return "$ret"
+
 }
 
 lm_download_for_platform() {
@@ -478,26 +625,46 @@ lm_download_with_prompt() {
         opt1="$TXT_OPTION_PLAYLIST_VIDEO"
         opt2="$TXT_OPTION_PLAYLIST_AUDIO"
         opt3="$TXT_OPTION_QUALITY_PLAYLIST"
+        echo -e "${C_DARK_ORANGE}[1]${C_RESET} $opt1"
+        echo -e "${C_DARK_ORANGE}[2]${C_RESET} $opt2"
+        echo -e "${C_DARK_ORANGE}[3]${C_RESET} $opt3"
     elif [ "$platform" = "youtube" ]; then
         opt1="$TXT_OPTION_VIDEO_DOWNLOAD"
         opt2="$TXT_OPTION_AUDIO_DOWNLOAD"
         opt3="$TXT_OPTION_QUALITY_VIDEO"
+        echo -e "${C_DARK_ORANGE}[1]${C_RESET} $opt1"
+        echo -e "${C_DARK_ORANGE}[2]${C_RESET} $opt2"
+        echo -e "${C_DARK_ORANGE}[3]${C_RESET} $opt3"
+    elif [ "$platform" = "soundcloud" ]; then
+        opt1="$TXT_OPTION_AUDIO_DOWNLOAD"
+        echo -e "${C_DARK_ORANGE}[1]${C_RESET} $opt1"
+    elif [ "$platform" = "pinterest" ] || [ "$platform" = "reddit" ] || [ "$platform" = "vimeo" ]; then
+        opt1="$TXT_OPTION_VIDEO_DOWNLOAD"
+        echo -e "${C_DARK_ORANGE}[1]${C_RESET} $opt1"
     else
         opt1="$TXT_OPTION_VIDEO_DOWNLOAD"
         opt2="$TXT_OPTION_AUDIO_DOWNLOAD"
-    fi
-
-    echo -e "${C_DARK_ORANGE}[1]${C_RESET} $opt1"
-    echo -e "${C_DARK_ORANGE}[2]${C_RESET} $opt2"
-    if [ "$platform" = "youtube" ] || [ "$platform" = "youtube_playlist" ]; then
-        echo -e "${C_DARK_ORANGE}[3]${C_RESET} $opt3"
+        echo -e "${C_DARK_ORANGE}[1]${C_RESET} $opt1"
+        echo -e "${C_DARK_ORANGE}[2]${C_RESET} $opt2"
     fi
     echo -ne "\n${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
     read -r choice
 
     case "$choice" in
-        1) lm_download_for_platform "$platform" "$url" "video" ;;
-        2) lm_download_for_platform "$platform" "$url" "audio" ;;
+        1)
+            if [ "$platform" = "soundcloud" ]; then
+                lm_download_for_platform "$platform" "$url" "audio"
+            else
+                lm_download_for_platform "$platform" "$url" "video"
+            fi
+            ;;
+        2)
+            if [ "$platform" = "pinterest" ] || [ "$platform" = "reddit" ] || [ "$platform" = "vimeo" ] || [ "$platform" = "soundcloud" ]; then
+                echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"
+            else
+                lm_download_for_platform "$platform" "$url" "audio"
+            fi
+            ;;
         3)
             if [ "$platform" = "youtube" ] || [ "$platform" = "youtube_playlist" ]; then
                 lm_download_common "$platform" "video_quality" "$url"
@@ -507,6 +674,7 @@ lm_download_with_prompt() {
             ;;
         *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
     esac
+
 }
 
 lm_batch_download() {
@@ -523,7 +691,7 @@ lm_batch_download() {
     fi
     echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_BATCH_START (${#urls[@]} link)"
     for idx in "${!urls[@]}"; do
-        echo -e "\n${C_DARK_BROWN}[${idx}/$((${#urls[@]}-1))]${C_RESET} ${urls[$idx]}"
+        echo -e "\n${C_DARK_BROWN}[$((idx + 1))/${#urls[@]}]${C_RESET} ${urls[$idx]}"
         local platform
         platform="$(lm_detect_platform "${urls[$idx]}")"
         lm_download_with_prompt "$platform" "${urls[$idx]}"
