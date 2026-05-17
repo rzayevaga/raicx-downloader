@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -o pipefail
 
-LM_VERSION="LM-V24.0-ULTRA"
+LM_VERSION="LM-V25.0-ULTRA"
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
@@ -28,51 +28,45 @@ C_DARK_GREEN='\033[38;5;22m'
 C_PROMPT='\033[0;32m'
 C_ERROR='\033[0;31m'
 C_INFO='\033[0;36m'
+C_BOLD='\033[1m'
+C_DIM='\033[2m'
+C_ITALIC='\033[3m'
+C_UNDERLINE='\033[4m'
 
 if [ -f "$LM_LANG_SOURCE" ]; then
     . "$LM_LANG_SOURCE"
 fi
 
-lm_detect_platform() {
-    local url_lower
-    url_lower="$(echo "${1:-}" | tr '[:upper:]' '[:lower:]')"
-    if [[ $url_lower == *"instagram.com"* ]] || [[ $url_lower == *"instagr.am"* ]]; then
-        echo "instagram"
-    elif [[ $url_lower == *"tiktok.com"* ]] || [[ $url_lower == *"vm.tiktok.com"* ]] || [[ $url_lower == *"vt.tiktok.com"* ]] || [[ $url_lower == *"m.tiktok.com"* ]]; then
-        echo "tiktok"
-    elif [[ $url_lower == *"youtube.com/playlist"* ]] || { [[ $url_lower == *"list="* ]] && { [[ $url_lower == *"youtube.com"* ]] || [[ $url_lower == *"youtu.be"* ]]; }; }; then
-        echo "youtube_playlist"
-    elif [[ $url_lower == *"youtube.com"* ]] || [[ $url_lower == *"youtu.be"* ]]; then
-        echo "youtube"
-    elif [[ $url_lower == *"twitter.com"* ]] || [[ $url_lower == *"x.com"* ]]; then
-        echo "twitter"
-    elif [[ $url_lower == *"facebook.com"* ]] || [[ $url_lower == *"fb.com"* ]] || [[ $url_lower == *"fb.watch"* ]]; then
-        echo "facebook"
-    elif [[ $url_lower == *"soundcloud.com"* ]]; then
-        echo "soundcloud"
-    elif [[ $url_lower == *"pinterest.com"* ]] || [[ $url_lower == *"pin.it"* ]]; then
-        echo "pinterest"
-    elif [[ $url_lower == *"reddit.com"* ]] || [[ $url_lower == *"redd.it"* ]]; then
-        echo "reddit"
-    elif [[ $url_lower == *"vimeo.com"* ]]; then
-        echo "vimeo"
-    else
-        echo "unknown"
-    fi
+lm_animate_border() {
+    local text="$1"
+    local width=50
+    local -a frames=("█" "▓" "▒" "░")
+    for i in {1..2}; do
+        for frame in "${frames[@]}"; do
+            printf "\r${C_DARK_ORANGE}%s${C_RESET} %s ${C_DARK_ORANGE}%s${C_RESET}" "$frame" "$text" "$frame"
+            sleep 0.03
+        done
+    done
+    echo
 }
+
+lm_hide_cursor() { printf "\e[?25l"; }
+lm_show_cursor() { printf "\e[?25h"; }
 
 lm_spin() {
     local pid=$1
     local msg="$2"
-    local spin='|/-\'
+    local -a spin=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
     local i=0
+    lm_hide_cursor
     while kill -0 "$pid" 2>/dev/null; do
-        i=$(( (i+1) % 4 ))
-        printf "\r${C_DARK_ORANGE}[LM] %s %s${C_RESET}" "${spin:$i:1}" "$msg"
+        i=$(( (i+1) % ${#spin[@]} ))
+        printf "\r${C_DARK_ORANGE}[LM] %s %s${C_RESET}" "${spin[$i]}" "$msg"
         sleep 0.08
     done
     wait "$pid" 2>/dev/null
     local status=$?
+    lm_show_cursor
     if [ "$status" -eq 0 ]; then
         printf "\r${C_DARK_GREEN}[LM] ✓ %s                    ${C_RESET}\n" "$msg"
     else
@@ -107,6 +101,7 @@ lm_create_folders() {
     mkdir -p "$LM_DOWNLOAD_BASE/Pinterest/Video"
     mkdir -p "$LM_DOWNLOAD_BASE/Reddit/Video"
     mkdir -p "$LM_DOWNLOAD_BASE/Vimeo/Video"
+    mkdir -p "$LM_DOWNLOAD_BASE/YouTube/Channel/Video"
 }
 
 lm_save_config() {
@@ -161,13 +156,42 @@ lm_choose_language() {
     sleep 1
 }
 
+lm_detect_platform() {
+    local url_lower
+    url_lower="$(echo "${1:-}" | tr '[:upper:]' '[:lower:]')"
+    if [[ $url_lower == *"instagram.com"* ]] || [[ $url_lower == *"instagr.am"* ]]; then
+        echo "instagram"
+    elif [[ $url_lower == *"tiktok.com"* ]] || [[ $url_lower == *"vm.tiktok.com"* ]] || [[ $url_lower == *"vt.tiktok.com"* ]] || [[ $url_lower == *"m.tiktok.com"* ]]; then
+        echo "tiktok"
+    elif [[ $url_lower == *"youtube.com/playlist"* ]] || { [[ $url_lower == *"list="* ]] && { [[ $url_lower == *"youtube.com"* ]] || [[ $url_lower == *"youtu.be"* ]]; }; }; then
+        echo "youtube_playlist"
+    elif [[ $url_lower == *"youtube.com/@*"* ]] || [[ $url_lower == *"youtube.com/channel/"* ]] || [[ $url_lower == *"youtube.com/c/"* ]]; then
+        echo "youtube_channel"
+    elif [[ $url_lower == *"youtube.com"* ]] || [[ $url_lower == *"youtu.be"* ]]; then
+        echo "youtube"
+    elif [[ $url_lower == *"twitter.com"* ]] || [[ $url_lower == *"x.com"* ]]; then
+        echo "twitter"
+    elif [[ $url_lower == *"facebook.com"* ]] || [[ $url_lower == *"fb.com"* ]] || [[ $url_lower == *"fb.watch"* ]]; then
+        echo "facebook"
+    elif [[ $url_lower == *"soundcloud.com"* ]]; then
+        echo "soundcloud"
+    elif [[ $url_lower == *"pinterest.com"* ]] || [[ $url_lower == *"pin.it"* ]]; then
+        echo "pinterest"
+    elif [[ $url_lower == *"reddit.com"* ]] || [[ $url_lower == *"redd.it"* ]]; then
+        echo "reddit"
+    elif [[ $url_lower == *"vimeo.com"* ]]; then
+        echo "vimeo"
+    else
+        echo "unknown"
+    fi
+}
 
 lm_check_update() {
     LM_REMOTE_VERSION=""
     local remote_line
     remote_line="$(curl -fsSL "$LM_REPO_RAW" 2>/dev/null | grep -m1 '^LM_VERSION=')"
     if [ -z "$remote_line" ]; then
-        return 1  
+        return 1
     fi
     LM_REMOTE_VERSION="${remote_line#LM_VERSION=}"
     LM_REMOTE_VERSION="${LM_REMOTE_VERSION%\"}"
@@ -181,13 +205,11 @@ lm_check_update() {
         local_lang_hash="$(sha256sum "$LM_DIR/lm_lang.sh" | cut -d' ' -f1)"
     fi
 
-    
     if [ "$LM_REMOTE_VERSION" != "$LM_VERSION" ] || [ "$remote_lang_hash" != "$local_lang_hash" ]; then
-        return 0   
+        return 0
     fi
-    return 2      
+    return 2
 }
-
 
 lm_do_update() {
     echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATING"
@@ -210,7 +232,22 @@ lm_do_update() {
     fi
 }
 
-
+lm_startup_animation() {
+    lm_hide_cursor
+    clear
+    local bar=""
+    for i in {1..20}; do
+        bar+="█"
+        printf "\r${C_DARK_ORANGE}[${bar}"
+        for j in $(seq $((20 - i))); do printf " "; done
+        printf "] %d%%" $((i * 5))
+        sleep 0.03
+    done
+    printf "${C_RESET}\n\n"
+    lm_animate_border "Ɍム-ic LM  Starting"
+    sleep 0.3
+    lm_show_cursor
+}
 
 lm_banner() {
     clear
@@ -342,6 +379,7 @@ lm_print_error_details() {
     fi
     echo
 }
+
 lm_select_quality() {
     echo -e "\n${C_DARK_BLUE}$TXT_QUALITY_PROMPT${C_RESET}"
     echo -e "${C_DARK_ORANGE}[1]${C_RESET} 1080p"
@@ -359,17 +397,38 @@ lm_select_quality() {
     esac
 }
 
+lm_prompt_subtitles() {
+    echo -ne "\n${C_PROMPT}$TXT_PROMPT_SUBTITLES${C_RESET} "
+    read -r sub_ans
+    case "$sub_ans" in
+        y|Y|yes|YES|Yes|h|H)
+            echo -ne "${C_PROMPT}$TXT_PROMPT_SUB_LANG${C_RESET} "
+            read -r sub_lang
+            if [ -n "$sub_lang" ]; then
+                echo "--write-subs --sub-lang $sub_lang"
+            else
+                echo "--write-subs"
+            fi
+            ;;
+        *) echo "" ;;
+    esac
+}
+
 lm_download_common() {
     local platform="$1"
     local mode="$2"
     local url="$3"
     local quality_format=""
-    local output_dir template format
+    local output_dir template format extra_opts_str
     local -a opts=()
 
-    if [ "$mode" = "video_quality" ] && { [ "$platform" = "youtube" ] || [ "$platform" = "youtube_playlist" ]; }; then
+    if [ "$mode" = "video_quality" ] && { [ "$platform" = "youtube" ] || [ "$platform" = "youtube_playlist" ] || [ "$platform" = "youtube_channel" ]; }; then
         quality_format="$(lm_select_quality)"
         mode="video"
+    fi
+
+    if { [ "$platform" = "youtube" ] || [ "$platform" = "youtube_playlist" ] || [ "$platform" = "youtube_channel" ]; } && [ "$mode" = "video" ]; then
+        extra_opts_str="$(lm_prompt_subtitles)"
     fi
 
     case "${platform}:${mode}" in
@@ -377,7 +436,7 @@ lm_download_common() {
             output_dir="$LM_DOWNLOAD_BASE/Instagram/Video"
             template="$output_dir/%(title)s.%(ext)s"
             format="best"
-            opts=(--merge-output-format mp4)
+            opts=(--merge-output-format mp4 --concurrent-fragments 4)
             echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO\n"
             ;;
         instagram:audio)
@@ -391,7 +450,7 @@ lm_download_common() {
             output_dir="$LM_DOWNLOAD_BASE/TikTok/Video"
             template="$output_dir/%(title)s.%(ext)s"
             format="best"
-            opts=(--merge-output-format mp4)
+            opts=(--merge-output-format mp4 --concurrent-fragments 4)
             echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO\n"
             ;;
         tiktok:audio)
@@ -409,7 +468,8 @@ lm_download_common() {
             else
                 format="bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
             fi
-            opts=(--merge-output-format mp4)
+            opts=(--merge-output-format mp4 --concurrent-fragments 4)
+            [ -n "$extra_opts_str" ] && opts+=($extra_opts_str)
             echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_YT_VIDEO\n"
             ;;
         youtube:audio)
@@ -427,7 +487,8 @@ lm_download_common() {
             else
                 format="bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
             fi
-            opts=(--yes-playlist --merge-output-format mp4)
+            opts=(--yes-playlist --merge-output-format mp4 --concurrent-fragments 4)
+            [ -n "$extra_opts_str" ] && opts+=($extra_opts_str)
             echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_YTPL_VIDEO\n"
             ;;
         youtube_playlist:audio)
@@ -437,11 +498,30 @@ lm_download_common() {
             opts=(--yes-playlist --extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata)
             echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_YTPL_AUDIO\n"
             ;;
+        youtube_channel:video)
+            output_dir="$LM_DOWNLOAD_BASE/YouTube/Channel/Video"
+            template="$output_dir/%(uploader)s - %(title)s.%(ext)s"
+            if [ -n "$quality_format" ]; then
+                format="$quality_format"
+            else
+                format="bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
+            fi
+            opts=(--merge-output-format mp4 --concurrent-fragments 4)
+            [ -n "$extra_opts_str" ] && opts+=($extra_opts_str)
+            echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_YT_CHANNEL_VIDEO\n"
+            ;;
+        youtube_channel:audio)
+            output_dir="$LM_DOWNLOAD_BASE/YouTube/Channel/Music"
+            template="$output_dir/%(uploader)s - %(title)s.%(ext)s"
+            format="bestaudio/best"
+            opts=(--extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata)
+            echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_YT_CHANNEL_AUDIO\n"
+            ;;
         twitter:video)
             output_dir="$LM_DOWNLOAD_BASE/Twitter/Video"
             template="$output_dir/%(title)s.%(ext)s"
             format="best"
-            opts=(--merge-output-format mp4)
+            opts=(--merge-output-format mp4 --concurrent-fragments 4)
             echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_TWITTER_VIDEO\n"
             ;;
         twitter:audio)
@@ -455,7 +535,7 @@ lm_download_common() {
             output_dir="$LM_DOWNLOAD_BASE/Facebook/Video"
             template="$output_dir/%(title)s.%(ext)s"
             format="best"
-            opts=(--merge-output-format mp4)
+            opts=(--merge-output-format mp4 --concurrent-fragments 4)
             echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_FACEBOOK_VIDEO\n"
             ;;
         facebook:audio)
@@ -476,21 +556,21 @@ lm_download_common() {
             output_dir="$LM_DOWNLOAD_BASE/Pinterest/Video"
             template="$output_dir/%(title)s.%(ext)s"
             format="best"
-            opts=(--merge-output-format mp4)
+            opts=(--merge-output-format mp4 --concurrent-fragments 4)
             echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_PINTEREST_VIDEO\n"
             ;;
         reddit:video)
             output_dir="$LM_DOWNLOAD_BASE/Reddit/Video"
             template="$output_dir/%(title)s.%(ext)s"
             format="best"
-            opts=(--merge-output-format mp4)
+            opts=(--merge-output-format mp4 --concurrent-fragments 4)
             echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_REDDIT_VIDEO\n"
             ;;
         vimeo:video)
             output_dir="$LM_DOWNLOAD_BASE/Vimeo/Video"
             template="$output_dir/%(title)s.%(ext)s"
             format="best"
-            opts=(--merge-output-format mp4)
+            opts=(--merge-output-format mp4 --concurrent-fragments 4)
             echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_VIMEO_VIDEO\n"
             ;;
         *)
@@ -556,7 +636,6 @@ lm_download_common() {
         lm_print_error_details "$ret" "$detail_log" "$reason"
     fi
     return "$ret"
-
 }
 
 lm_download_for_platform() {
@@ -584,35 +663,27 @@ lm_download_with_prompt() {
 
     case "$platform" in
         instagram)
-            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_INSTAGRAM\n"
-            ;;
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_INSTAGRAM\n" ;;
         tiktok)
-            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_TIKTOK\n"
-            ;;
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_TIKTOK\n" ;;
         youtube)
-            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_YT_SINGLE\n"
-            ;;
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_YT_SINGLE\n" ;;
         youtube_playlist)
-            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_YT_PLAYLIST\n"
-            ;;
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_YT_PLAYLIST\n" ;;
+        youtube_channel)
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_YT_CHANNEL\n" ;;
         twitter)
-            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_TWITTER\n"
-            ;;
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_TWITTER\n" ;;
         facebook)
-            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_FACEBOOK\n"
-            ;;
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_FACEBOOK\n" ;;
         soundcloud)
-            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_SOUNDCLOUD\n"
-            ;;
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_SOUNDCLOUD\n" ;;
         pinterest)
-            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_PINTEREST\n"
-            ;;
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_PINTEREST\n" ;;
         reddit)
-            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_REDDIT\n"
-            ;;
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_REDDIT\n" ;;
         vimeo)
-            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_VIMEO\n"
-            ;;
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_VIMEO\n" ;;
         *)
             echo -e "${C_ERROR}[LM]${C_RESET} $TXT_PLATFORM_UNKNOWN"
             echo -e "${C_DARK_ORANGE}$TXT_SUPPORTED_PLATFORMS${C_RESET}"
@@ -620,7 +691,7 @@ lm_download_with_prompt() {
             ;;
     esac
 
-    local opt1 opt2 opt3
+    local opt1 opt2 opt3 opt4
     if [ "$platform" = "youtube_playlist" ]; then
         opt1="$TXT_OPTION_PLAYLIST_VIDEO"
         opt2="$TXT_OPTION_PLAYLIST_AUDIO"
@@ -632,6 +703,13 @@ lm_download_with_prompt() {
         opt1="$TXT_OPTION_VIDEO_DOWNLOAD"
         opt2="$TXT_OPTION_AUDIO_DOWNLOAD"
         opt3="$TXT_OPTION_QUALITY_VIDEO"
+        echo -e "${C_DARK_ORANGE}[1]${C_RESET} $opt1"
+        echo -e "${C_DARK_ORANGE}[2]${C_RESET} $opt2"
+        echo -e "${C_DARK_ORANGE}[3]${C_RESET} $opt3"
+    elif [ "$platform" = "youtube_channel" ]; then
+        opt1="$TXT_OPTION_CHANNEL_VIDEO"
+        opt2="$TXT_OPTION_CHANNEL_AUDIO"
+        opt3="$TXT_OPTION_QUALITY_CHANNEL"
         echo -e "${C_DARK_ORANGE}[1]${C_RESET} $opt1"
         echo -e "${C_DARK_ORANGE}[2]${C_RESET} $opt2"
         echo -e "${C_DARK_ORANGE}[3]${C_RESET} $opt3"
@@ -666,7 +744,7 @@ lm_download_with_prompt() {
             fi
             ;;
         3)
-            if [ "$platform" = "youtube" ] || [ "$platform" = "youtube_playlist" ]; then
+            if [ "$platform" = "youtube" ] || [ "$platform" = "youtube_playlist" ] || [ "$platform" = "youtube_channel" ]; then
                 lm_download_common "$platform" "video_quality" "$url"
             else
                 echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"
@@ -674,17 +752,29 @@ lm_download_with_prompt() {
             ;;
         *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
     esac
-
 }
 
 lm_batch_download() {
     local urls=()
     echo -e "\n${C_DARK_BLUE}$TXT_BATCH_PROMPT${C_RESET}"
     echo -e "${C_DARK_ORANGE}$TXT_BATCH_INSTRUCTION${C_RESET}"
-    while IFS= read -r line; do
-        [ -z "$line" ] && break
-        urls+=("$line")
-    done
+    echo -e "${C_DARK_ORANGE}$TXT_BATCH_FILE_HINT${C_RESET}"
+    echo -ne "${C_PROMPT}$TXT_BATCH_FILE_PATH${C_RESET} "
+    read -r file_path
+    if [ -n "$file_path" ]; then
+        if [ -f "$file_path" ]; then
+            mapfile -t urls < "$file_path"
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_BATCH_FILE_LOADED ($(wc -l < "$file_path") link)"
+        else
+            echo -e "${C_ERROR}[LM]${C_RESET} $TXT_BATCH_FILE_NOT_FOUND"
+            return 1
+        fi
+    else
+        while IFS= read -r line; do
+            [ -z "$line" ] && break
+            urls+=("$line")
+        done
+    fi
     if [ ${#urls[@]} -eq 0 ]; then
         echo -e "${C_ERROR}[LM]${C_RESET} $TXT_BATCH_EMPTY"
         return 1
@@ -955,6 +1045,7 @@ lm_manual_menu() {
                     echo -e "\n${C_DARK_BLUE}$TXT_MENU_YT_MODE_TITLE:${C_RESET}"
                     echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_MENU_YT_MODE_SINGLE"
                     echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_MENU_YT_MODE_PLAYLIST"
+                    echo -e "${C_DARK_ORANGE}[3]${C_RESET} $TXT_MENU_YT_MODE_CHANNEL"
                     echo -e "${C_DARK_BROWN}[0]${C_RESET} $TXT_MENU_OPTION_BACK\n"
                     echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
                     read -r yt_mode
@@ -971,6 +1062,14 @@ lm_manual_menu() {
                             echo -ne "\n${C_PROMPT}$TXT_PROMPT_YT_PLAYLIST_LINK:${C_RESET} "
                             read -r yt_pl_url
                             lm_download_with_prompt youtube_playlist "$yt_pl_url"
+                            echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
+                            read -r
+                            break
+                            ;;
+                        3)
+                            echo -ne "\n${C_PROMPT}$TXT_PROMPT_YT_CHANNEL_LINK:${C_RESET} "
+                            read -r yt_ch_url
+                            lm_download_with_prompt youtube_channel "$yt_ch_url"
                             echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
                             read -r
                             break
@@ -1200,6 +1299,7 @@ lm_main() {
         lm_install
     fi
     if [ $# -eq 0 ]; then
+        lm_startup_animation
         if lm_check_update; then
             echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATE_AVAILABLE ($LM_REMOTE_VERSION)"
             echo -ne "${C_DARK_GREEN}$TXT_UPDATE_PROMPT${C_RESET} "
@@ -1216,6 +1316,7 @@ lm_main() {
         fi
         lm_main_menu
     else
+        lm_startup_animation
         lm_auto_download "$1"
     fi
 }
