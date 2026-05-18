@@ -95,6 +95,11 @@ Məqsəd: reklamsız, ağır tətbiqlərsiz, sadə bir terminal paneli ilə ist�
 
 ## 🚀 Quraşdırma (qısa təlimat)
 
+> Birbaşa [BETA]
+  
+     bash <(curl -s https://raw.githubusercontent.com/rzayevaga/raicx-downloader/main/lm.sh)
+
+
 1. **Termux-u aç:**
    - İlk dəfə açırsansa, storage icazəsi üçün:
      ```bash
@@ -105,7 +110,7 @@ Məqsəd: reklamsız, ağır tətbiqlərsiz, sadə bir terminal paneli ilə ist�
    ```bash
    git clone https://github.com/rzayevaga/raicx-downloader.git
    cd raicx-downloader
-```
+    ```
 
 1. Skripti icra oluna bilən et:
    ```bash
