@@ -1,22 +1,22 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -o pipefail
 
-LM_VERSION="LM-V26.0-ULTRA-BETA"
+LM_VERSION="LM-V27.0-ULTRA-MAX"
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
 LM_OPENER="$HOME/bin/termux-url-opener"
 LM_DOWNLOAD_BASE="/sdcard/raicXD"
 LM_REPO_RAW="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/raicX/lm.sh"
+LM_LANG_RAW="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/raicX/lm_lang.sh"
+LM_TIKTOK_PHOTO_DL_RAW="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/raicX/tiktok_photo_dl.py"
+LM_SEARCH_HELPER_RAW="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/raicX/search_helper.py"
 LM_LANG="AZ"
 LM_REMOTE_VERSION=""
 LM_LOG_DIR="$LM_DIR/logs"
 LM_QUEUE_FILE="$LM_DIR/queue.list"
 LM_SHORTCUT_FILE="$LM_DIR/shortcuts.conf"
-LM_TELEGRAM_PID_FILE="$LM_DIR/telegram_bot.pid"
-LM_TELEGRAM_TOKEN_FILE="$LM_DIR/telegram_token.conf"
 LM_MAX_PARALLEL=3
-LM_TELEGRAM_POLL_INTERVAL=3
 
 SOURCE_PATH="${BASH_SOURCE[0]:-$0}"
 SCRIPT_DIR="$(cd "$(dirname "$SOURCE_PATH")" && pwd)"
@@ -131,18 +131,16 @@ lm_create_folders() {
     for d in "${dirs[@]}"; do mkdir -p "$d"; done
 }
 
-
 lm_save_config() {
     mkdir -p "$LM_DIR"
     {
         echo "installed=true"
-        echo "version='$LM_VERSION'"            
-        echo "download_path='$LM_DOWNLOAD_BASE'"  
+        echo "version='$LM_VERSION'"
+        echo "download_path='$LM_DOWNLOAD_BASE'"
         echo "lang='$LM_LANG'"
         echo "max_parallel='$LM_MAX_PARALLEL'"
     } > "$LM_CONFIG"
 }
-
 
 lm_load_config() {
     if [ -f "$LM_CONFIG" ]; then
@@ -194,6 +192,23 @@ lm_detect_platform() {
     else echo "unknown"; fi
 }
 
+lm_detect_content_type() {
+    local url="$1"
+    local resp
+    resp=$(curl -fsSL --connect-timeout 5 "https://tikwm.com/api/?url=$url" 2>/dev/null)
+    if [ -z "$resp" ]; then
+        echo "unknown"
+        return 1
+    fi
+    local has_images
+    has_images=$(echo "$resp" | jq -r '.data.images // empty' 2>/dev/null)
+    if [ -n "$has_images" ]; then
+        echo "slideshow"
+    else
+        echo "video"
+    fi
+}
+
 lm_check_update() {
     LM_REMOTE_VERSION=""
     local remote_line
@@ -202,9 +217,8 @@ lm_check_update() {
     LM_REMOTE_VERSION="${remote_line#LM_VERSION=}"
     LM_REMOTE_VERSION="${LM_REMOTE_VERSION%\"}"
     LM_REMOTE_VERSION="${LM_REMOTE_VERSION#\"}"
-    local lang_repo_raw="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/raicX/lm_lang.sh"
     local remote_lang_hash local_lang_hash=""
-    remote_lang_hash="$(curl -fsSL --connect-timeout 5 "$lang_repo_raw" 2>/dev/null | sha256sum | cut -d' ' -f1)"
+    remote_lang_hash="$(curl -fsSL --connect-timeout 5 "$LM_LANG_RAW" 2>/dev/null | sha256sum | cut -d' ' -f1)"
     if [ -f "$LM_DIR/lm_lang.sh" ]; then
         local_lang_hash="$(sha256sum "$LM_DIR/lm_lang.sh" | cut -d' ' -f1)"
     fi
@@ -215,11 +229,14 @@ lm_check_update() {
 lm_do_update() {
     echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATING"
     local tmp_bin="$LM_BIN.tmp" tmp_lang="$LM_DIR/lm_lang.sh.tmp"
-    local lang_repo_raw="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/raicX/lm_lang.sh"
-    if curl -fsSL --connect-timeout 10 "$LM_REPO_RAW" -o "$tmp_bin" && curl -fsSL --connect-timeout 10 "$lang_repo_raw" -o "$tmp_lang"; then
+    if curl -fsSL --connect-timeout 10 "$LM_REPO_RAW" -o "$tmp_bin" && curl -fsSL --connect-timeout 10 "$LM_LANG_RAW" -o "$tmp_lang"; then
         chmod +x "$tmp_bin"
         mv "$tmp_bin" "$LM_BIN"
         mv "$tmp_lang" "$LM_DIR/lm_lang.sh"
+        curl -fsSL --connect-timeout 10 "$LM_TIKTOK_PHOTO_DL_RAW" -o "$LM_DIR/tiktok_photo_dl.py"
+        chmod +x "$LM_DIR/tiktok_photo_dl.py"
+        curl -fsSL --connect-timeout 10 "$LM_SEARCH_HELPER_RAW" -o "$LM_DIR/search_helper.py"
+        chmod +x "$LM_DIR/search_helper.py"
         echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_UPDATE_SUCCESS"
         echo -e "${C_DARK_ORANGE}[LM]${C_RESET} Zəhmət olmasa yenidən başladın."
         exit 0
@@ -247,7 +264,6 @@ lm_startup_animation() {
     lm_show_cursor
 }
 
-
 lm_banner() {
     clear
     echo -e "${C_DARK_ORANGE}╔══════════════════════════════════════════════╗"
@@ -258,7 +274,6 @@ lm_banner() {
     echo -e "║                                              ║"
     echo -e "╚══════════════════════════════════════════════╝${C_RESET}"
 }
-
 
 lm_run_step() {
     local message="$1"
@@ -501,11 +516,49 @@ lm_download_for_platform() {
     lm_download_common "$platform" "$kind" "$url"
 }
 
+lm_download_tiktok_slideshow() {
+    local url="$1" output_base="${2:-$LM_DOWNLOAD_BASE/TikTok}"
+    local choice
+    echo -e "\n${C_DARK_BLUE}Slayd-şou / Foto post aşkarlandı.${C_RESET}"
+    echo -e "${C_DARK_ORANGE}[1]${C_RESET} Yalnız bütün şəkilləri endir"
+    echo -e "${C_DARK_ORANGE}[2]${C_RESET} Yalnız musiqini endir"
+    echo -e "${C_DARK_ORANGE}[3]${C_RESET} Hər ikisini ayrı-ayrı endir"
+    echo -e "${C_DARK_ORANGE}[4]${C_RESET} Hamısını endir + videoya birləşdir"
+    echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+    read -r choice
+    case "$choice" in
+        1|2|3|4) ;;
+        *) choice="3" ;;
+    esac
+    echo -e "${C_DARK_GREEN}[LM]${C_RESET} Yükləmə başlayır..."
+    python "$LM_DIR/tiktok_photo_dl.py" "$url" "$choice" "$output_base"
+    echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"
+    read -r
+}
+
 lm_download_with_prompt() {
     local platform="$1" url="$2"
     case "$platform" in
         instagram) echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_INSTAGRAM\n" ;;
-        tiktok) echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_TIKTOK\n" ;;
+        tiktok)
+            local content_type
+            content_type=$(lm_detect_content_type "$url")
+            if [ "$content_type" = "slideshow" ]; then
+                lm_download_tiktok_slideshow "$url"
+                return
+            else
+                echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_TIKTOK\n"
+                echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
+                echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD"
+                echo -ne "\n${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
+                read -r tiktok_choice
+                case "$tiktok_choice" in
+                    1) lm_download_for_platform "$platform" "$url" "video" ;;
+                    2) lm_download_for_platform "$platform" "$url" "audio" ;;
+                    *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
+                esac
+            fi
+            return ;;
         youtube) echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_YT_SINGLE\n" ;;
         youtube_playlist) echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_YT_PLAYLIST\n" ;;
         youtube_channel) echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_YT_CHANNEL\n" ;;
@@ -839,266 +892,39 @@ lm_statistics() {
     echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r
 }
 
-lm_telegram_bot_start() {
-    if [ -f "$LM_TELEGRAM_PID_FILE" ]; then
-        local old_pid
-        old_pid=$(cat "$LM_TELEGRAM_PID_FILE" 2>/dev/null)
-        if [ -n "$old_pid" ] && kill -0 "$old_pid" 2>/dev/null; then
-            echo -e "${C_DARK_ORANGE}[LM]${C_RESET} ${TXT_TELEGRAM_ALREADY_RUNNING:-Bot artıq işləyir.} (PID: $old_pid)"
-            return 1
-        fi
-    fi
-    if [ ! -f "$LM_TELEGRAM_TOKEN_FILE" ]; then
-        echo -ne "${C_PROMPT}${TXT_TELEGRAM_TOKEN_PROMPT:-Bot Token daxil edin}:${C_RESET} "
-        read -r ttoken
-        [[ -z "$ttoken" ]] && { echo -e "${C_ERROR}[LM]${C_RESET} ${TXT_TELEGRAM_NO_TOKEN:-Token boş ola bilməz.}"; return 1; }
-        echo "$ttoken" > "$LM_TELEGRAM_TOKEN_FILE"
-        chmod 600 "$LM_TELEGRAM_TOKEN_FILE"
-    fi
-    local TOKEN
-    TOKEN=$(cat "$LM_TELEGRAM_TOKEN_FILE")
-    (
-        local last_update_id=0
-        while true; do
-            local resp
-            resp=$(curl -fsSL --connect-timeout 10 "https://api.telegram.org/bot${TOKEN}/getUpdates?offset=$((last_update_id + 1))&timeout=10" 2>/dev/null)
-            if [ -n "$resp" ]; then
-                local updates
-                updates=$(echo "$resp" | grep -oP '"update_id":\K\d+' | sort -n | tail -1)
-                [[ -n "$updates" ]] && last_update_id=$updates
-                local messages
-                messages=$(echo "$resp" | grep -oP '"text":"[^"]*"')
-                while IFS= read -r msg; do
-                    local text chat_id
-                    text=$(echo "$msg" | grep -oP '(?<="text":")[^"]*')
-                    chat_id=$(echo "$resp" | grep -oP '"chat":{"id":\K\d+')
-                    if [ -n "$text" ] && [ -n "$chat_id" ]; then
-                        if [[ "$text" =~ ^https?:// ]]; then
-                            curl -fsSL -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" -d "chat_id=${chat_id}" -d "text=${TXT_TELEGRAM_DOWNLOADING:-Yükləmə başlayır...}: $text" 2>/dev/null
-                            local plat
-                            plat=$(lm_detect_platform "$text")
-                            lm_download_common "$plat" "video" "$text" 2>&1 | tail -5 > "$LM_DIR/telegram_result.tmp"
-                            local res_msg
-                            res_msg=$(cat "$LM_DIR/telegram_result.tmp" 2>/dev/null | head -3 | tr '\n' ' ')
-                            curl -fsSL -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" -d "chat_id=${chat_id}" -d "text=${TXT_TELEGRAM_DONE:-Tamamlandı}: $res_msg" 2>/dev/null
-                        elif [[ "$text" == "/stats" ]]; then
-                            local stat_msg
-                            stat_msg="$TXT_STATS_TOTAL:-Total: $(grep -c . "$LM_DIR/history.log" 2>/dev/null || echo 0)"
-                            curl -fsSL -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" -d "chat_id=${chat_id}" -d "text=$stat_msg" 2>/dev/null
-                        else
-                            curl -fsSL -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" -d "chat_id=${chat_id}" -d "text=${TXT_TELEGRAM_HELP:-Link göndərin və ya /stats yazın.}" 2>/dev/null
-                        fi
-                    fi
-                done <<< "$messages"
-            fi
-            sleep "$LM_TELEGRAM_POLL_INTERVAL"
-        done
-    ) &
-    local bot_pid=$!
-    echo "$bot_pid" > "$LM_TELEGRAM_PID_FILE"
-    echo -e "${C_DARK_GREEN}[LM]${C_RESET} ${TXT_TELEGRAM_STARTED:-Telegram Bot başladıldı.} (PID: $bot_pid)"
-}
-
-lm_telegram_bot_stop() {
-    if [ -f "$LM_TELEGRAM_PID_FILE" ]; then
-        local pid
-        pid=$(cat "$LM_TELEGRAM_PID_FILE" 2>/dev/null)
-        if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
-            kill "$pid" 2>/dev/null
-            rm -f "$LM_TELEGRAM_PID_FILE"
-            echo -e "${C_DARK_GREEN}[LM]${C_RESET} ${TXT_TELEGRAM_STOPPED:-Telegram Bot dayandırıldı.}"
-        else
-            rm -f "$LM_TELEGRAM_PID_FILE"
-            echo -e "${C_DARK_ORANGE}[LM]${C_RESET} ${TXT_TELEGRAM_NOT_RUNNING:-Bot işləmir.}"
-        fi
-    else
-        echo -e "${C_DARK_ORANGE}[LM]${C_RESET} ${TXT_TELEGRAM_NOT_RUNNING:-Bot işləmir.}"
-    fi
-}
-
-lm_telegram_menu() {
-    while true; do
-        lm_banner
-        echo -e "${C_DARK_BLUE}╔══════════════════════════════════════════════╗"
-        echo -e "║         ${TXT_TELEGRAM_MENU_TITLE:-TELEGRAM BOT}          ║"
-        echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
-        if [ -f "$LM_TELEGRAM_PID_FILE" ]; then
-            local pid
-            pid=$(cat "$LM_TELEGRAM_PID_FILE" 2>/dev/null)
-            if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
-                echo -e "${C_DARK_GREEN}${TXT_TELEGRAM_STATUS:-Status}:${C_RESET} ${C_GOLD}${TXT_TELEGRAM_ACTIVE:-Aktiv}${C_RESET} (PID: $pid)\n"
-            else
-                echo -e "${C_DARK_ORANGE}${TXT_TELEGRAM_STATUS:-Status}:${C_RESET} ${C_ERROR}${TXT_TELEGRAM_INACTIVE:-Qeyri-aktiv}${C_RESET}\n"
-            fi
-        else
-            echo -e "${C_DARK_ORANGE}${TXT_TELEGRAM_STATUS:-Status}:${C_RESET} ${C_ERROR}${TXT_TELEGRAM_INACTIVE:-Qeyri-aktiv}${C_RESET}\n"
-        fi
-        echo -e "${C_DARK_ORANGE}[1]${C_RESET} ${TXT_TELEGRAM_START_MENU:-Botu Başlat}"
-        echo -e "${C_DARK_ORANGE}[2]${C_RESET} ${TXT_TELEGRAM_STOP_MENU:-Botu Dayandır}"
-        echo -e "${C_DARK_ORANGE}[3]${C_RESET} ${TXT_TELEGRAM_RESET_TOKEN:-Token sıfırla}"
-        echo -e "${C_DARK_BROWN}[0]${C_RESET} $TXT_MENU_OPTION_BACK\n"
-        echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
-        read -r tchoice
-        case "$tchoice" in
-            1) lm_telegram_bot_start; echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r ;;
-            2) lm_telegram_bot_stop; echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r ;;
-            3) rm -f "$LM_TELEGRAM_TOKEN_FILE" "$LM_TELEGRAM_PID_FILE"; echo -e "${C_DARK_GREEN}[LM]${C_RESET} ${TXT_TELEGRAM_TOKEN_RESET:-Token sıfırlandı.}"; sleep 1 ;;
-            0) break ;;
-            *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 2 ;;
-        esac
-    done
-}
-
-lm_batch_download() {
-    local urls=()
-    echo -e "\n${C_DARK_BLUE}$TXT_BATCH_PROMPT${C_RESET}"
-    echo -e "${C_DARK_ORANGE}$TXT_BATCH_INSTRUCTION${C_RESET}"
-    echo -e "${C_DARK_ORANGE}$TXT_BATCH_FILE_HINT${C_RESET}"
-    echo -ne "${C_PROMPT}$TXT_BATCH_FILE_PATH${C_RESET} "
-    read -r file_path
-    if [ -n "$file_path" ]; then
-        if [ -f "$file_path" ]; then
-            mapfile -t urls < "$file_path"
-            echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_BATCH_FILE_LOADED ($(wc -l < "$file_path") link)"
-        else
-            echo -e "${C_ERROR}[LM]${C_RESET} $TXT_BATCH_FILE_NOT_FOUND"; return 1
-        fi
-    else
-        while IFS= read -r line; do [[ -z "$line" ]] && break; urls+=("$line"); done
-    fi
-    if [ ${#urls[@]} -eq 0 ]; then echo -e "${C_ERROR}[LM]${C_RESET} $TXT_BATCH_EMPTY"; return 1; fi
-    echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_BATCH_START (${#urls[@]} link) [${TXT_QUEUE_PARALLEL:-Paralel}: $LM_MAX_PARALLEL]"
-    local i=0 total=${#urls[@]}
-    LM_ACTIVE_JOBS=()
-    while [ $i -lt $total ]; do
-        local active=0
-        for pid in "${!LM_ACTIVE_JOBS[@]}"; do
-            if kill -0 "$pid" 2>/dev/null; then active=$((active + 1)); else unset "LM_ACTIVE_JOBS[$pid]"; fi
-        done
-        while [ $active -lt $LM_MAX_PARALLEL ] && [ $i -lt $total ]; do
-            local url="${urls[$i]}"
-            (
-                local plat
-                plat="$(lm_detect_platform "$url")"
-                lm_download_with_prompt "$plat" "$url"
-            ) &
-            LM_ACTIVE_JOBS[$!]=$i
-            echo -e "${C_DARK_BROWN}[$(($i + 1))/$total]${C_RESET} ${C_GOLD}▶${C_RESET} ${urls[$i]}"
-            i=$((i + 1))
-            active=$((active + 1))
-        done
-        sleep 0.3
-    done
-    for pid in "${!LM_ACTIVE_JOBS[@]}"; do wait "$pid" 2>/dev/null; done
-    echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_BATCH_DONE"
-}
-
-lm_get_clipboard_url() {
-    local url
-    if command -v termux-clipboard-get &>/dev/null; then
-        url="$(termux-clipboard-get 2>/dev/null)"
-        [[ "$url" =~ ^https?:// ]] && { echo "$url"; return 0; }
-    fi
-    return 1
-}
-
-lm_search_fetch() {
-    local query="$1"
-    local tmp="$LM_DIR/search_results.tmp"
-    mkdir -p "$LM_DIR"
-    yt-dlp -O "%(id)s|%(title)s" "ytsearch30:${query}" 2>/dev/null > "$tmp"
-}
-
-lm_search_apply_filter() {
-    local filter="$1" in_file="$2" out_file="$3"
-    if [ -z "$filter" ]; then cp "$in_file" "$out_file"; return 0; fi
-    : > "$out_file"
-    while IFS= read -r line; do
-        local title="${line#*|}"
-        if printf '%s\n' "$title" | grep -i -F -- "$filter" >/dev/null 2>&1; then
-            printf '%s\n' "$line" >> "$out_file"
-        fi
-    done < "$in_file"
-}
-
 lm_search_menu() {
-    local page_size=10
-    local query filter tmp_raw="$LM_DIR/search_results_raw.tmp" tmp_filtered="$LM_DIR/search_results_filtered.tmp"
     while true; do
         lm_banner
         echo -e "${C_DARK_BLUE}╔══════════════════════════════════════════════╗"
         echo -e "║                  $TXT_SEARCH_TITLE                  ║"
         echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
-        echo -ne "${C_PROMPT}$TXT_SEARCH_PROMPT:${C_RESET} "; read -r query
+        echo -ne "${C_PROMPT}$TXT_SEARCH_PROMPT:${C_RESET} "
+        read -r query
         [[ -z "$query" ]] && { echo -e "\n${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 1; continue; }
-        echo -ne "\n${C_PROMPT}Filter (optional, Enter to skip):${C_RESET} "; read -r filter
         echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_SEARCHING"
-        lm_search_fetch "$query" &
-        local pid=$!
-        lm_spin "$pid" "$TXT_SEARCHING"
-        wait "$pid"
-        if [ ! -s "$LM_DIR/search_results.tmp" ]; then
-            rm -f "$LM_DIR/search_results.tmp" "$tmp_raw" "$tmp_filtered"
-            echo -e "\n${C_ERROR}[LM]${C_RESET} $TXT_SEARCH_NO_RESULTS"; sleep 1; continue
-        fi
-        cp "$LM_DIR/search_results.tmp" "$tmp_raw"; rm -f "$LM_DIR/search_results.tmp"
-        lm_search_apply_filter "$filter" "$tmp_raw" "$tmp_filtered"
-        mapfile -t search_results < "$tmp_filtered"
-        rm -f "$tmp_raw" "$tmp_filtered"
-        if [ "${#search_results[@]}" -eq 0 ]; then
+        local search_output
+        search_output=$(python "$LM_DIR/search_helper.py" "$query" 2>/dev/null)
+        if [[ "$search_output" == "NƏTİCƏ_YOXDUR" ]]; then
             echo -e "\n${C_ERROR}[LM]${C_RESET} $TXT_SEARCH_NO_RESULTS"
             echo -ne "\n${C_PROMPT}$TXT_SEARCH_AGAIN${C_RESET} "; read -r again
             case "$again" in h|H|y|Y|e|E|yes|YES|Yes) continue ;; *) break ;; esac
-            continue
         fi
-        local page=0
-        while true; do
-            local start=$((page * page_size)) end=$((start + page_size)) total=${#search_results[@]}
-            [[ $start -ge $total ]] && { page=0; start=0; end=$page_size; }
-            echo -e "\n${C_DARK_BLUE}─── $TXT_SEARCH_RESULTS ───${C_RESET}\n"
-            local idx page_index=1
-            local -a page_ids=()
-            for ((idx=start; idx<end && idx<total; idx++)); do
-                local line="${search_results[$idx]}" id="${line%%|*}" title="${line#*|}"
-                page_ids+=("$id")
-                printf "${C_DARK_ORANGE}[%2d]${C_RESET} %s\n" "$page_index" "$title"
-                page_index=$((page_index + 1))
-            done
-            echo -e "\n${C_DARK_BROWN}[n] next  [p] prev  [f] new filter  [q] quit${C_RESET}"
-            echo -ne "${C_PROMPT}Select 1-10:${C_RESET} "; read -r num
-            case "$num" in
-                n|N) [[ $end -lt $total ]] && page=$((page + 1)) || { echo -e "${C_DARK_ORANGE}[LM]${C_RESET} No more pages."; sleep 1; }; continue ;;
-                p|P) [[ $page -gt 0 ]] && page=$((page - 1)) || { echo -e "${C_DARK_ORANGE}[LM]${C_RESET} Already on first page."; sleep 1; }; continue ;;
-                f|F) echo -ne "${C_PROMPT}Filter (optional, Enter to skip):${C_RESET} "; read -r filter
-                    lm_search_apply_filter "$filter" "$tmp_raw" "$tmp_filtered"
-                    mapfile -t search_results < "$tmp_filtered"; rm -f "$tmp_filtered"; page=0; continue ;;
-                q|Q) rm -f "$tmp_raw" "$tmp_filtered"; return 0 ;;
-                *)
-                    if [[ "$num" =~ ^[1-9]$|^10$ ]]; then
-                        local choice=$((10#$num - 1))
-                        if [ "$choice" -ge 0 ] && [ "$choice" -lt "${#page_ids[@]}" ]; then
-                            local selected_id="${page_ids[$choice]}" video_url="https://youtu.be/$selected_id"
-                            echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_YT_SINGLE"
-                            echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
-                            echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD"
-                            echo -e "${C_DARK_ORANGE}[3]${C_RESET} $TXT_OPTION_QUALITY_VIDEO"
-                            echo -ne "\n${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "; read -r vtype
-                            case "$vtype" in
-                                1) lm_download_common youtube video "$video_url" ;;
-                                2) lm_download_common youtube audio "$video_url" ;;
-                                3) lm_download_common youtube video_quality "$video_url" ;;
-                                *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
-                            esac
-                            echo -ne "\n${C_PROMPT}$TXT_SEARCH_AGAIN${C_RESET} "; read -r again
-                            case "$again" in h|H|y|Y|e|E|yes|YES|Yes) break ;; *) rm -f "$tmp_raw" "$tmp_filtered"; return 0 ;; esac
-                        else
-                            echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 1
-                        fi
-                    else
-                        echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 1
-                    fi ;;
-            esac
-        done
+        local link
+        link=$(echo "$search_output" | grep "^LINK:" | cut -d':' -f2-)
+        if [ "$link" = "İPTAL" ]; then
+            echo -e "${C_DARK_ORANGE}[LM]${C_RESET} Axtarışdan çıxıldı."
+            break
+        elif [ -n "$link" ]; then
+            echo -e "${C_DARK_GREEN}[LM]${C_RESET} Yükləmə başlayır: $link"
+            local plat
+            plat=$(lm_detect_platform "$link")
+            lm_download_with_prompt "$plat" "$link"
+            echo -e "\n${C_PROMPT}$TXT_SEARCH_AGAIN${C_RESET} "; read -r again
+            case "$again" in h|H|y|Y|e|E|yes|YES|Yes) continue ;; *) break ;; esac
+        else
+            echo -e "${C_ERROR}[LM]${C_RESET} Axtarışda xəta baş verdi."
+            sleep 2
+        fi
     done
 }
 
@@ -1121,7 +947,6 @@ lm_show_system_info() {
     echo -e "${C_DARK_ORANGE}Python:${C_RESET} $(python --version 2>&1 | awk '{print $2}')"
     echo -e "${C_DARK_ORANGE}yt-dlp:${C_RESET} $(yt-dlp --version 2>/dev/null || echo 'Not installed')"
     echo -e "${C_DARK_ORANGE}FFmpeg:${C_RESET} $(ffmpeg -version 2>/dev/null | head -1 | awk '{print $3}' || echo 'Not installed')"
-    echo -e "${C_DARK_ORANGE}gallery-dl:${C_RESET} $(gallery-dl --version 2>/dev/null || echo 'Not installed')"
     echo -e "${C_DARK_ORANGE}pip:${C_RESET} $(pip --version 2>/dev/null | awk '{print $2}')"
     local queue_count=0
     [[ -f "$LM_QUEUE_FILE" ]] && queue_count=$(wc -l < "$LM_QUEUE_FILE" 2>/dev/null)
@@ -1249,7 +1074,6 @@ lm_admin_menu() {
         echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_MENU_OPTION_OPTIMIZE"
         echo -e "${C_DARK_ORANGE}[3]${C_RESET} $TXT_MENU_OPTION_INFO"
         echo -e "${C_DARK_ORANGE}[4]${C_RESET} $TXT_MENU_OPTION_LOG"
-        echo -e "${C_DARK_ORANGE}[5]${C_RESET} ${TXT_TELEGRAM_MENU_TITLE:-Telegram Bot}"
         echo -e "${C_DARK_BROWN}[0]${C_RESET} $TXT_MENU_OPTION_BACK\n"
         echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
         read -r admin_choice
@@ -1267,7 +1091,6 @@ lm_admin_menu() {
             2) echo -e "\n${C_DARK_GREEN}[LM]${C_RESET} $TXT_OPTIMIZE_DONE"; rm -rf "$LM_DIR/cache" 2>/dev/null; pip cache purge >/dev/null 2>&1; echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_CACHE_CLEARED"; echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r ;;
             3) lm_show_system_info ;;
             4) lm_view_log ;;
-            5) lm_telegram_menu ;;
             0) break ;;
             *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 2 ;;
         esac
@@ -1285,11 +1108,10 @@ lm_main_menu() {
         echo -e "${C_DARK_ORANGE}[3]${C_RESET} $TXT_MENU_OPTION_SETTINGS"
         echo -e "${C_DARK_ORANGE}[4]${C_RESET} $TXT_MENU_OPTION_ADMIN"
         echo -e "${C_DARK_ORANGE}[5]${C_RESET} $TXT_MENU_OPTION_SEARCH"
-        echo -e "${C_DARK_ORANGE}[6]${C_RESET} $TXT_MENU_OPTION_BATCH"
-        echo -e "${C_DARK_ORANGE}[7]${C_RESET} ${TXT_QUEUE_MENU_TITLE:-Növbə Meneceri}"
-        echo -e "${C_DARK_ORANGE}[8]${C_RESET} ${TXT_SHORTCUT_MENU_TITLE:-Qısayollar}"
-        echo -e "${C_DARK_ORANGE}[9]${C_RESET} ${TXT_FM_TITLE:-Fayl Meneceri}"
-        echo -e "${C_DARK_ORANGE}[10]${C_RESET} ${TXT_STATS_TITLE:-Statistika}"
+        echo -e "${C_DARK_ORANGE}[6]${C_RESET} ${TXT_QUEUE_MENU_TITLE:-Növbə Meneceri}"
+        echo -e "${C_DARK_ORANGE}[7]${C_RESET} ${TXT_SHORTCUT_MENU_TITLE:-Qısayollar}"
+        echo -e "${C_DARK_ORANGE}[8]${C_RESET} ${TXT_FM_TITLE:-Fayl Meneceri}"
+        echo -e "${C_DARK_ORANGE}[9]${C_RESET} ${TXT_STATS_TITLE:-Statistika}"
         echo -e "${C_DARK_BROWN}[0]${C_RESET} $TXT_MENU_OPTION_EXIT\n"
         echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
         read -r main_choice
@@ -1299,11 +1121,10 @@ lm_main_menu() {
             3) lm_settings_menu ;;
             4) lm_admin_menu ;;
             5) lm_search_menu ;;
-            6) lm_batch_download ;;
-            7) lm_queue_menu ;;
-            8) lm_shortcut_menu ;;
-            9) lm_file_manager ;;
-            10) lm_statistics ;;
+            6) lm_queue_menu ;;
+            7) lm_shortcut_menu ;;
+            8) lm_file_manager ;;
+            9) lm_statistics ;;
             0) lm_banner; echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_EXIT_MESSAGE\n"; exit 0 ;;
             *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 2 ;;
         esac
@@ -1323,11 +1144,17 @@ lm_install() {
     lm_run_step "$TXT_STEP_INSTALL_PYTHON" pkg install python -y
     lm_run_step "$TXT_STEP_INSTALL_FFMPEG" pkg install ffmpeg -y
     lm_run_step "$TXT_STEP_INSTALL_GIT" pkg install git -y
+    lm_run_step "$TXT_STEP_INSTALL_JQ" pkg install jq -y
     lm_run_step "$TXT_STEP_UPDATE_YTDLP" python -m pip install -U yt-dlp
     lm_run_step "$TXT_STEP_UPDATE_INSTALOADER" python -m pip install -U instaloader
     lm_run_step "$TXT_STEP_UPDATE_GDL" python -m pip install -U gallery-dl
+    lm_run_step "Python əlavələr (requests tqdm)" python -m pip install -U requests tqdm
     lm_run_step "$TXT_STEP_CREATE_DIRS" lm_create_folders
     lm_run_step "$TXT_STEP_SETUP_URL_OPENER" lm_setup_url_opener
+
+    lm_run_step "GitHub-dan Python faylları endirilir" curl -fsSL --connect-timeout 10 "$LM_TIKTOK_PHOTO_DL_RAW" -o "$LM_DIR/tiktok_photo_dl.py" && chmod +x "$LM_DIR/tiktok_photo_dl.py"
+    lm_run_step "GitHub-dan Axtarış köməkçisi endirilir" curl -fsSL --connect-timeout 10 "$LM_SEARCH_HELPER_RAW" -o "$LM_DIR/search_helper.py" && chmod +x "$LM_DIR/search_helper.py"
+
     lm_choose_language
     cp "$SOURCE_PATH" "$LM_BIN"
     chmod +x "$LM_BIN"
