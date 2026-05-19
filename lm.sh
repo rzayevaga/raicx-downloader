@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -o pipefail
 
-LM_VERSION="LM-V26.6-ULTRA [BETA]"
+LM_VERSION="LM-V26.7-ULTRA [BETA]"
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
@@ -296,7 +296,7 @@ lm_banner() {
     done
     echo -e "\n"
 
-    sleep 0.0.5
+    sleep 0.05
     for ((j=0; j<${#subtitle}; j++)); do
         printf "${C_DARK_ORANGE}${subtitle:$j:1}${C_RESET}"
         sleep 0.01
