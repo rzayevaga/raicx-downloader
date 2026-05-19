@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -o pipefail
 
-LM_VERSION="LM-V27.0-ULTRA-MAX"
+LM_VERSION="LM-V28.0-ULTRA-MAX"
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
@@ -157,17 +157,15 @@ lm_choose_language() {
     echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_LANG_AZ"
     echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_LANG_TR"
     echo -e "${C_DARK_ORANGE}[3]${C_RESET} $TXT_LANG_EN"
-    echo -e "${C_DARK_ORANGE}[4]${C_RESET} $TXT_LANG_RU"
-    echo -e "${C_DARK_ORANGE}[5]${C_RESET} $TXT_LANG_AR"
-    echo -e "${C_DARK_ORANGE}[6]${C_RESET} $TXT_LANG_ZH"
-    echo -e "${C_DARK_ORANGE}[7]${C_RESET} $TXT_LANG_JA"
-    echo -e "${C_DARK_ORANGE}[8]${C_RESET} $TXT_LANG_HI\n"
+    echo -e "${C_DARK_ORANGE}[4]${C_RESET} $TXT_LANG_RU\n"
     echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
     read -r lang_choice
     case "$lang_choice" in
-        1) LM_LANG="AZ" ;; 2) LM_LANG="TR" ;; 3) LM_LANG="EN" ;;
-        4) LM_LANG="RU" ;; 5) LM_LANG="AR" ;; 6) LM_LANG="ZH" ;;
-        7) LM_LANG="JA" ;; 8) LM_LANG="HI" ;; *) LM_LANG="AZ" ;;
+        1) LM_LANG="AZ" ;;
+        2) LM_LANG="TR" ;;
+        3) LM_LANG="EN" ;;
+        4) LM_LANG="RU" ;;
+        *) LM_LANG="AZ" ;;
     esac
     lm_set_lang_vars
     lm_save_config
@@ -519,11 +517,11 @@ lm_download_for_platform() {
 lm_download_tiktok_slideshow() {
     local url="$1" output_base="${2:-$LM_DOWNLOAD_BASE/TikTok}"
     local choice
-    echo -e "\n${C_DARK_BLUE}Slayd-şou / Foto post aşkarlandı.${C_RESET}"
-    echo -e "${C_DARK_ORANGE}[1]${C_RESET} Yalnız bütün şəkilləri endir"
-    echo -e "${C_DARK_ORANGE}[2]${C_RESET} Yalnız musiqini endir"
-    echo -e "${C_DARK_ORANGE}[3]${C_RESET} Hər ikisini ayrı-ayrı endir"
-    echo -e "${C_DARK_ORANGE}[4]${C_RESET} Hamısını endir + videoya birləşdir"
+    echo -e "\n${C_DARK_BLUE}${TXT_SLIDESHOW_TITLE:-Slayd-şou / Foto post aşkarlandı.}${C_RESET}"
+    echo -e "${C_DARK_ORANGE}[1]${C_RESET} ${TXT_SLIDESHOW_OPT_1:-Yalnız bütün şəkilləri endir}"
+    echo -e "${C_DARK_ORANGE}[2]${C_RESET} ${TXT_SLIDESHOW_OPT_2:-Yalnız musiqini endir}"
+    echo -e "${C_DARK_ORANGE}[3]${C_RESET} ${TXT_SLIDESHOW_OPT_3:-Hər ikisini ayrı-ayrı endir}"
+    echo -e "${C_DARK_ORANGE}[4]${C_RESET} ${TXT_SLIDESHOW_OPT_4:-Hamısını endir + videoya birləşdir}"
     echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
     read -r choice
     case "$choice" in
@@ -1148,12 +1146,11 @@ lm_install() {
     lm_run_step "$TXT_STEP_UPDATE_YTDLP" python -m pip install -U yt-dlp
     lm_run_step "$TXT_STEP_UPDATE_INSTALOADER" python -m pip install -U instaloader
     lm_run_step "$TXT_STEP_UPDATE_GDL" python -m pip install -U gallery-dl
-    lm_run_step "Python əlavələr (requests tqdm)" python -m pip install -U requests tqdm
+    lm_run_step "$TXT_STEP_PYTHON_PKGS" python -m pip install -U requests tqdm
     lm_run_step "$TXT_STEP_CREATE_DIRS" lm_create_folders
     lm_run_step "$TXT_STEP_SETUP_URL_OPENER" lm_setup_url_opener
-
-    lm_run_step "GitHub-dan Python faylları endirilir" curl -fsSL --connect-timeout 10 "$LM_TIKTOK_PHOTO_DL_RAW" -o "$LM_DIR/tiktok_photo_dl.py" && chmod +x "$LM_DIR/tiktok_photo_dl.py"
-    lm_run_step "GitHub-dan Axtarış köməkçisi endirilir" curl -fsSL --connect-timeout 10 "$LM_SEARCH_HELPER_RAW" -o "$LM_DIR/search_helper.py" && chmod +x "$LM_DIR/search_helper.py"
+    lm_run_step "$TXT_STEP_GH_PHOTO_DL" curl -fsSL --connect-timeout 10 "$LM_TIKTOK_PHOTO_DL_RAW" -o "$LM_DIR/tiktok_photo_dl.py" && chmod +x "$LM_DIR/tiktok_photo_dl.py"
+    lm_run_step "$TXT_STEP_GH_SEARCH" curl -fsSL --connect-timeout 10 "$LM_SEARCH_HELPER_RAW" -o "$LM_DIR/search_helper.py" && chmod +x "$LM_DIR/search_helper.py"
 
     lm_choose_language
     cp "$SOURCE_PATH" "$LM_BIN"
