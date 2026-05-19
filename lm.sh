@@ -245,16 +245,87 @@ lm_startup_animation() {
     lm_show_cursor
 }
 
+
 lm_banner() {
     clear
-    echo -e "${C_DARK_ORANGE}╔══════════════════════════════════════════════╗"
-    echo -e "║                                              ║"
-    echo -e "║           ✦  Ɍム-ic LM DOWNLOADER  ✦         ║"
-    echo -e "║              $LM_VERSION                  ║"
-    echo -e "║        Created by Agha (lamvav)              ║"
-    echo -e "║                                              ║"
-    echo -e "╚══════════════════════════════════════════════╝${C_RESET}"
+
+    local layers=(
+        "          ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓          "
+        "        ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓        "
+        "      ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓      "
+        "    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓    "
+        "  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  "
+        "▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓"
+    )
+
+    local colors=(
+        "\033[38;5;88m"   
+        "\033[38;5;130m"  
+        "\033[38;5;166m"  
+        "\033[38;5;202m"  
+        "\033[38;5;214m"  
+        "\033[38;5;220m" 
+    )
+
+    for i in {1..8}; do
+        clear
+        echo -e "${C_RESET}"
+        for idx in "${!layers[@]}"; do
+            local color_idx=$(( (idx + i) % ${#colors[@]} ))
+            local shift=$(( i % 5 - 2 ))
+            local shifted="${layers[$idx]}"
+            if [ $shift -gt 0 ]; then
+                shifted="${shifted:$shift}${shifted:0:$shift}"
+            elif [ $shift -lt 0 ]; then
+                shifted="${shifted: -$shift}${shifted:0: -$shift}"
+            fi
+            echo -e "  ${colors[$color_idx]}${shifted}${C_RESET}"
+        done
+        sleep 0.03
+    done
+
+
+    local title="✦  Ɍム-ic LM DOWNLOADER  ✦"
+    local subtitle="         $LM_VERSION"
+    local author="   Created by Agha (lamvav)"
+
+    echo -e "\n"
+    for ((j=0; j<${#title}; j++)); do
+        printf "${C_GOLD}${title:$j:1}${C_RESET}"
+        sleep 0.02
+    done
+    echo -e "\n"
+
+    sleep 0.1
+    for ((j=0; j<${#subtitle}; j++)); do
+        printf "${C_DARK_ORANGE}${subtitle:$j:1}${C_RESET}"
+        sleep 0.01
+    done
+    echo -e "\n"
+
+    sleep 0.1
+    for ((j=0; j<${#author}; j++)); do
+        printf "${C_CYAN}${author:$j:1}${C_RESET}"
+        sleep 0.01
+    done
+
+    echo -e "\n"
+    for k in {1..3}; do
+        echo -ne "\r${C_GOLD}"
+        for m in {1..50}; do
+            if [ $((m % 4)) -eq $k ]; then
+                echo -ne "█"
+            else
+                echo -ne "░"
+            fi
+        done
+        echo -ne "${C_RESET}"
+        sleep 0.06
+    done
+    echo -e "\n"
+    sleep 0.1
 }
+
 
 lm_run_step() {
     local message="$1"
