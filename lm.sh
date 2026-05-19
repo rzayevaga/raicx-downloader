@@ -131,16 +131,18 @@ lm_create_folders() {
     for d in "${dirs[@]}"; do mkdir -p "$d"; done
 }
 
+
 lm_save_config() {
     mkdir -p "$LM_DIR"
     {
         echo "installed=true"
-        echo "version=$LM_VERSION"
-        echo "download_path=$LM_DOWNLOAD_BASE"
-        echo "lang=$LM_LANG"
-        echo "max_parallel=$LM_MAX_PARALLEL"
+        echo "version='$LM_VERSION'"            
+        echo "download_path='$LM_DOWNLOAD_BASE'"  
+        echo "lang='$LM_LANG'"
+        echo "max_parallel='$LM_MAX_PARALLEL'"
     } > "$LM_CONFIG"
 }
+
 
 lm_load_config() {
     if [ -f "$LM_CONFIG" ]; then
