@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -o pipefail
 
-LM_VERSION="LM-V28.0-ULTRA-MAX"
+LM_VERSION="LM-V29.0-ULTRA-MAX"
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
@@ -15,7 +15,6 @@ LM_LANG="AZ"
 LM_REMOTE_VERSION=""
 LM_LOG_DIR="$LM_DIR/logs"
 LM_QUEUE_FILE="$LM_DIR/queue.list"
-LM_SHORTCUT_FILE="$LM_DIR/shortcuts.conf"
 LM_MAX_PARALLEL=3
 
 SOURCE_PATH="${BASH_SOURCE[0]:-$0}"
@@ -123,9 +122,6 @@ lm_create_folders() {
         "$LM_DOWNLOAD_BASE/Twitter/Video" "$LM_DOWNLOAD_BASE/Twitter/Music"
         "$LM_DOWNLOAD_BASE/Facebook/Video" "$LM_DOWNLOAD_BASE/Facebook/Music"
         "$LM_DOWNLOAD_BASE/SoundCloud/Music"
-        "$LM_DOWNLOAD_BASE/Pinterest/Video"
-        "$LM_DOWNLOAD_BASE/Reddit/Video"
-        "$LM_DOWNLOAD_BASE/Vimeo/Video"
         "$LM_DOWNLOAD_BASE/YouTube/Channel/Video" "$LM_DOWNLOAD_BASE/YouTube/Channel/Music"
     )
     for d in "${dirs[@]}"; do mkdir -p "$d"; done
@@ -184,9 +180,6 @@ lm_detect_platform() {
     elif [[ $url_lower == *"twitter.com"* ]] || [[ $url_lower == *"x.com"* ]]; then echo "twitter"
     elif [[ $url_lower == *"facebook.com"* ]] || [[ $url_lower == *"fb.com"* ]] || [[ $url_lower == *"fb.watch"* ]]; then echo "facebook"
     elif [[ $url_lower == *"soundcloud.com"* ]]; then echo "soundcloud"
-    elif [[ $url_lower == *"pinterest.com"* ]] || [[ $url_lower == *"pin.it"* ]]; then echo "pinterest"
-    elif [[ $url_lower == *"reddit.com"* ]] || [[ $url_lower == *"redd.it"* ]]; then echo "reddit"
-    elif [[ $url_lower == *"vimeo.com"* ]]; then echo "vimeo"
     else echo "unknown"; fi
 }
 
@@ -455,9 +448,6 @@ lm_download_common() {
         facebook:video) output_dir="$LM_DOWNLOAD_BASE/Facebook/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --concurrent-fragments 4); echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_FACEBOOK_VIDEO\n" ;;
         facebook:audio) output_dir="$LM_DOWNLOAD_BASE/Facebook/Music"; template="$output_dir/%(title)s.%(ext)s"; format="bestaudio/best"; opts=(--extract-audio --audio-format mp3 --audio-quality 0); echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_FACEBOOK_AUDIO\n" ;;
         soundcloud:audio) output_dir="$LM_DOWNLOAD_BASE/SoundCloud/Music"; template="$output_dir/%(title)s.%(ext)s"; format="bestaudio/best"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata); echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_SOUNDCLOUD_AUDIO\n" ;;
-        pinterest:video) output_dir="$LM_DOWNLOAD_BASE/Pinterest/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --concurrent-fragments 4); echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_PINTEREST_VIDEO\n" ;;
-        reddit:video) output_dir="$LM_DOWNLOAD_BASE/Reddit/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --concurrent-fragments 4); echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_REDDIT_VIDEO\n" ;;
-        vimeo:video) output_dir="$LM_DOWNLOAD_BASE/Vimeo/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --concurrent-fragments 4); echo -e "\n${C_DARK_ORANGE}[LM]${C_RESET} $TXT_DOWNLOAD_STARTED_VIMEO_VIDEO\n" ;;
         *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_PLATFORM_UNKNOWN"; echo -e "${C_DARK_ORANGE}$TXT_SUPPORTED_PLATFORMS${C_RESET}"; return 1 ;;
     esac
 
@@ -563,13 +553,9 @@ lm_download_with_prompt() {
         twitter) echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_TWITTER\n" ;;
         facebook) echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_FACEBOOK\n" ;;
         soundcloud) echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_SOUNDCLOUD\n" ;;
-        pinterest) echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_PINTEREST\n" ;;
-        reddit) echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_REDDIT\n" ;;
-        vimeo) echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_AUTO_PLATFORM_VIMEO\n" ;;
         *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_PLATFORM_UNKNOWN"; echo -e "${C_DARK_ORANGE}$TXT_SUPPORTED_PLATFORMS${C_RESET}"; return 1 ;;
     esac
 
-    local opt1 opt2 opt3
     if [ "$platform" = "youtube_playlist" ]; then
         echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_PLAYLIST_VIDEO"; echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_PLAYLIST_AUDIO"; echo -e "${C_DARK_ORANGE}[3]${C_RESET} $TXT_OPTION_QUALITY_PLAYLIST"
     elif [ "$platform" = "youtube" ]; then
@@ -578,8 +564,6 @@ lm_download_with_prompt() {
         echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_CHANNEL_VIDEO"; echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_CHANNEL_AUDIO"; echo -e "${C_DARK_ORANGE}[3]${C_RESET} $TXT_OPTION_QUALITY_CHANNEL"
     elif [ "$platform" = "soundcloud" ]; then
         echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD"
-    elif [ "$platform" = "pinterest" ] || [ "$platform" = "reddit" ] || [ "$platform" = "vimeo" ]; then
-        echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
     else
         echo -e "${C_DARK_ORANGE}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"; echo -e "${C_DARK_ORANGE}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD"
     fi
@@ -587,7 +571,7 @@ lm_download_with_prompt() {
     read -r choice
     case "$choice" in
         1) if [ "$platform" = "soundcloud" ]; then lm_download_for_platform "$platform" "$url" "audio"; else lm_download_for_platform "$platform" "$url" "video"; fi ;;
-        2) if [ "$platform" = "pinterest" ] || [ "$platform" = "reddit" ] || [ "$platform" = "vimeo" ] || [ "$platform" = "soundcloud" ]; then echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; else lm_download_for_platform "$platform" "$url" "audio"; fi ;;
+        2) if [ "$platform" = "soundcloud" ]; then echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; else lm_download_for_platform "$platform" "$url" "audio"; fi ;;
         3) if [ "$platform" = "youtube" ] || [ "$platform" = "youtube_playlist" ] || [ "$platform" = "youtube_channel" ]; then lm_download_common "$platform" "video_quality" "$url"; else echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; fi ;;
         *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
     esac
@@ -702,146 +686,6 @@ lm_queue_menu() {
     done
 }
 
-lm_shortcut_save() {
-    local name="$1" platform="$2" mode="$3"
-    mkdir -p "$LM_DIR"
-    echo "${name}|${platform}|${mode}" >> "$LM_SHORTCUT_FILE"
-    echo -e "${C_DARK_GREEN}[LM]${C_RESET} ${TXT_SHORTCUT_SAVED:-Qısayol saxlanıldı}: ${C_GOLD}$name${C_RESET} → $platform/$mode"
-}
-
-lm_shortcut_list() {
-    if [ ! -f "$LM_SHORTCUT_FILE" ] || [ ! -s "$LM_SHORTCUT_FILE" ]; then
-        echo -e "${C_DARK_ORANGE}[LM]${C_RESET} ${TXT_SHORTCUT_EMPTY:-Heç bir qısayol yoxdur.}"
-        return 1
-    fi
-    echo -e "\n${C_DARK_BLUE}─── ${TXT_SHORTCUT_TITLE:-QISAYOLLAR} ───${C_RESET}\n"
-    local idx=1
-    while IFS='|' read -r name platform mode; do
-        printf "${C_DARK_ORANGE}[%2d]${C_RESET} ${C_GOLD}%-15s${C_RESET} → %s/%s\n" "$idx" "$name" "$platform" "$mode"
-        idx=$((idx + 1))
-    done < "$LM_SHORTCUT_FILE"
-    echo
-}
-
-lm_shortcut_run() {
-    local num="$1" url="$2"
-    local idx=1
-    while IFS='|' read -r name platform mode; do
-        if [ "$idx" -eq "$num" ]; then
-            echo -e "${C_DARK_GREEN}[LM]${C_RESET} ${TXT_SHORTCUT_RUNNING:-Qısayol işlədilir}: ${C_GOLD}$name${C_RESET}"
-            lm_download_common "$platform" "$mode" "$url"
-            return $?
-        fi
-        idx=$((idx + 1))
-    done < "$LM_SHORTCUT_FILE"
-    echo -e "${C_ERROR}[LM]${C_RESET} ${TXT_QUEUE_INVALID_NUM:-Yanlış nömrə.}"
-    return 1
-}
-
-lm_shortcut_delete() {
-    local num="$1"
-    local tmp_file="$LM_DIR/shortcuts.tmp"
-    local idx=1 found=0
-    : > "$tmp_file"
-    while IFS= read -r line; do
-        if [ "$idx" -eq "$num" ]; then found=1; else echo "$line" >> "$tmp_file"; fi
-        idx=$((idx + 1))
-    done < "$LM_SHORTCUT_FILE"
-    if [ "$found" -eq 1 ]; then
-        mv "$tmp_file" "$LM_SHORTCUT_FILE"
-        echo -e "${C_DARK_GREEN}[LM]${C_RESET} ${TXT_SHORTCUT_DELETED:-Qısayol silindi.}"
-    else
-        rm -f "$tmp_file"
-        echo -e "${C_ERROR}[LM]${C_RESET} ${TXT_QUEUE_INVALID_NUM:-Yanlış nömrə.}"
-    fi
-}
-
-lm_shortcut_menu() {
-    while true; do
-        lm_banner
-        echo -e "${C_DARK_BLUE}╔══════════════════════════════════════════════╗"
-        echo -e "║        ${TXT_SHORTCUT_MENU_TITLE:-QISAYOL MENECERİ}        ║"
-        echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
-        lm_shortcut_list
-        echo -e "${C_DARK_ORANGE}[1]${C_RESET} ${TXT_SHORTCUT_CREATE:-Yeni qısayol yarat}"
-        echo -e "${C_DARK_ORANGE}[2]${C_RESET} ${TXT_SHORTCUT_DELETE_MENU:-Qısayol sil}"
-        echo -e "${C_DARK_ORANGE}[3]${C_RESET} ${TXT_SHORTCUT_RUN_MENU:-Qısayol işlət}"
-        echo -e "${C_DARK_BROWN}[0]${C_RESET} $TXT_MENU_OPTION_BACK\n"
-        echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
-        read -r schoice
-        case "$schoice" in
-            1)
-                echo -ne "${C_PROMPT}${TXT_SHORTCUT_NAME:-Qısayol adı}:${C_RESET} "; read -r sname
-                echo -e "${C_DARK_ORANGE}[1]${C_RESET} instagram/video  [2] instagram/audio  [3] tiktok/video  [4] tiktok/audio"
-                echo -e "${C_DARK_ORANGE}[5]${C_RESET} youtube/video  [6] youtube/audio  [7] twitter/video  [8] twitter/audio"
-                echo -e "${C_DARK_ORANGE}[9]${C_RESET} facebook/video  [10] facebook/audio  [11] soundcloud/audio"
-                echo -ne "${C_PROMPT}${TXT_PROMPT_CHOICE}:${C_RESET} "; read -r stype
-                case "$stype" in
-                    1) lm_shortcut_save "$sname" "instagram" "video" ;; 2) lm_shortcut_save "$sname" "instagram" "audio" ;;
-                    3) lm_shortcut_save "$sname" "tiktok" "video" ;; 4) lm_shortcut_save "$sname" "tiktok" "audio" ;;
-                    5) lm_shortcut_save "$sname" "youtube" "video" ;; 6) lm_shortcut_save "$sname" "youtube" "audio" ;;
-                    7) lm_shortcut_save "$sname" "twitter" "video" ;; 8) lm_shortcut_save "$sname" "twitter" "audio" ;;
-                    9) lm_shortcut_save "$sname" "facebook" "video" ;; 10) lm_shortcut_save "$sname" "facebook" "audio" ;;
-                    11) lm_shortcut_save "$sname" "soundcloud" "audio" ;;
-                    *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
-                esac
-                sleep 1 ;;
-            2) echo -ne "${C_PROMPT}${TXT_QUEUE_REMOVE_NUM:-Nömrə}:${C_RESET} "; read -r snum; lm_shortcut_delete "$snum"; sleep 1 ;;
-            3)
-                echo -ne "${C_PROMPT}${TXT_QUEUE_REMOVE_NUM:-Nömrə}:${C_RESET} "; read -r snum
-                echo -ne "${C_PROMPT}${TXT_PROMPT_LINK}:${C_RESET} "; read -r sUrl
-                lm_shortcut_run "$snum" "$sUrl"
-                echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r ;;
-            0) break ;;
-            *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 2 ;;
-        esac
-    done
-}
-
-lm_file_manager() {
-    while true; do
-        lm_banner
-        echo -e "${C_DARK_BLUE}╔══════════════════════════════════════════════╗"
-        echo -e "║          ${TXT_FM_TITLE:-FAYL MENECERİ}           ║"
-        echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
-        local -a platforms=("Instagram" "TikTok" "YouTube" "Twitter" "Facebook" "SoundCloud" "Pinterest" "Reddit" "Vimeo")
-        local idx=1
-        for p in "${platforms[@]}"; do
-            local d="$LM_DOWNLOAD_BASE/$p"
-            local count=0 size=""
-            if [ -d "$d" ]; then
-                count=$(find "$d" -type f 2>/dev/null | wc -l)
-                size=$(du -sh "$d" 2>/dev/null | cut -f1)
-            fi
-            printf "${C_DARK_ORANGE}[%2d]${C_RESET} ${C_GOLD}%-15s${C_RESET} %s: %d  ${C_DIM}%s${C_RESET}\n" "$idx" "$p" "${TXT_FM_FILES:-fayl}" "$count" "${size:-0}"
-            idx=$((idx + 1))
-        done
-        echo -e "${C_DARK_BROWN}[0]${C_RESET} $TXT_MENU_OPTION_BACK\n"
-        echo -ne "${C_PROMPT}${TXT_FM_SELECT:-Seçim}:${C_RESET} "
-        read -r fmchoice
-        case "$fmchoice" in
-            0) break ;;
-            [1-9])
-                local sel="${platforms[$((10#$fmchoice - 1))]}"
-                local target="$LM_DOWNLOAD_BASE/$sel"
-                if [ -d "$target" ]; then
-                    lm_banner
-                    echo -e "${C_DARK_BLUE}─── $sel ───${C_RESET}\n"
-                    find "$target" -type f 2>/dev/null | head -50 | while IFS= read -r f; do
-                        local fname="$(basename "$f")"
-                        local fsize="$(du -h "$f" 2>/dev/null | cut -f1)"
-                        printf "${C_CYAN}•${C_RESET} %s ${C_DIM}[%s]${C_RESET}\n" "$fname" "$fsize"
-                    done
-                    echo -e "\n${C_DARK_ORANGE}${TXT_FM_PATH:-Yol}:${C_RESET} $target"
-                    echo -e "${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r
-                else
-                    echo -e "${C_DARK_ORANGE}[LM]${C_RESET} ${TXT_FM_EMPTY_DIR:-Qovluq boşdur.}"; sleep 1
-                fi ;;
-            *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 2 ;;
-        esac
-    done
-}
-
 lm_statistics() {
     local logfile="$LM_DIR/history.log"
     lm_banner
@@ -869,7 +713,7 @@ lm_statistics() {
     echo -e "${C_GOLD}┌─────────────────────────────────────────────┐${C_RESET}"
     printf "${C_GOLD}│${C_RESET} ${C_BOLD}%-20s${C_RESET} %10s %10s %8s ${C_GOLD}│${C_RESET}\n" "${TXT_STATS_PLATFORM:-Platforma}" "${TXT_STATS_TOTAL:-Cəmi}" "${TXT_STATS_SUCCESS:-Uğurlu}" "${TXT_STATS_FAIL:-Xəta}"
     echo -e "${C_GOLD}├─────────────────────────────────────────────┤${C_RESET}"
-    for plat in instagram tiktok youtube youtube_playlist youtube_channel twitter facebook soundcloud pinterest reddit vimeo; do
+    for plat in instagram tiktok youtube youtube_playlist youtube_channel twitter facebook soundcloud; do
         local c=${plat_count["$plat"]:-0}
         [[ $c -eq 0 ]] && continue
         local s=${plat_success["$plat"]:-0} f=${plat_fail["$plat"]:-0}
@@ -977,9 +821,6 @@ lm_manual_menu() {
         echo -e "${C_DARK_ORANGE}[4]${C_RESET} Twitter/X"
         echo -e "${C_DARK_ORANGE}[5]${C_RESET} Facebook"
         echo -e "${C_DARK_ORANGE}[6]${C_RESET} SoundCloud"
-        echo -e "${C_DARK_ORANGE}[7]${C_RESET} Pinterest"
-        echo -e "${C_DARK_ORANGE}[8]${C_RESET} Reddit"
-        echo -e "${C_DARK_ORANGE}[9]${C_RESET} Vimeo"
         echo -e "${C_DARK_BROWN}[0]${C_RESET} $TXT_MENU_OPTION_BACK\n"
         echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
         read -r platform_choice
@@ -1003,9 +844,6 @@ lm_manual_menu() {
             4) echo -ne "\n${C_PROMPT}$TXT_PROMPT_TWITTER_LINK:${C_RESET} "; read -r tw_url; lm_download_with_prompt twitter "$tw_url"; echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r ;;
             5) echo -ne "\n${C_PROMPT}$TXT_PROMPT_FACEBOOK_LINK:${C_RESET} "; read -r fb_url; lm_download_with_prompt facebook "$fb_url"; echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r ;;
             6) echo -ne "\n${C_PROMPT}$TXT_PROMPT_SOUNDCLOUD_LINK:${C_RESET} "; read -r sc_url; lm_download_with_prompt soundcloud "$sc_url"; echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r ;;
-            7) echo -ne "\n${C_PROMPT}$TXT_PROMPT_PINTEREST_LINK:${C_RESET} "; read -r pi_url; lm_download_with_prompt pinterest "$pi_url"; echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r ;;
-            8) echo -ne "\n${C_PROMPT}$TXT_PROMPT_REDDIT_LINK:${C_RESET} "; read -r rd_url; lm_download_with_prompt reddit "$rd_url"; echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r ;;
-            9) echo -ne "\n${C_PROMPT}$TXT_PROMPT_VIMEO_LINK:${C_RESET} "; read -r vm_url; lm_download_with_prompt vimeo "$vm_url"; echo -e "\n${C_PROMPT}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r ;;
             0) break ;;
             *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 2 ;;
         esac
@@ -1107,9 +945,7 @@ lm_main_menu() {
         echo -e "${C_DARK_ORANGE}[4]${C_RESET} $TXT_MENU_OPTION_ADMIN"
         echo -e "${C_DARK_ORANGE}[5]${C_RESET} $TXT_MENU_OPTION_SEARCH"
         echo -e "${C_DARK_ORANGE}[6]${C_RESET} ${TXT_QUEUE_MENU_TITLE:-Növbə Meneceri}"
-        echo -e "${C_DARK_ORANGE}[7]${C_RESET} ${TXT_SHORTCUT_MENU_TITLE:-Qısayollar}"
-        echo -e "${C_DARK_ORANGE}[8]${C_RESET} ${TXT_FM_TITLE:-Fayl Meneceri}"
-        echo -e "${C_DARK_ORANGE}[9]${C_RESET} ${TXT_STATS_TITLE:-Statistika}"
+        echo -e "${C_DARK_ORANGE}[7]${C_RESET} ${TXT_STATS_TITLE:-Statistika}"
         echo -e "${C_DARK_BROWN}[0]${C_RESET} $TXT_MENU_OPTION_EXIT\n"
         echo -ne "${C_PROMPT}$TXT_PROMPT_CHOICE:${C_RESET} "
         read -r main_choice
@@ -1120,9 +956,7 @@ lm_main_menu() {
             4) lm_admin_menu ;;
             5) lm_search_menu ;;
             6) lm_queue_menu ;;
-            7) lm_shortcut_menu ;;
-            8) lm_file_manager ;;
-            9) lm_statistics ;;
+            7) lm_statistics ;;
             0) lm_banner; echo -e "${C_DARK_GREEN}[LM]${C_RESET} $TXT_EXIT_MESSAGE\n"; exit 0 ;;
             *) echo -e "${C_ERROR}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 2 ;;
         esac
