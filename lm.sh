@@ -256,7 +256,9 @@ lm_startup_animation() {
 }
 
 
+
 lm_banner() {
+    local star="$1" 
     clear
     local C_SHADOW="\033[38;5;236m"
     local C_BORDER="\033[38;5;208m"
@@ -266,7 +268,7 @@ lm_banner() {
     local C_RESET="\033[0m"
     local SHADOW_CHAR="▓"
     local INNER_WIDTH=46
-    local TITLE="✦  Ɍム-ic LM DOWNLOADER  ✦"
+    local TITLE="  ${star}  Ɍム-ic LM DOWNLOADER  ${star}  "
     local CREDIT="Created by Agha (lamvav)"
 
     local SHADOW_LINE=" $(printf "${SHADOW_CHAR}%.0s" {1..49})"
@@ -274,7 +276,6 @@ lm_banner() {
     for ((i = 0; i < 8; i++)); do
         echo -e "${C_SHADOW}${SHADOW_LINE}${C_RESET}"
     done
-
     echo -ne "\033[8A"
 
     echo -e "${C_BORDER}╔$(printf '═%.0s' $(seq 1 $INNER_WIDTH))╗${C_RESET}"
@@ -300,6 +301,34 @@ lm_banner() {
 
     echo -e "${C_BORDER}║$(printf ' %.0s' $(seq 1 $INNER_WIDTH))║${C_RESET}"
     echo -e "${C_BORDER}╚$(printf '═%.0s' $(seq 1 $INNER_WIDTH))╝${C_RESET}"
+}
+
+blink_pid=""
+
+start_blinking_banner() {
+    stop_blinking_banner  
+    (
+        local toggle=0
+        while true; do
+            if (( toggle == 0 )); then
+                lm_banner "✦"
+                toggle=1
+            else
+                lm_banner "✧"
+                toggle=0
+            fi
+            sleep 0.5
+        done
+    ) &
+    blink_pid=$!
+}
+
+stop_blinking_banner() {
+    if [[ -n "$blink_pid" ]]; then
+        kill "$blink_pid" 2>/dev/null
+        wait "$blink_pid" 2>/dev/null
+        blink_pid=""
+    fi
 }
 
 
