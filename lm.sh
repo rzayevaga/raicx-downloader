@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -o pipefail
 
-LM_VERSION="LM-V29.0-ULTRA-MAX"
+LM_VERSION="LM-V29.2-ULTRA-MAX"
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
@@ -255,16 +255,53 @@ lm_startup_animation() {
     lm_show_cursor
 }
 
+
 lm_banner() {
     clear
-    echo -e "${C_DARK_ORANGE}╔══════════════════════════════════════════════╗"
-    echo -e "║                                              ║"
-    echo -e "║           ✦  Ɍム-ic LM DOWNLOADER  ✦         ║"
-    echo -e "║              $LM_VERSION                  ║"
-    echo -e "║        Created by Agha (lamvav)              ║"
-    echo -e "║                                              ║"
-    echo -e "╚══════════════════════════════════════════════╝${C_RESET}"
+    local C_SHADOW="\033[38;5;236m"
+    local C_BORDER="\033[38;5;208m"
+    local C_TITLE="\033[1;38;5;214m"
+    local C_VERSION="\033[38;5;255m"
+    local C_CREDIT="\033[38;5;245m"
+    local C_RESET="\033[0m"
+    local SHADOW_CHAR="▓"
+    local INNER_WIDTH=46
+    local TITLE="✦  Ɍム-ic LM DOWNLOADER  ✦"
+    local CREDIT="Created by Agha (lamvav)"
+
+    local SHADOW_LINE=" $(printf "${SHADOW_CHAR}%.0s" {1..49})"
+    local i
+    for ((i = 0; i < 8; i++)); do
+        echo -e "${C_SHADOW}${SHADOW_LINE}${C_RESET}"
+    done
+
+    echo -ne "\033[8A"
+
+    echo -e "${C_BORDER}╔$(printf '═%.0s' $(seq 1 $INNER_WIDTH))╗${C_RESET}"
+    echo -e "${C_BORDER}║$(printf ' %.0s' $(seq 1 $INNER_WIDTH))║${C_RESET}"
+
+    local PAD_LEFT=$(( (INNER_WIDTH - ${#TITLE}) / 2 ))
+    local PAD_RIGHT=$(( INNER_WIDTH - ${#TITLE} - PAD_LEFT ))
+    printf -v TITLE_LINE "${C_BORDER}║${C_RESET}%*s${C_TITLE}%s${C_RESET}%*s${C_BORDER}║${C_RESET}" \
+        $PAD_LEFT "" "$TITLE" $PAD_RIGHT ""
+    echo -e "$TITLE_LINE"
+
+    local VER_PAD_LEFT=$(( (INNER_WIDTH - ${#LM_VERSION}) / 2 ))
+    local VER_PAD_RIGHT=$(( INNER_WIDTH - ${#LM_VERSION} - VER_PAD_LEFT ))
+    printf -v VER_LINE "${C_BORDER}║${C_RESET}%*s${C_VERSION}%s${C_RESET}%*s${C_BORDER}║${C_RESET}" \
+        $VER_PAD_LEFT "" "$LM_VERSION" $VER_PAD_RIGHT ""
+    echo -e "$VER_LINE"
+
+    PAD_LEFT=$(( (INNER_WIDTH - ${#CREDIT}) / 2 ))
+    PAD_RIGHT=$(( INNER_WIDTH - ${#CREDIT} - PAD_LEFT ))
+    printf -v CREDIT_LINE "${C_BORDER}║${C_RESET}%*s${C_CREDIT}%s${C_RESET}%*s${C_BORDER}║${C_RESET}" \
+        $PAD_LEFT "" "$CREDIT" $PAD_RIGHT ""
+    echo -e "$CREDIT_LINE"
+
+    echo -e "${C_BORDER}║$(printf ' %.0s' $(seq 1 $INNER_WIDTH))║${C_RESET}"
+    echo -e "${C_BORDER}╚$(printf '═%.0s' $(seq 1 $INNER_WIDTH))╝${C_RESET}"
 }
+
 
 lm_run_step() {
     local message="$1"
