@@ -23,7 +23,7 @@ def search_fast(query, max_results=20):
         return videos
     except subprocess.TimeoutExpired:
         return []
-    except Exception as e:
+    except Exception:
         return []
 
 def main():
