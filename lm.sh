@@ -1,8 +1,8 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -o pipefail
 
-LM_VERSION="TatraPlus-Gold-V36.2026.06.06"
-LM_VERSION_CODE=3620260606
+LM_VERSION="TatraPlus-Gold-V37.2026.06.06"
+LM_VERSION_CODE=3720260606
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
@@ -281,9 +281,9 @@ lm_banner() {
     clear
     local border=$(printf '═%.0s' {1..48})
     echo -e "${C_RGB4}╔${border}╗${C_RESET}"
-    echo -e "${C_RGB4}║${C_RESET}  ${C_BOLD}${C_RGB5}◢◤ TATRA PLUS GOLD ◥◣${C_RESET}  ${C_RGB4} ${C_RESET}"
-    echo -e "${C_RGB4}║${C_RESET}  ${C_DIM}${C_RGB2}⚡LM Premium Downloader ⚡${C_RESET}  ${C_RGB4} ${C_RESET}"
-    echo -e "${C_RGB4}║${C_RESET}  ${C_RGB3}Version: $LM_VERSION${C_RESET}  ${C_RGB4} ${C_RESET}"
+    echo -e "${C_RGB4}║${C_RESET}  ${C_BOLD}${C_RGB5}◢◤ TATRA PLUS GOLD ◥◣${C_RESET}  ${C_RGB4}║${C_RESET}"
+    echo -e "${C_RGB4}║${C_RESET}  ${C_DIM}${C_RGB2}⚡ Premium Downloader ⚡${C_RESET}  ${C_RGB4}║${C_RESET}"
+    echo -e "${C_RGB4}║${C_RESET}  ${C_RGB3}Version: $LM_VERSION${C_RESET}  ${C_RGB4}║${C_RESET}"
     echo -e "${C_RGB4}╚${border}╝${C_RESET}"
     echo
 }
@@ -402,69 +402,69 @@ lm_download_common() {
         tiktok:audio) output_dir="$LM_DOWNLOAD_BASE/TikTok/Music"; template="$output_dir/%(title)s.%(ext)s"; format="bestaudio"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO" ;;
         youtube:video)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Video"; template="$output_dir/%(title)s.%(ext)s"
-            [[ -n "$quality_format" ]] && format="$quality_format" || format="best"
+            if [ -n "$quality_format" ]; then
+                format="$quality_format"
+            else
+                format="best"
+            fi
             opts=(--merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json)
             lm_toast "$TXT_DOWNLOAD_STARTED_YT_VIDEO" ;;
         youtube:audio)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Music"; template="$output_dir/%(title)s.%(ext)s"
             format="bestaudio"
             opts=(--extract-audio --no-write-info-json --embed-thumbnail --embed-metadata)
-            if [[ "$audio_quality" == "m4a" ]]; then
+            if [ "$audio_quality" = "m4a" ]; then
                 opts+=(--audio-format m4a --audio-quality 0)
             elif [[ "$audio_quality" =~ ^mp3:([0-9]+)$ ]]; then
                 local br="${BASH_REMATCH[1]}"
                 opts+=(--audio-format mp3 --audio-quality 0)
-                if [[ "$br" == "70" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 70k")
-                elif [[ "$br" == "128" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 128k")
-                elif [[ "$br" == "160" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 160k")
-                elif [[ "$br" == "320" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 320k")
-                fi
+                opts+=(--postprocessor-args "ffmpeg:-b:a ${br}k")
             else
                 opts+=(--audio-format mp3 --audio-quality 0)
             fi
             lm_toast "$TXT_DOWNLOAD_STARTED_YT_AUDIO" ;;
         youtube_playlist:video)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Video"; template="$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s"
-            [[ -n "$quality_format" ]] && format="$quality_format" || format="best"
+            if [ -n "$quality_format" ]; then
+                format="$quality_format"
+            else
+                format="best"
+            fi
             opts=(--yes-playlist --merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json)
             lm_toast "$TXT_DOWNLOAD_STARTED_YTPL_VIDEO" ;;
         youtube_playlist:audio)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Music"; template="$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s"
             format="bestaudio"
             opts=(--yes-playlist --extract-audio --no-write-info-json --embed-thumbnail --embed-metadata)
-            if [[ "$audio_quality" == "m4a" ]]; then
+            if [ "$audio_quality" = "m4a" ]; then
                 opts+=(--audio-format m4a --audio-quality 0)
             elif [[ "$audio_quality" =~ ^mp3:([0-9]+)$ ]]; then
                 local br="${BASH_REMATCH[1]}"
                 opts+=(--audio-format mp3 --audio-quality 0)
-                if [[ "$br" == "70" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 70k")
-                elif [[ "$br" == "128" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 128k")
-                elif [[ "$br" == "160" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 160k")
-                elif [[ "$br" == "320" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 320k")
-                fi
+                opts+=(--postprocessor-args "ffmpeg:-b:a ${br}k")
             else
                 opts+=(--audio-format mp3 --audio-quality 0)
             fi
             lm_toast "$TXT_DOWNLOAD_STARTED_YTPL_AUDIO" ;;
         youtube_channel:video)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Channel/Video"; template="$output_dir/%(uploader)s - %(title)s.%(ext)s"
-            [[ -n "$quality_format" ]] && format="$quality_format" || format="best"
+            if [ -n "$quality_format" ]; then
+                format="$quality_format"
+            else
+                format="best"
+            fi
             opts=(--merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json)
             lm_toast "$TXT_DOWNLOAD_STARTED_YT_CHANNEL_VIDEO" ;;
         youtube_channel:audio)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Channel/Music"; template="$output_dir/%(uploader)s - %(title)s.%(ext)s"
             format="bestaudio"
             opts=(--extract-audio --no-write-info-json --embed-thumbnail --embed-metadata)
-            if [[ "$audio_quality" == "m4a" ]]; then
+            if [ "$audio_quality" = "m4a" ]; then
                 opts+=(--audio-format m4a --audio-quality 0)
             elif [[ "$audio_quality" =~ ^mp3:([0-9]+)$ ]]; then
                 local br="${BASH_REMATCH[1]}"
                 opts+=(--audio-format mp3 --audio-quality 0)
-                if [[ "$br" == "70" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 70k")
-                elif [[ "$br" == "128" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 128k")
-                elif [[ "$br" == "160" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 160k")
-                elif [[ "$br" == "320" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 320k")
-                fi
+                opts+=(--postprocessor-args "ffmpeg:-b:a ${br}k")
             else
                 opts+=(--audio-format mp3 --audio-quality 0)
             fi
@@ -642,7 +642,7 @@ lm_active_menu() {
     while true; do
         lm_banner
         echo -e "${C_RGB3}╔══════════════════════════════════════════════╗"
-        echo -e "║           ${TXT_ACTIVE_MENU_TITLE}            "
+        echo -e "║           ${TXT_ACTIVE_MENU_TITLE}           ║"
         echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
         lm_active_sessions
         echo -e "${C_RGB1}[0]${C_RESET} $TXT_MENU_OPTION_BACK\n"
@@ -659,7 +659,7 @@ lm_search_menu() {
     while true; do
         lm_banner
         echo -e "${C_RGB3}╔══════════════════════════════════════════════╗"
-        echo -e "║                  $TXT_SEARCH_TITLE                   "
+        echo -e "║                  $TXT_SEARCH_TITLE                  ║"
         echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
         echo -ne "${C_RGB2}$TXT_SEARCH_PROMPT:${C_RESET} "
         read -r query
@@ -700,7 +700,7 @@ lm_settings_menu() {
     while true; do
         lm_banner
         echo -e "${C_RGB3}╔══════════════════════════════════════════════╗"
-        echo -e "║              $TXT_SETTINGS_MENU_TITLE               "
+        echo -e "║              $TXT_SETTINGS_MENU_TITLE              ║"
         echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
         echo -e "${C_RGB4}[1]${C_RESET} $TXT_MENU_OPTION_LANGUAGE"
         echo -e "${C_RGB4}[2]${C_RESET} ${TXT_SETTINGS_PARALLEL} [${C_RGB5}$LM_MAX_PARALLEL${C_RESET}]"
@@ -770,7 +770,7 @@ lm_admin_menu() {
     while true; do
         lm_banner
         echo -e "${C_RGB3}╔══════════════════════════════════════════════╗"
-        echo -e "║              $TXT_ADMIN_MENU_TITLE               "
+        echo -e "║              $TXT_ADMIN_MENU_TITLE              ║"
         echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
         echo -e "${C_RGB4}[1]${C_RESET} $TXT_MENU_OPTION_UPDATE"
         echo -e "${C_RGB4}[2]${C_RESET} $TXT_MENU_OPTION_OPTIMIZE"
@@ -807,7 +807,7 @@ lm_manual_menu() {
     while true; do
         lm_banner
         echo -e "${C_RGB3}╔══════════════════════════════════════════════╗"
-        echo -e "║           $TXT_MANUAL_MENU_TITLE              "
+        echo -e "║           $TXT_MANUAL_MENU_TITLE             ║"
         echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
         echo -e "${C_RGB4}[1]${C_RESET} Instagram"
         echo -e "${C_RGB4}[2]${C_RESET} TikTok"
@@ -850,7 +850,7 @@ lm_auto_download() {
     local url="$1" platform
     lm_banner
     echo -e "${C_RGB3}╔══════════════════════════════════════════════╗"
-    echo -e "║             $TXT_AUTO_MENU_TITLE              "
+    echo -e "║             $TXT_AUTO_MENU_TITLE             ║"
     echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
     if [ -z "$url" ]; then
         local clip_url
