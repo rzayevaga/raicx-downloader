@@ -1,8 +1,8 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -o pipefail
 
-LM_VERSION="TatraPlus-Gold-V33.2026.06.06"
-LM_VERSION_CODE=3320260606
+LM_VERSION="TatraPlus-Gold-V31.2026.06.06"
+LM_VERSION_CODE=3120260606
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
@@ -16,7 +16,7 @@ LM_LANG="AZ"
 LM_REMOTE_VERSION=""
 LM_REMOTE_VERSION_CODE=0
 LM_QUEUE_FILE="$LM_DIR/queue.active"
-LM_MAX_PARALLEL=8
+LM_MAX_PARALLEL=3
 LM_SPEED_LIMIT="unlimited"
 
 C_RESET='\033[0m'
@@ -359,7 +359,7 @@ lm_select_video_quality() {
     done
 }
 
-lm_select_audio_format() {
+lm_select_audio_quality() {
     while true; do
         echo -e "\n${C_RGB3}$TXT_AUDIO_PROMPT${C_RESET}"
         echo -e "${C_RGB4}[1]${C_RESET} ${TXT_AUDIO_M4A_128K}"
@@ -370,11 +370,11 @@ lm_select_audio_format() {
         echo -ne "${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
         read -r achoice
         case "$achoice" in
-            1) echo "bestaudio[ext=m4a]/bestaudio[abr<=128]"; return 0 ;;
-            2) echo "bestaudio[ext=mp3][abr<=70]/bestaudio[abr<=70]"; return 0 ;;
-            3) echo "bestaudio[ext=mp3][abr<=128]/bestaudio[abr<=128]"; return 0 ;;
-            4) echo "bestaudio[ext=mp3][abr<=160]/bestaudio[abr<=160]"; return 0 ;;
-            5) echo "bestaudio[ext=mp3][abr<=320]/bestaudio[abr<=320]"; return 0 ;;
+            1) echo "m4a"; return 0 ;;
+            2) echo "mp3:70"; return 0 ;;
+            3) echo "mp3:128"; return 0 ;;
+            4) echo "mp3:160"; return 0 ;;
+            5) echo "mp3:320"; return 0 ;;
             *) lm_toast "$TXT_ERROR_INVALID_CHOICE" ;;
         esac
     done
@@ -382,14 +382,14 @@ lm_select_audio_format() {
 
 lm_download_common() {
     local platform="$1" mode="$2" url="$3"
-    local quality_format="" audio_format="" output_dir template format opts_str
+    local quality_format="" audio_quality="" output_dir template format opts_str
     local -a opts=()
 
     if [ "$mode" = "video_quality" ]; then
         quality_format="$(lm_select_video_quality)"
         mode="video"
     elif [ "$mode" = "audio_quality" ]; then
-        audio_format="$(lm_select_audio_format)"
+        audio_quality="$(lm_select_audio_quality)"
         mode="audio"
     fi
 
@@ -397,32 +397,83 @@ lm_download_common() {
 
     case "${platform}:${mode}" in
         instagram:video) output_dir="$LM_DOWNLOAD_BASE/Instagram/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --concurrent-fragments 4); lm_toast "$TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO" ;;
-        instagram:audio) output_dir="$LM_DOWNLOAD_BASE/Instagram/Music"; template="$output_dir/%(title)s.%(ext)s"; format="${audio_format:-bestaudio/best}"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO" ;;
+        instagram:audio) output_dir="$LM_DOWNLOAD_BASE/Instagram/Music"; template="$output_dir/%(title)s.%(ext)s"; format="bestaudio"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO" ;;
         tiktok:video) output_dir="$LM_DOWNLOAD_BASE/TikTok/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO" ;;
-        tiktok:audio) output_dir="$LM_DOWNLOAD_BASE/TikTok/Music"; template="$output_dir/%(title)s.%(ext)s"; format="${audio_format:-bestaudio/best}"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO" ;;
+        tiktok:audio) output_dir="$LM_DOWNLOAD_BASE/TikTok/Music"; template="$output_dir/%(title)s.%(ext)s"; format="bestaudio"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO" ;;
         youtube:video)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Video"; template="$output_dir/%(title)s.%(ext)s"
             [[ -n "$quality_format" ]] && format="$quality_format" || format="bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
             opts=(--merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json)
             lm_toast "$TXT_DOWNLOAD_STARTED_YT_VIDEO" ;;
-        youtube:audio) output_dir="$LM_DOWNLOAD_BASE/YouTube/Music"; template="$output_dir/%(title)s.%(ext)s"; format="${audio_format:-bestaudio/best}"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_YT_AUDIO" ;;
+        youtube:audio)
+            output_dir="$LM_DOWNLOAD_BASE/YouTube/Music"; template="$output_dir/%(title)s.%(ext)s"
+            format="bestaudio"
+            opts=(--extract-audio --no-write-info-json --embed-thumbnail --embed-metadata)
+            if [[ "$audio_quality" == "m4a" ]]; then
+                opts+=(--audio-format m4a --audio-quality 0)
+            elif [[ "$audio_quality" =~ ^mp3:([0-9]+)$ ]]; then
+                local br="${BASH_REMATCH[1]}"
+                opts+=(--audio-format mp3 --audio-quality 0)
+                if [[ "$br" == "70" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 70k")
+                elif [[ "$br" == "128" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 128k")
+                elif [[ "$br" == "160" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 160k")
+                elif [[ "$br" == "320" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 320k")
+                fi
+            else
+                opts+=(--audio-format mp3 --audio-quality 0)
+            fi
+            lm_toast "$TXT_DOWNLOAD_STARTED_YT_AUDIO" ;;
         youtube_playlist:video)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Video"; template="$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s"
             [[ -n "$quality_format" ]] && format="$quality_format" || format="bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
             opts=(--yes-playlist --merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json)
             lm_toast "$TXT_DOWNLOAD_STARTED_YTPL_VIDEO" ;;
-        youtube_playlist:audio) output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Music"; template="$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s"; format="${audio_format:-bestaudio/best}"; opts=(--yes-playlist --extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_YTPL_AUDIO" ;;
+        youtube_playlist:audio)
+            output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Music"; template="$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s"
+            format="bestaudio"
+            opts=(--yes-playlist --extract-audio --no-write-info-json --embed-thumbnail --embed-metadata)
+            if [[ "$audio_quality" == "m4a" ]]; then
+                opts+=(--audio-format m4a --audio-quality 0)
+            elif [[ "$audio_quality" =~ ^mp3:([0-9]+)$ ]]; then
+                local br="${BASH_REMATCH[1]}"
+                opts+=(--audio-format mp3 --audio-quality 0)
+                if [[ "$br" == "70" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 70k")
+                elif [[ "$br" == "128" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 128k")
+                elif [[ "$br" == "160" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 160k")
+                elif [[ "$br" == "320" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 320k")
+                fi
+            else
+                opts+=(--audio-format mp3 --audio-quality 0)
+            fi
+            lm_toast "$TXT_DOWNLOAD_STARTED_YTPL_AUDIO" ;;
         youtube_channel:video)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Channel/Video"; template="$output_dir/%(uploader)s - %(title)s.%(ext)s"
             [[ -n "$quality_format" ]] && format="$quality_format" || format="bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
             opts=(--merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json)
             lm_toast "$TXT_DOWNLOAD_STARTED_YT_CHANNEL_VIDEO" ;;
-        youtube_channel:audio) output_dir="$LM_DOWNLOAD_BASE/YouTube/Channel/Music"; template="$output_dir/%(uploader)s - %(title)s.%(ext)s"; format="${audio_format:-bestaudio/best}"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_YT_CHANNEL_AUDIO" ;;
+        youtube_channel:audio)
+            output_dir="$LM_DOWNLOAD_BASE/YouTube/Channel/Music"; template="$output_dir/%(uploader)s - %(title)s.%(ext)s"
+            format="bestaudio"
+            opts=(--extract-audio --no-write-info-json --embed-thumbnail --embed-metadata)
+            if [[ "$audio_quality" == "m4a" ]]; then
+                opts+=(--audio-format m4a --audio-quality 0)
+            elif [[ "$audio_quality" =~ ^mp3:([0-9]+)$ ]]; then
+                local br="${BASH_REMATCH[1]}"
+                opts+=(--audio-format mp3 --audio-quality 0)
+                if [[ "$br" == "70" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 70k")
+                elif [[ "$br" == "128" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 128k")
+                elif [[ "$br" == "160" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 160k")
+                elif [[ "$br" == "320" ]]; then opts+=(--postprocessor-args "ffmpeg:-b:a 320k")
+                fi
+            else
+                opts+=(--audio-format mp3 --audio-quality 0)
+            fi
+            lm_toast "$TXT_DOWNLOAD_STARTED_YT_CHANNEL_AUDIO" ;;
         twitter:video) output_dir="$LM_DOWNLOAD_BASE/Twitter/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_TWITTER_VIDEO" ;;
-        twitter:audio) output_dir="$LM_DOWNLOAD_BASE/Twitter/Music"; template="$output_dir/%(title)s.%(ext)s"; format="${audio_format:-bestaudio/best}"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_TWITTER_AUDIO" ;;
+        twitter:audio) output_dir="$LM_DOWNLOAD_BASE/Twitter/Music"; template="$output_dir/%(title)s.%(ext)s"; format="bestaudio"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_TWITTER_AUDIO" ;;
         facebook:video) output_dir="$LM_DOWNLOAD_BASE/Facebook/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_FACEBOOK_VIDEO" ;;
-        facebook:audio) output_dir="$LM_DOWNLOAD_BASE/Facebook/Music"; template="$output_dir/%(title)s.%(ext)s"; format="${audio_format:-bestaudio/best}"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_FACEBOOK_AUDIO" ;;
-        soundcloud:audio) output_dir="$LM_DOWNLOAD_BASE/SoundCloud/Music"; template="$output_dir/%(title)s.%(ext)s"; format="${audio_format:-bestaudio/best}"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_SOUNDCLOUD_AUDIO" ;;
+        facebook:audio) output_dir="$LM_DOWNLOAD_BASE/Facebook/Music"; template="$output_dir/%(title)s.%(ext)s"; format="bestaudio"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_FACEBOOK_AUDIO" ;;
+        soundcloud:audio) output_dir="$LM_DOWNLOAD_BASE/SoundCloud/Music"; template="$output_dir/%(title)s.%(ext)s"; format="bestaudio"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_SOUNDCLOUD_AUDIO" ;;
         *) echo -e "${C_RGB1}[LM]${C_RESET} $TXT_PLATFORM_UNKNOWN"; echo -e "${C_RGB4}$TXT_SUPPORTED_PLATFORMS${C_RESET}"; return 1 ;;
     esac
 
@@ -436,6 +487,7 @@ lm_download_common() {
     local ret=$?
     if [ "$ret" -eq 0 ]; then
         echo -e "\n${C_RGB2}[LM]${C_RESET} $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
+        lm_toast "$TXT_DOWNLOAD_DONE_PREFIX"
     else
         echo -e "\n${C_RGB1}[LM]${C_RESET} $TXT_DOWNLOAD_FAILED\n"
     fi
@@ -616,8 +668,8 @@ lm_search_menu() {
         fi
         lm_toast "$TXT_SEARCHING"
         local search_output
-        search_output=$(python "$LM_DIR/sh.py" "$query" 2>/dev/null)
-        if [[ "$search_output" == "NƏTİCƏ_YOXDUR" ]]; then
+        search_output=$(python "$LM_DIR/sh.py" "$query" 2>&1)
+        if [[ "$search_output" == "NƏTİCƏ_YOXDUR" ]] || [[ -z "$search_output" ]]; then
             echo -e "\n${C_RGB1}[LM]${C_RESET} $TXT_SEARCH_NO_RESULTS"
             echo -ne "\n${C_RGB2}$TXT_SEARCH_AGAIN${C_RESET} "
             read -r again
