@@ -2,19 +2,22 @@
 import sys
 import subprocess
 import json
-import time
 
 def search_fast(query, max_results=20):
     try:
+        # stderr=subprocess.DEVNULL hissəsini sildik ki, yt-dlp-nin daxili xətalarını görə bilək
         result = subprocess.check_output(
             ['yt-dlp', '-j', '--flat-playlist', f'ytsearch{max_results}:{query}'],
-            stderr=subprocess.DEVNULL,
             timeout=15
         )
-        lines = result.strip().splitlines()
+        
+        # Alınan nəticəni baytdan (bytes) mətnə (utf-8) çeviririk
+        result_str = result.decode('utf-8', errors='ignore')
+        lines = result_str.strip().splitlines()
+        
         videos = []
         for line in lines:
-            if not line:
+            if not line.strip():
                 continue
             try:
                 info = json.loads(line)
@@ -26,14 +29,23 @@ def search_fast(query, max_results=20):
             except json.JSONDecodeError:
                 continue
         return videos
-    except subprocess.TimeoutExpired:
+        
+    except FileNotFoundError:
+        print("XƏTA: 'yt-dlp' sistemi tapılmadı! Terminalda 'pip install yt-dlp' yazaraq quraşdırın.", file=sys.stderr)
         return []
-    except Exception:
+    except subprocess.CalledProcessError as e:
+        print(f"XƏTA: yt-dlp işləyərkən xəta verdi (Çıxış kodu: {e.returncode}).", file=sys.stderr)
+        return []
+    except subprocess.TimeoutExpired:
+        print("XƏTA: Axtarış vaxtı keçdi (Timeout). İnternet sürətini yoxlayın.", file=sys.stderr)
+        return []
+    except Exception as e:
+        print(f"Gözlənilməz xəta baş verdi: {e}", file=sys.stderr)
         return []
 
 def main():
     if len(sys.argv) < 2:
-        print("NƏTİCƏ_YOXDUR")
+        print("İstifadə qaydası: python script_adı.py <axtarış sözü>")
         sys.exit(1)
     
     query = ' '.join(sys.argv[1:])
@@ -45,7 +57,13 @@ def main():
     
     for i, v in enumerate(videos, 1):
         dur = v['duration']
-        dur_str = f"{dur//60}:{dur%60:02d}" if dur and dur > 0 else "?"
+        # Müddəti (duration) təhlükəsiz şəkildə hesablamaq
+        try:
+            dur = int(dur) if dur else 0
+            dur_str = f"{dur//60}:{dur%60:02d}" if dur > 0 else "?"
+        except Exception:
+            dur_str = "?"
+            
         print(f"{i}::[{dur_str}] {v['title']}")
     
     print("SEÇİM")
