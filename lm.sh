@@ -1,8 +1,8 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -o pipefail
 
-LM_VERSION="TatraPlus-Gold-V34.2026.06.06"
-LM_VERSION_CODE=3420260606
+LM_VERSION="TatraPlus-Gold-V31.2026.06.06"
+LM_VERSION_CODE=3120260606
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
@@ -16,7 +16,7 @@ LM_LANG="AZ"
 LM_REMOTE_VERSION=""
 LM_REMOTE_VERSION_CODE=0
 LM_QUEUE_FILE="$LM_DIR/queue.active"
-LM_MAX_PARALLEL=8
+LM_MAX_PARALLEL=3
 LM_SPEED_LIMIT="unlimited"
 
 C_RESET='\033[0m'
@@ -282,7 +282,7 @@ lm_banner() {
     local border=$(printf '═%.0s' {1..48})
     echo -e "${C_RGB4}╔${border}╗${C_RESET}"
     echo -e "${C_RGB4}║${C_RESET}  ${C_BOLD}${C_RGB5}◢◤ TATRA PLUS GOLD ◥◣${C_RESET}  ${C_RGB4}║${C_RESET}"
-    echo -e "${C_RGB4}║${C_RESET}  ${C_DIM}${C_RGB2}⚡LM Premium Downloader ⚡${C_RESET}  ${C_RGB4}║${C_RESET}"
+    echo -e "${C_RGB4}║${C_RESET}  ${C_DIM}${C_RGB2}⚡ Premium Downloader ⚡${C_RESET}  ${C_RGB4}║${C_RESET}"
     echo -e "${C_RGB4}║${C_RESET}  ${C_RGB3}Version: $LM_VERSION${C_RESET}  ${C_RGB4}║${C_RESET}"
     echo -e "${C_RGB4}╚${border}╝${C_RESET}"
     echo
@@ -348,12 +348,12 @@ lm_select_video_quality() {
         echo -ne "${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
         read -r qchoice
         case "$qchoice" in
-            1) echo "bestvideo[height<=144]+bestaudio/best[height<=144]"; return 0 ;;
-            2) echo "bestvideo[height<=240]+bestaudio/best[height<=240]"; return 0 ;;
-            3) echo "bestvideo[height<=360]+bestaudio/best[height<=360]"; return 0 ;;
-            4) echo "bestvideo[height<=480]+bestaudio/best[height<=480]"; return 0 ;;
-            5) echo "bestvideo[height<=720]+bestaudio/best[height<=720]"; return 0 ;;
-            6) echo "bestvideo[height<=1080]+bestaudio/best[height<=1080]"; return 0 ;;
+            1) echo "best[height<=144]"; return 0 ;;
+            2) echo "best[height<=240]"; return 0 ;;
+            3) echo "best[height<=360]"; return 0 ;;
+            4) echo "best[height<=480]"; return 0 ;;
+            5) echo "best[height<=720]"; return 0 ;;
+            6) echo "best[height<=1080]"; return 0 ;;
             *) lm_toast "$TXT_ERROR_INVALID_CHOICE" ;;
         esac
     done
@@ -402,7 +402,7 @@ lm_download_common() {
         tiktok:audio) output_dir="$LM_DOWNLOAD_BASE/TikTok/Music"; template="$output_dir/%(title)s.%(ext)s"; format="bestaudio"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO" ;;
         youtube:video)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Video"; template="$output_dir/%(title)s.%(ext)s"
-            [[ -n "$quality_format" ]] && format="$quality_format" || format="bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
+            [[ -n "$quality_format" ]] && format="$quality_format" || format="best"
             opts=(--merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json)
             lm_toast "$TXT_DOWNLOAD_STARTED_YT_VIDEO" ;;
         youtube:audio)
@@ -425,7 +425,7 @@ lm_download_common() {
             lm_toast "$TXT_DOWNLOAD_STARTED_YT_AUDIO" ;;
         youtube_playlist:video)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Video"; template="$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s"
-            [[ -n "$quality_format" ]] && format="$quality_format" || format="bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
+            [[ -n "$quality_format" ]] && format="$quality_format" || format="best"
             opts=(--yes-playlist --merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json)
             lm_toast "$TXT_DOWNLOAD_STARTED_YTPL_VIDEO" ;;
         youtube_playlist:audio)
@@ -448,7 +448,7 @@ lm_download_common() {
             lm_toast "$TXT_DOWNLOAD_STARTED_YTPL_AUDIO" ;;
         youtube_channel:video)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Channel/Video"; template="$output_dir/%(uploader)s - %(title)s.%(ext)s"
-            [[ -n "$quality_format" ]] && format="$quality_format" || format="bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
+            [[ -n "$quality_format" ]] && format="$quality_format" || format="best"
             opts=(--merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json)
             lm_toast "$TXT_DOWNLOAD_STARTED_YT_CHANNEL_VIDEO" ;;
         youtube_channel:audio)
@@ -510,10 +510,11 @@ lm_download_tiktok_slideshow() {
         echo -e "${C_RGB4}[2]${C_RESET} ${TXT_SLIDESHOW_OPT_2}"
         echo -e "${C_RGB4}[3]${C_RESET} ${TXT_SLIDESHOW_OPT_3}"
         echo -e "${C_RGB4}[4]${C_RESET} ${TXT_SLIDESHOW_OPT_4}"
+        echo -e "${C_RGB4}[5]${C_RESET} ${TXT_SLIDESHOW_OPT_5}"
         echo -ne "${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
         read -r choice
         case "$choice" in
-            1|2|3|4) break ;;
+            1|2|3|4|5) break ;;
             *) lm_toast "$TXT_ERROR_INVALID_CHOICE" ;;
         esac
     done
@@ -669,7 +670,7 @@ lm_search_menu() {
         lm_toast "$TXT_SEARCHING"
         local search_output
         search_output=$(python "$LM_DIR/sh.py" "$query" 2>&1)
-        if [[ "$search_output" == "NƏTİCƏ_YOXDUR" ]] || [[ -z "$search_output" ]]; then
+        if [[ "$search_output" == *"NƏTİCƏ_YOXDUR"* ]] || [[ -z "$search_output" ]]; then
             echo -e "\n${C_RGB1}[LM]${C_RESET} $TXT_SEARCH_NO_RESULTS"
             echo -ne "\n${C_RGB2}$TXT_SEARCH_AGAIN${C_RESET} "
             read -r again
