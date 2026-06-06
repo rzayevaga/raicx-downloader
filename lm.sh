@@ -1,8 +1,8 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -o pipefail
 
-LM_VERSION="TatraPlus-Gold-V32.2026.06.06"
-LM_VERSION_CODE=3120260606
+LM_VERSION="TatraPlus-Gold-V31.2026.06.06"
+LM_VERSION_CODE=3320260606
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
@@ -14,8 +14,9 @@ LM_TIKTOK_PHOTO_DL_RAW="https://raw.githubusercontent.com/rzayevaga/raicx-downlo
 LM_SEARCH_HELPER_RAW="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/raicX/sh.py"
 LM_LANG="AZ"
 LM_REMOTE_VERSION=""
+LM_REMOTE_VERSION_CODE=0
 LM_QUEUE_FILE="$LM_DIR/queue.active"
-LM_MAX_PARALLEL=3
+LM_MAX_PARALLEL=8
 LM_SPEED_LIMIT="unlimited"
 
 C_RESET='\033[0m'
@@ -39,16 +40,24 @@ fi
 
 if [ -f "$LM_LANG_SOURCE" ]; then
     . "$LM_LANG_SOURCE"
+else
+    echo "ERROR: Language file not found"
+    exit 1
 fi
 
 declare -A LM_ACTIVE_JOBS
-declare -A LM_JOB_PID_TO_URL
-declare -A LM_JOB_PID_PLATFORM
-declare -A LM_JOB_PID_MODE
 LM_JOB_COUNT=0
 
 lm_hide_cursor() { printf "\e[?25l"; }
 lm_show_cursor() { printf "\e[?25h"; }
+
+lm_toast() {
+    local msg="$1"
+    if command -v termux-toast >/dev/null 2>&1; then
+        termux-toast "$msg"
+    fi
+    echo -e "${C_RGB4}➤${C_RESET} ${C_DIM}$msg${C_RESET}"
+}
 
 lm_get_clipboard_url() {
     local url
@@ -113,11 +122,6 @@ lm_spin_fast() {
     return "$status"
 }
 
-lm_toast() {
-    local msg="$1"
-    echo -e "${C_RGB4}➤${C_RESET} ${C_DIM}$msg${C_RESET}"
-}
-
 lm_setup_url_opener() {
     mkdir -p "$HOME/bin"
     cat > "$LM_OPENER" << 'EOF'
@@ -165,21 +169,23 @@ lm_load_config() {
 }
 
 lm_choose_language() {
-    echo -e "\n${C_RGB3}$TXT_LANG_MENU_TITLE${C_RESET}"
-    echo -e "${C_RGB2}$TXT_LANG_MENU_DESC${C_RESET}\n"
-    echo -e "${C_RGB4}[1]${C_RESET} $TXT_LANG_AZ"
-    echo -e "${C_RGB4}[2]${C_RESET} $TXT_LANG_TR"
-    echo -e "${C_RGB4}[3]${C_RESET} $TXT_LANG_EN"
-    echo -e "${C_RGB4}[4]${C_RESET} $TXT_LANG_RU\n"
-    echo -ne "${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
-    read -r lang_choice
-    case "$lang_choice" in
-        1) LM_LANG="AZ" ;;
-        2) LM_LANG="TR" ;;
-        3) LM_LANG="EN" ;;
-        4) LM_LANG="RU" ;;
-        *) LM_LANG="AZ" ;;
-    esac
+    while true; do
+        echo -e "\n${C_RGB3}$TXT_LANG_MENU_TITLE${C_RESET}"
+        echo -e "${C_RGB2}$TXT_LANG_MENU_DESC${C_RESET}\n"
+        echo -e "${C_RGB4}[1]${C_RESET} $TXT_LANG_AZ"
+        echo -e "${C_RGB4}[2]${C_RESET} $TXT_LANG_TR"
+        echo -e "${C_RGB4}[3]${C_RESET} $TXT_LANG_EN"
+        echo -e "${C_RGB4}[4]${C_RESET} $TXT_LANG_RU\n"
+        echo -ne "${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
+        read -r lang_choice
+        case "$lang_choice" in
+            1) LM_LANG="AZ"; break ;;
+            2) LM_LANG="TR"; break ;;
+            3) LM_LANG="EN"; break ;;
+            4) LM_LANG="RU"; break ;;
+            *) lm_toast "$TXT_ERROR_INVALID_CHOICE" ;;
+        esac
+    done
     lm_set_lang_vars
     lm_save_config
     lm_toast "$TXT_LANG_CHANGED"
@@ -197,9 +203,6 @@ lm_detect_platform() {
     elif [[ $url_lower == *"twitter.com"* ]] || [[ $url_lower == *"x.com"* ]]; then echo "twitter"
     elif [[ $url_lower == *"facebook.com"* ]] || [[ $url_lower == *"fb.com"* ]] || [[ $url_lower == *"fb.watch"* ]]; then echo "facebook"
     elif [[ $url_lower == *"soundcloud.com"* ]]; then echo "soundcloud"
-    elif [[ $url_lower == *"pinterest.com"* ]] || [[ $url_lower == *"pin.it"* ]]; then echo "pinterest"
-    elif [[ $url_lower == *"reddit.com"* ]] || [[ $url_lower == *"redd.it"* ]]; then echo "reddit"
-    elif [[ $url_lower == *"vimeo.com"* ]]; then echo "vimeo"
     else echo "unknown"; fi
 }
 
@@ -222,13 +225,20 @@ lm_detect_content_type() {
 
 lm_check_update() {
     LM_REMOTE_VERSION=""
+    LM_REMOTE_VERSION_CODE=0
     local remote_line
-    remote_line="$(curl -fsSL --connect-timeout 3 "$LM_REPO_RAW" 2>/dev/null | grep -m1 '^LM_VERSION=')"
+    remote_line="$(curl -fsSL --connect-timeout 3 "$LM_REPO_RAW" 2>/dev/null | grep -m1 '^LM_VERSION_CODE=')"
     [[ -z "$remote_line" ]] && return 1
-    LM_REMOTE_VERSION="${remote_line#LM_VERSION=}"
-    LM_REMOTE_VERSION="${LM_REMOTE_VERSION%\"}"
-    LM_REMOTE_VERSION="${LM_REMOTE_VERSION#\"}"
-    if [ "$LM_REMOTE_VERSION" != "$LM_VERSION" ]; then return 0; fi
+    LM_REMOTE_VERSION_CODE="${remote_line#LM_VERSION_CODE=}"
+    LM_REMOTE_VERSION_CODE="${LM_REMOTE_VERSION_CODE%\"}"
+    LM_REMOTE_VERSION_CODE="${LM_REMOTE_VERSION_CODE#\"}"
+    if [ "$LM_REMOTE_VERSION_CODE" -gt "$LM_VERSION_CODE" ]; then
+        remote_line="$(curl -fsSL --connect-timeout 3 "$LM_REPO_RAW" 2>/dev/null | grep -m1 '^LM_VERSION=')"
+        LM_REMOTE_VERSION="${remote_line#LM_VERSION=}"
+        LM_REMOTE_VERSION="${LM_REMOTE_VERSION%\"}"
+        LM_REMOTE_VERSION="${LM_REMOTE_VERSION#\"}"
+        return 0
+    fi
     return 2
 }
 
@@ -237,6 +247,7 @@ lm_do_update() {
     local tmp_bin="$LM_BIN.tmp" tmp_lang="$LM_DIR/lm-lang.sh.tmp"
     if curl -fsSL --connect-timeout 5 "$LM_REPO_RAW" -o "$tmp_bin" && curl -fsSL --connect-timeout 5 "$LM_LANG_RAW" -o "$tmp_lang"; then
         chmod +x "$tmp_bin"
+        rm -f "$LM_BIN" "$LM_DIR/lm-lang.sh"
         mv "$tmp_bin" "$LM_BIN"
         mv "$tmp_lang" "$LM_DIR/lm-lang.sh"
         curl -fsSL --connect-timeout 5 "$LM_TIKTOK_PHOTO_DL_RAW" -o "$LM_DIR/ttpdl.py"
@@ -326,43 +337,47 @@ lm_get_speed_limit_opt() {
 }
 
 lm_select_video_quality() {
-    echo -e "\n${C_RGB3}$TXT_QUALITY_PROMPT${C_RESET}"
-    echo -e "${C_RGB4}[1]${C_RESET} ${TXT_QUALITY_144P}"
-    echo -e "${C_RGB4}[2]${C_RESET} ${TXT_QUALITY_240P}"
-    echo -e "${C_RGB4}[3]${C_RESET} ${TXT_QUALITY_360P}"
-    echo -e "${C_RGB4}[4]${C_RESET} ${TXT_QUALITY_480P}"
-    echo -e "${C_RGB4}[5]${C_RESET} ${TXT_QUALITY_720P}"
-    echo -e "${C_RGB4}[6]${C_RESET} ${TXT_QUALITY_1080P}"
-    echo -ne "${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
-    read -r qchoice
-    case "$qchoice" in
-        1) echo "bestvideo[height<=144]+bestaudio/best[height<=144]" ;;
-        2) echo "bestvideo[height<=240]+bestaudio/best[height<=240]" ;;
-        3) echo "bestvideo[height<=360]+bestaudio/best[height<=360]" ;;
-        4) echo "bestvideo[height<=480]+bestaudio/best[height<=480]" ;;
-        5) echo "bestvideo[height<=720]+bestaudio/best[height<=720]" ;;
-        6) echo "bestvideo[height<=1080]+bestaudio/best[height<=1080]" ;;
-        *) echo "bestvideo[height<=720]+bestaudio/best[height<=720]" ;;
-    esac
+    while true; do
+        echo -e "\n${C_RGB3}$TXT_QUALITY_PROMPT${C_RESET}"
+        echo -e "${C_RGB4}[1]${C_RESET} ${TXT_QUALITY_144P}"
+        echo -e "${C_RGB4}[2]${C_RESET} ${TXT_QUALITY_240P}"
+        echo -e "${C_RGB4}[3]${C_RESET} ${TXT_QUALITY_360P}"
+        echo -e "${C_RGB4}[4]${C_RESET} ${TXT_QUALITY_480P}"
+        echo -e "${C_RGB4}[5]${C_RESET} ${TXT_QUALITY_720P}"
+        echo -e "${C_RGB4}[6]${C_RESET} ${TXT_QUALITY_1080P}"
+        echo -ne "${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
+        read -r qchoice
+        case "$qchoice" in
+            1) echo "bestvideo[height<=144]+bestaudio/best[height<=144]"; return 0 ;;
+            2) echo "bestvideo[height<=240]+bestaudio/best[height<=240]"; return 0 ;;
+            3) echo "bestvideo[height<=360]+bestaudio/best[height<=360]"; return 0 ;;
+            4) echo "bestvideo[height<=480]+bestaudio/best[height<=480]"; return 0 ;;
+            5) echo "bestvideo[height<=720]+bestaudio/best[height<=720]"; return 0 ;;
+            6) echo "bestvideo[height<=1080]+bestaudio/best[height<=1080]"; return 0 ;;
+            *) lm_toast "$TXT_ERROR_INVALID_CHOICE" ;;
+        esac
+    done
 }
 
 lm_select_audio_format() {
-    echo -e "\n${C_RGB3}$TXT_AUDIO_PROMPT${C_RESET}"
-    echo -e "${C_RGB4}[1]${C_RESET} ${TXT_AUDIO_M4A_128K}"
-    echo -e "${C_RGB4}[2]${C_RESET} ${TXT_AUDIO_MP3_70K}"
-    echo -e "${C_RGB4}[3]${C_RESET} ${TXT_AUDIO_MP3_128K}"
-    echo -e "${C_RGB4}[4]${C_RESET} ${TXT_AUDIO_MP3_160K}"
-    echo -e "${C_RGB4}[5]${C_RESET} ${TXT_AUDIO_MP3_320K}"
-    echo -ne "${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
-    read -r achoice
-    case "$achoice" in
-        1) echo "bestaudio[ext=m4a]/bestaudio[abr<=128]" ;;
-        2) echo "bestaudio[ext=mp3][abr<=70]/bestaudio[abr<=70]" ;;
-        3) echo "bestaudio[ext=mp3][abr<=128]/bestaudio[abr<=128]" ;;
-        4) echo "bestaudio[ext=mp3][abr<=160]/bestaudio[abr<=160]" ;;
-        5) echo "bestaudio[ext=mp3][abr<=320]/bestaudio[abr<=320]" ;;
-        *) echo "bestaudio[ext=mp3][abr<=128]/bestaudio[abr<=128]" ;;
-    esac
+    while true; do
+        echo -e "\n${C_RGB3}$TXT_AUDIO_PROMPT${C_RESET}"
+        echo -e "${C_RGB4}[1]${C_RESET} ${TXT_AUDIO_M4A_128K}"
+        echo -e "${C_RGB4}[2]${C_RESET} ${TXT_AUDIO_MP3_70K}"
+        echo -e "${C_RGB4}[3]${C_RESET} ${TXT_AUDIO_MP3_128K}"
+        echo -e "${C_RGB4}[4]${C_RESET} ${TXT_AUDIO_MP3_160K}"
+        echo -e "${C_RGB4}[5]${C_RESET} ${TXT_AUDIO_MP3_320K}"
+        echo -ne "${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
+        read -r achoice
+        case "$achoice" in
+            1) echo "bestaudio[ext=m4a]/bestaudio[abr<=128]"; return 0 ;;
+            2) echo "bestaudio[ext=mp3][abr<=70]/bestaudio[abr<=70]"; return 0 ;;
+            3) echo "bestaudio[ext=mp3][abr<=128]/bestaudio[abr<=128]"; return 0 ;;
+            4) echo "bestaudio[ext=mp3][abr<=160]/bestaudio[abr<=160]"; return 0 ;;
+            5) echo "bestaudio[ext=mp3][abr<=320]/bestaudio[abr<=320]"; return 0 ;;
+            *) lm_toast "$TXT_ERROR_INVALID_CHOICE" ;;
+        esac
+    done
 }
 
 lm_download_common() {
@@ -370,48 +385,44 @@ lm_download_common() {
     local quality_format="" audio_format="" output_dir template format opts_str
     local -a opts=()
 
-    if [ "$mode" = "video_quality" ] && { [ "$platform" = "youtube" ] || [ "$platform" = "youtube_playlist" ] || [ "$platform" = "youtube_channel" ]; }; then
+    if [ "$mode" = "video_quality" ]; then
         quality_format="$(lm_select_video_quality)"
         mode="video"
-    fi
-
-    if [ "$mode" = "audio" ]; then
+    elif [ "$mode" = "audio_quality" ]; then
         audio_format="$(lm_select_audio_format)"
+        mode="audio"
     fi
 
     local speed_opt=$(lm_get_speed_limit_opt)
 
     case "${platform}:${mode}" in
         instagram:video) output_dir="$LM_DOWNLOAD_BASE/Instagram/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --concurrent-fragments 4); lm_toast "$TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO" ;;
-        instagram:audio) output_dir="$LM_DOWNLOAD_BASE/Instagram/Music"; template="$output_dir/%(title)s.%(ext)s"; format="$audio_format"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO" ;;
+        instagram:audio) output_dir="$LM_DOWNLOAD_BASE/Instagram/Music"; template="$output_dir/%(title)s.%(ext)s"; format="${audio_format:-bestaudio/best}"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO" ;;
         tiktok:video) output_dir="$LM_DOWNLOAD_BASE/TikTok/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO" ;;
-        tiktok:audio) output_dir="$LM_DOWNLOAD_BASE/TikTok/Music"; template="$output_dir/%(title)s.%(ext)s"; format="$audio_format"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO" ;;
+        tiktok:audio) output_dir="$LM_DOWNLOAD_BASE/TikTok/Music"; template="$output_dir/%(title)s.%(ext)s"; format="${audio_format:-bestaudio/best}"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO" ;;
         youtube:video)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Video"; template="$output_dir/%(title)s.%(ext)s"
             [[ -n "$quality_format" ]] && format="$quality_format" || format="bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
             opts=(--merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json)
             lm_toast "$TXT_DOWNLOAD_STARTED_YT_VIDEO" ;;
-        youtube:audio) output_dir="$LM_DOWNLOAD_BASE/YouTube/Music"; template="$output_dir/%(title)s.%(ext)s"; format="$audio_format"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_YT_AUDIO" ;;
+        youtube:audio) output_dir="$LM_DOWNLOAD_BASE/YouTube/Music"; template="$output_dir/%(title)s.%(ext)s"; format="${audio_format:-bestaudio/best}"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_YT_AUDIO" ;;
         youtube_playlist:video)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Video"; template="$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s"
             [[ -n "$quality_format" ]] && format="$quality_format" || format="bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
             opts=(--yes-playlist --merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json)
             lm_toast "$TXT_DOWNLOAD_STARTED_YTPL_VIDEO" ;;
-        youtube_playlist:audio) output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Music"; template="$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s"; format="$audio_format"; opts=(--yes-playlist --extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_YTPL_AUDIO" ;;
+        youtube_playlist:audio) output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Music"; template="$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s"; format="${audio_format:-bestaudio/best}"; opts=(--yes-playlist --extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_YTPL_AUDIO" ;;
         youtube_channel:video)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Channel/Video"; template="$output_dir/%(uploader)s - %(title)s.%(ext)s"
             [[ -n "$quality_format" ]] && format="$quality_format" || format="bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
             opts=(--merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json)
             lm_toast "$TXT_DOWNLOAD_STARTED_YT_CHANNEL_VIDEO" ;;
-        youtube_channel:audio) output_dir="$LM_DOWNLOAD_BASE/YouTube/Channel/Music"; template="$output_dir/%(uploader)s - %(title)s.%(ext)s"; format="$audio_format"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_YT_CHANNEL_AUDIO" ;;
+        youtube_channel:audio) output_dir="$LM_DOWNLOAD_BASE/YouTube/Channel/Music"; template="$output_dir/%(uploader)s - %(title)s.%(ext)s"; format="${audio_format:-bestaudio/best}"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_YT_CHANNEL_AUDIO" ;;
         twitter:video) output_dir="$LM_DOWNLOAD_BASE/Twitter/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_TWITTER_VIDEO" ;;
-        twitter:audio) output_dir="$LM_DOWNLOAD_BASE/Twitter/Music"; template="$output_dir/%(title)s.%(ext)s"; format="$audio_format"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_TWITTER_AUDIO" ;;
+        twitter:audio) output_dir="$LM_DOWNLOAD_BASE/Twitter/Music"; template="$output_dir/%(title)s.%(ext)s"; format="${audio_format:-bestaudio/best}"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_TWITTER_AUDIO" ;;
         facebook:video) output_dir="$LM_DOWNLOAD_BASE/Facebook/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_FACEBOOK_VIDEO" ;;
-        facebook:audio) output_dir="$LM_DOWNLOAD_BASE/Facebook/Music"; template="$output_dir/%(title)s.%(ext)s"; format="$audio_format"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_FACEBOOK_AUDIO" ;;
-        soundcloud:audio) output_dir="$LM_DOWNLOAD_BASE/SoundCloud/Music"; template="$output_dir/%(title)s.%(ext)s"; format="$audio_format"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_SOUNDCLOUD_AUDIO" ;;
-        pinterest:video) output_dir="$LM_DOWNLOAD_BASE/Pinterest/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_PINTEREST_VIDEO" ;;
-        reddit:video) output_dir="$LM_DOWNLOAD_BASE/Reddit/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_REDDIT_VIDEO" ;;
-        vimeo:video) output_dir="$LM_DOWNLOAD_BASE/Vimeo/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_VIMEO_VIDEO" ;;
+        facebook:audio) output_dir="$LM_DOWNLOAD_BASE/Facebook/Music"; template="$output_dir/%(title)s.%(ext)s"; format="${audio_format:-bestaudio/best}"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_FACEBOOK_AUDIO" ;;
+        soundcloud:audio) output_dir="$LM_DOWNLOAD_BASE/SoundCloud/Music"; template="$output_dir/%(title)s.%(ext)s"; format="${audio_format:-bestaudio/best}"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_SOUNDCLOUD_AUDIO" ;;
         *) echo -e "${C_RGB1}[LM]${C_RESET} $TXT_PLATFORM_UNKNOWN"; echo -e "${C_RGB4}$TXT_SUPPORTED_PLATFORMS${C_RESET}"; return 1 ;;
     esac
 
@@ -425,10 +436,8 @@ lm_download_common() {
     local ret=$?
     if [ "$ret" -eq 0 ]; then
         echo -e "\n${C_RGB2}[LM]${C_RESET} $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
-        echo "$(date '+%Y-%m-%d %H:%M:%S') | SUCCESS | $platform | $mode | $url" >> "$LM_DIR/history.log"
     else
         echo -e "\n${C_RGB1}[LM]${C_RESET} $TXT_DOWNLOAD_FAILED\n"
-        echo "$(date '+%Y-%m-%d %H:%M:%S') | FAILED | $platform | $mode | $url" >> "$LM_DIR/history.log"
     fi
     return "$ret"
 }
@@ -443,17 +452,19 @@ lm_download_for_platform() {
 lm_download_tiktok_slideshow() {
     local url="$1" output_base="${2:-$LM_DOWNLOAD_BASE/TikTok}"
     local choice
-    echo -e "\n${C_RGB3}${TXT_SLIDESHOW_TITLE}${C_RESET}"
-    echo -e "${C_RGB4}[1]${C_RESET} ${TXT_SLIDESHOW_OPT_1}"
-    echo -e "${C_RGB4}[2]${C_RESET} ${TXT_SLIDESHOW_OPT_2}"
-    echo -e "${C_RGB4}[3]${C_RESET} ${TXT_SLIDESHOW_OPT_3}"
-    echo -e "${C_RGB4}[4]${C_RESET} ${TXT_SLIDESHOW_OPT_4}"
-    echo -ne "${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
-    read -r choice
-    case "$choice" in
-        1|2|3|4) ;;
-        *) choice="3" ;;
-    esac
+    while true; do
+        echo -e "\n${C_RGB3}${TXT_SLIDESHOW_TITLE}${C_RESET}"
+        echo -e "${C_RGB4}[1]${C_RESET} ${TXT_SLIDESHOW_OPT_1}"
+        echo -e "${C_RGB4}[2]${C_RESET} ${TXT_SLIDESHOW_OPT_2}"
+        echo -e "${C_RGB4}[3]${C_RESET} ${TXT_SLIDESHOW_OPT_3}"
+        echo -e "${C_RGB4}[4]${C_RESET} ${TXT_SLIDESHOW_OPT_4}"
+        echo -ne "${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
+        read -r choice
+        case "$choice" in
+            1|2|3|4) break ;;
+            *) lm_toast "$TXT_ERROR_INVALID_CHOICE" ;;
+        esac
+    done
     lm_toast "Yükləmə başlayır..."
     python "$LM_DIR/ttpdl.py" "$url" "$choice" "$output_base"
     echo -e "\n${C_RGB2}$TXT_PROMPT_CONTINUE...${C_RESET}"
@@ -472,15 +483,17 @@ lm_download_with_prompt() {
                 return
             else
                 lm_toast "$TXT_AUTO_PLATFORM_TIKTOK"
-                echo -e "${C_RGB4}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
-                echo -e "${C_RGB4}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD"
-                echo -ne "\n${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
-                read -r tiktok_choice
-                case "$tiktok_choice" in
-                    1) lm_download_for_platform "$platform" "$url" "video" ;;
-                    2) lm_download_for_platform "$platform" "$url" "audio" ;;
-                    *) echo -e "${C_RGB1}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
-                esac
+                while true; do
+                    echo -e "${C_RGB4}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
+                    echo -e "${C_RGB4}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD"
+                    echo -ne "\n${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
+                    read -r tiktok_choice
+                    case "$tiktok_choice" in
+                        1) lm_download_for_platform "$platform" "$url" "video"; return ;;
+                        2) lm_download_for_platform "$platform" "$url" "audio"; return ;;
+                        *) lm_toast "$TXT_ERROR_INVALID_CHOICE" ;;
+                    esac
+                done
             fi
             return ;;
         youtube) lm_toast "$TXT_AUTO_PLATFORM_YT_SINGLE" ;;
@@ -489,173 +502,102 @@ lm_download_with_prompt() {
         twitter) lm_toast "$TXT_AUTO_PLATFORM_TWITTER" ;;
         facebook) lm_toast "$TXT_AUTO_PLATFORM_FACEBOOK" ;;
         soundcloud) lm_toast "$TXT_AUTO_PLATFORM_SOUNDCLOUD" ;;
-        pinterest) lm_toast "$TXT_AUTO_PLATFORM_PINTEREST" ;;
-        reddit) lm_toast "$TXT_AUTO_PLATFORM_REDDIT" ;;
-        vimeo) lm_toast "$TXT_AUTO_PLATFORM_VIMEO" ;;
         *) echo -e "${C_RGB1}[LM]${C_RESET} $TXT_PLATFORM_UNKNOWN"; echo -e "${C_RGB4}$TXT_SUPPORTED_PLATFORMS${C_RESET}"; return 1 ;;
     esac
 
-    if [ "$platform" = "youtube_playlist" ]; then
-        echo -e "${C_RGB4}[1]${C_RESET} $TXT_OPTION_PLAYLIST_VIDEO"
-        echo -e "${C_RGB4}[2]${C_RESET} $TXT_OPTION_PLAYLIST_AUDIO"
-        echo -e "${C_RGB4}[3]${C_RESET} $TXT_OPTION_QUALITY_PLAYLIST"
-    elif [ "$platform" = "youtube" ]; then
-        echo -e "${C_RGB4}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
-        echo -e "${C_RGB4}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD"
-        echo -e "${C_RGB4}[3]${C_RESET} $TXT_OPTION_QUALITY_VIDEO"
-    elif [ "$platform" = "youtube_channel" ]; then
-        echo -e "${C_RGB4}[1]${C_RESET} $TXT_OPTION_CHANNEL_VIDEO"
-        echo -e "${C_RGB4}[2]${C_RESET} $TXT_OPTION_CHANNEL_AUDIO"
-        echo -e "${C_RGB4}[3]${C_RESET} $TXT_OPTION_QUALITY_CHANNEL"
-    elif [ "$platform" = "soundcloud" ] || [ "$platform" = "pinterest" ] || [ "$platform" = "reddit" ] || [ "$platform" = "vimeo" ]; then
-        echo -e "${C_RGB4}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
-        if [ "$platform" != "pinterest" ] && [ "$platform" != "reddit" ] && [ "$platform" != "vimeo" ]; then
+    while true; do
+        if [ "$platform" = "youtube_playlist" ]; then
+            echo -e "${C_RGB4}[1]${C_RESET} $TXT_OPTION_PLAYLIST_VIDEO"
+            echo -e "${C_RGB4}[2]${C_RESET} $TXT_OPTION_PLAYLIST_AUDIO"
+            echo -e "${C_RGB4}[3]${C_RESET} ${TXT_OPTION_QUALITY_SELECT}"
+        elif [ "$platform" = "youtube" ]; then
+            echo -e "${C_RGB4}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
+            echo -e "${C_RGB4}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD"
+            echo -e "${C_RGB4}[3]${C_RESET} ${TXT_OPTION_QUALITY_SELECT}"
+        elif [ "$platform" = "youtube_channel" ]; then
+            echo -e "${C_RGB4}[1]${C_RESET} $TXT_OPTION_CHANNEL_VIDEO"
+            echo -e "${C_RGB4}[2]${C_RESET} $TXT_OPTION_CHANNEL_AUDIO"
+            echo -e "${C_RGB4}[3]${C_RESET} ${TXT_OPTION_QUALITY_SELECT}"
+        elif [ "$platform" = "soundcloud" ]; then
+            echo -e "${C_RGB4}[1]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD"
+        else
+            echo -e "${C_RGB4}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
             echo -e "${C_RGB4}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD"
         fi
-    else
-        echo -e "${C_RGB4}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
-        echo -e "${C_RGB4}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD"
-    fi
-    echo -ne "\n${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
-    read -r choice
-    case "$choice" in
-        1) if [ "$platform" = "soundcloud" ] || [ "$platform" = "pinterest" ] || [ "$platform" = "reddit" ] || [ "$platform" = "vimeo" ]; then lm_download_for_platform "$platform" "$url" "video"; else lm_download_for_platform "$platform" "$url" "video"; fi ;;
-        2) if [ "$platform" != "pinterest" ] && [ "$platform" != "reddit" ] && [ "$platform" != "vimeo" ]; then lm_download_for_platform "$platform" "$url" "audio"; else echo -e "${C_RGB1}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; fi ;;
-        3) if [ "$platform" = "youtube" ] || [ "$platform" = "youtube_playlist" ] || [ "$platform" = "youtube_channel" ]; then lm_download_common "$platform" "video_quality" "$url"; else echo -e "${C_RGB1}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; fi ;;
-        *) echo -e "${C_RGB1}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
-    esac
+        echo -ne "\n${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
+        read -r choice
+        case "$choice" in
+            1)
+                if [ "$platform" = "soundcloud" ]; then
+                    lm_download_for_platform "$platform" "$url" "audio"
+                else
+                    lm_download_for_platform "$platform" "$url" "video"
+                fi
+                return ;;
+            2)
+                if [ "$platform" = "soundcloud" ]; then
+                    lm_toast "$TXT_ERROR_INVALID_CHOICE"
+                else
+                    lm_download_for_platform "$platform" "$url" "audio"
+                fi
+                return ;;
+            3)
+                if [ "$platform" = "youtube" ] || [ "$platform" = "youtube_playlist" ] || [ "$platform" = "youtube_channel" ]; then
+                    while true; do
+                        echo -e "\n${C_RGB3}${TXT_QUALITY_TYPE_SELECT}${C_RESET}"
+                        echo -e "${C_RGB4}[1]${C_RESET} $TXT_OPTION_VIDEO_DOWNLOAD"
+                        echo -e "${C_RGB4}[2]${C_RESET} $TXT_OPTION_AUDIO_DOWNLOAD"
+                        echo -ne "${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
+                        read -r qtype
+                        case "$qtype" in
+                            1) lm_download_common "$platform" "video_quality" "$url"; return ;;
+                            2) lm_download_common "$platform" "audio_quality" "$url"; return ;;
+                            *) lm_toast "$TXT_ERROR_INVALID_CHOICE" ;;
+                        esac
+                    done
+                else
+                    lm_toast "$TXT_ERROR_INVALID_CHOICE"
+                fi
+                return ;;
+            *) lm_toast "$TXT_ERROR_INVALID_CHOICE" ;;
+        esac
+    done
 }
 
-lm_queue_add_job() {
-    local url="$1" platform="$2" mode="$3"
-    echo "$url|$platform|$mode" >> "$LM_QUEUE_FILE"
-}
-
-lm_queue_list_active() {
-    if [ ! -f "$LM_QUEUE_FILE" ] || [ ! -s "$LM_QUEUE_FILE" ]; then
+lm_active_sessions() {
+    local pids
+    pids=$(pgrep -f "lm .*https?://" 2>/dev/null)
+    if [ -z "$pids" ]; then
         echo -e "${C_RGB4}[LM]${C_RESET} ${TXT_QUEUE_EMPTY}"
         return 1
     fi
     echo -e "\n${C_RGB3}─── ${TXT_QUEUE_TITLE} ───${C_RESET}\n"
-    local idx=1
-    while IFS='|' read -r url platform mode; do
-        [[ -z "$url" ]] && continue
-        printf "${C_RGB4}[%2d]${C_RESET} ${C_RGB5}%s${C_RESET} | ${C_RGB2}%s${C_RESET} | ${C_DIM}%s${C_RESET}\n" "$idx" "$platform" "$mode" "$url"
-        idx=$((idx + 1))
-    done < "$LM_QUEUE_FILE"
+    printf "${C_RGB4}%-8s %-12s %-20s %s${C_RESET}\n" "PID" "Platform" "Status" "URL"
+    echo "----------------------------------------------------------------"
+    for pid in $pids; do
+        local cmdline
+        cmdline=$(ps -p "$pid" -o args= 2>/dev/null)
+        local url=$(echo "$cmdline" | grep -oE 'https?://[^ ]+' | head -1)
+        local platform=$(lm_detect_platform "$url")
+        local status="Yüklənir"
+        echo -e "${C_RGB2}%-8s ${C_RGB5}%-12s ${C_RGB3}%-20s ${C_DIM}%s${C_RESET}" "$pid" "$platform" "$status" "$url"
+    done
     echo
 }
 
-lm_queue_clear_all() {
-    rm -f "$LM_QUEUE_FILE"
-    lm_toast "${TXT_QUEUE_CLEARED}"
-}
-
-lm_queue_process_all() {
-    if [ ! -f "$LM_QUEUE_FILE" ] || [ ! -s "$LM_QUEUE_FILE" ]; then
-        echo -e "${C_RGB4}[LM]${C_RESET} ${TXT_QUEUE_EMPTY}"
-        return 1
-    fi
-    local -a jobs=()
-    while IFS='|' read -r url platform mode; do
-        [[ -n "$url" ]] && jobs+=("$url|$platform|$mode")
-    done < "$LM_QUEUE_FILE"
-    local total=${#jobs[@]}
-    echo -e "\n${C_RGB2}[LM]${C_RESET} ${TXT_QUEUE_PROCESSING}: $total ${TXT_QUEUE_ITEMS} (${TXT_QUEUE_PARALLEL}: $LM_MAX_PARALLEL)\n"
-    local i=0
-    while [ $i -lt $total ]; do
-        local active=0
-        for pid in "${!LM_ACTIVE_JOBS[@]}"; do
-            if kill -0 "$pid" 2>/dev/null; then
-                active=$((active + 1))
-            else
-                unset "LM_ACTIVE_JOBS[$pid]"
-                unset "LM_JOB_PID_TO_URL[$pid]"
-                unset "LM_JOB_PID_PLATFORM[$pid]"
-                unset "LM_JOB_PID_MODE[$pid]"
-            fi
-        done
-        while [ $active -lt $LM_MAX_PARALLEL ] && [ $i -lt $total ]; do
-            IFS='|' read -r url platform mode <<< "${jobs[$i]}"
-            (
-                lm_download_for_platform "$platform" "$url" "$mode"
-            ) &
-            local job_pid=$!
-            LM_ACTIVE_JOBS[$job_pid]=1
-            LM_JOB_PID_TO_URL[$job_pid]=$url
-            LM_JOB_PID_PLATFORM[$job_pid]=$platform
-            LM_JOB_PID_MODE[$job_pid]=$mode
-            echo -e "${C_RGB4}[$((i+1))/$total]${C_RESET} ${C_RGB2}Başladı${C_RESET}: $platform - $mode"
-            i=$((i + 1))
-            active=$((active + 1))
-        done
-        sleep 0.3
-    done
-    for pid in "${!LM_ACTIVE_JOBS[@]}"; do
-        wait "$pid" 2>/dev/null
-        unset "LM_ACTIVE_JOBS[$pid]"
-    done
-    rm -f "$LM_QUEUE_FILE"
-    echo -e "\n${C_RGB2}[LM]${C_RESET} ${TXT_QUEUE_DONE}\n"
-}
-
-lm_queue_menu() {
+lm_active_menu() {
     while true; do
         lm_banner
         echo -e "${C_RGB3}╔══════════════════════════════════════════════╗"
-        echo -e "║           ${TXT_QUEUE_MENU_TITLE}           ║"
+        echo -e "║           ${TXT_ACTIVE_MENU_TITLE}           ║"
         echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
-        lm_queue_list_active
-        echo -e "${C_RGB4}[1]${C_RESET} ${TXT_QUEUE_ADD_LINK}"
-        echo -e "${C_RGB4}[2]${C_RESET} ${TXT_QUEUE_START}"
-        echo -e "${C_RGB4}[3]${C_RESET} ${TXT_QUEUE_CLEAR_MENU}"
-        echo -e "${C_RGB4}[4]${C_RESET} ${TXT_QUEUE_REMOVE_ITEM}"
+        lm_active_sessions
         echo -e "${C_RGB1}[0]${C_RESET} $TXT_MENU_OPTION_BACK\n"
         echo -ne "${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
-        read -r qchoice
-        case "$qchoice" in
-            1)
-                echo -ne "${C_RGB2}${TXT_PROMPT_LINK}:${C_RESET} "; read -r qurl
-                if [[ -n "$qurl" ]]; then
-                    local plat=$(lm_detect_platform "$qurl")
-                    if [ "$plat" = "unknown" ]; then
-                        echo -e "${C_RGB1}[LM]${C_RESET} $TXT_PLATFORM_UNKNOWN"
-                        sleep 1
-                        continue
-                    fi
-                    local mode="video"
-                    if [ "$plat" = "soundcloud" ]; then mode="audio"; fi
-                    if [ "$plat" = "youtube_playlist" ] || [ "$plat" = "youtube_channel" ]; then mode="video"; fi
-                    lm_queue_add_job "$qurl" "$plat" "$mode"
-                    lm_toast "${TXT_QUEUE_ADDED}"
-                fi
-                ;;
-            2) lm_queue_process_all; echo -e "\n${C_RGB2}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r ;;
-            3) lm_queue_clear_all; sleep 0.5 ;;
-            4)
-                echo -ne "${C_RGB2}${TXT_QUEUE_REMOVE_NUM}:${C_RESET} "; read -r qnum
-                if [[ "$qnum" =~ ^[0-9]+$ ]]; then
-                    local tmp_file="$LM_DIR/queue.tmp"
-                    local idx=1 found=0
-                    : > "$tmp_file"
-                    while IFS='|' read -r url platform mode; do
-                        [[ -z "$url" ]] && continue
-                        if [ "$idx" -eq "$qnum" ]; then found=1; else echo "$url|$platform|$mode" >> "$tmp_file"; fi
-                        idx=$((idx + 1))
-                    done < "$LM_QUEUE_FILE"
-                    if [ "$found" -eq 1 ]; then
-                        mv "$tmp_file" "$LM_QUEUE_FILE"
-                        lm_toast "${TXT_QUEUE_REMOVED}"
-                    else
-                        rm -f "$tmp_file"
-                        echo -e "${C_RGB1}[LM]${C_RESET} ${TXT_QUEUE_INVALID_NUM}"
-                    fi
-                else
-                    echo -e "${C_RGB1}[LM]${C_RESET} ${TXT_QUEUE_INVALID_NUM}"
-                fi
-                sleep 1 ;;
+        read -r achoice
+        case "$achoice" in
             0) break ;;
-            *) echo -e "${C_RGB1}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 1 ;;
+            *) lm_toast "$TXT_ERROR_INVALID_CHOICE" ;;
         esac
     done
 }
@@ -668,13 +610,17 @@ lm_search_menu() {
         echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
         echo -ne "${C_RGB2}$TXT_SEARCH_PROMPT:${C_RESET} "
         read -r query
-        [[ -z "$query" ]] && { echo -e "\n${C_RGB1}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 1; continue; }
+        if [[ -z "$query" ]]; then
+            lm_toast "$TXT_ERROR_INVALID_CHOICE"
+            continue
+        fi
         lm_toast "$TXT_SEARCHING"
         local search_output
         search_output=$(python "$LM_DIR/sh.py" "$query" 2>/dev/null)
         if [[ "$search_output" == "NƏTİCƏ_YOXDUR" ]]; then
             echo -e "\n${C_RGB1}[LM]${C_RESET} $TXT_SEARCH_NO_RESULTS"
-            echo -ne "\n${C_RGB2}$TXT_SEARCH_AGAIN${C_RESET} "; read -r again
+            echo -ne "\n${C_RGB2}$TXT_SEARCH_AGAIN${C_RESET} "
+            read -r again
             case "$again" in h|H|y|Y|e|E|yes|YES|Yes) continue ;; *) break ;; esac
         fi
         local link
@@ -687,7 +633,8 @@ lm_search_menu() {
             local plat
             plat=$(lm_detect_platform "$link")
             lm_download_with_prompt "$plat" "$link"
-            echo -ne "\n${C_RGB2}$TXT_SEARCH_AGAIN${C_RESET} "; read -r again
+            echo -ne "\n${C_RGB2}$TXT_SEARCH_AGAIN${C_RESET} "
+            read -r again
             case "$again" in h|H|y|Y|e|E|yes|YES|Yes) continue ;; *) break ;; esac
         else
             echo -e "${C_RGB1}[LM]${C_RESET} Axtarışda xəta baş verdi."
@@ -712,36 +659,41 @@ lm_settings_menu() {
         case "$settings_choice" in
             1) lm_choose_language ;;
             2)
-                echo -ne "${C_RGB2}${TXT_SETTINGS_PARALLEL_NUM}:${C_RESET} "
-                read -r new_parallel
-                if [[ "$new_parallel" =~ ^[0-9]+$ ]] && [ "$new_parallel" -ge 1 ] && [ "$new_parallel" -le 12 ]; then
-                    LM_MAX_PARALLEL=$new_parallel
-                    lm_save_config
-                    lm_toast "${TXT_SETTINGS_SAVED}: $LM_MAX_PARALLEL"
-                else
-                    echo -e "${C_RGB1}[LM]${C_RESET} ${TXT_ERROR_INVALID_CHOICE}"
-                fi
+                while true; do
+                    echo -ne "${C_RGB2}${TXT_SETTINGS_PARALLEL_NUM}:${C_RESET} "
+                    read -r new_parallel
+                    if [[ "$new_parallel" =~ ^[0-9]+$ ]] && [ "$new_parallel" -ge 1 ] && [ "$new_parallel" -le 12 ]; then
+                        LM_MAX_PARALLEL=$new_parallel
+                        lm_save_config
+                        lm_toast "${TXT_SETTINGS_SAVED}: $LM_MAX_PARALLEL"
+                        break
+                    else
+                        lm_toast "$TXT_ERROR_INVALID_CHOICE"
+                    fi
+                done
                 sleep 1 ;;
             3)
-                echo -e "\n${C_RGB3}${TXT_SETTINGS_SPEED_LIMIT_SELECT}${C_RESET}"
-                echo -e "${C_RGB4}[1]${C_RESET} 1M   ${C_RGB4}[2]${C_RESET} 2M   ${C_RGB4}[3]${C_RESET} 3M   ${C_RGB4}[4]${C_RESET} 4M"
-                echo -e "${C_RGB4}[5]${C_RESET} 5M   ${C_RGB4}[6]${C_RESET} 10M  ${C_RGB4}[7]${C_RESET} 20M  ${C_RGB4}[8]${C_RESET} 50M"
-                echo -e "${C_RGB4}[9]${C_RESET} 100M ${C_RGB4}[10]${C_RESET} ${TXT_SETTINGS_SPEED_UNLIMITED}"
-                echo -ne "${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
-                read -r speed_choice
-                case "$speed_choice" in
-                    1) LM_SPEED_LIMIT="1M" ;;
-                    2) LM_SPEED_LIMIT="2M" ;;
-                    3) LM_SPEED_LIMIT="3M" ;;
-                    4) LM_SPEED_LIMIT="4M" ;;
-                    5) LM_SPEED_LIMIT="5M" ;;
-                    6) LM_SPEED_LIMIT="10M" ;;
-                    7) LM_SPEED_LIMIT="20M" ;;
-                    8) LM_SPEED_LIMIT="50M" ;;
-                    9) LM_SPEED_LIMIT="100M" ;;
-                    10) LM_SPEED_LIMIT="unlimited" ;;
-                    *) LM_SPEED_LIMIT="unlimited" ;;
-                esac
+                while true; do
+                    echo -e "\n${C_RGB3}${TXT_SETTINGS_SPEED_LIMIT_SELECT}${C_RESET}"
+                    echo -e "${C_RGB4}[1]${C_RESET} 1M   ${C_RGB4}[2]${C_RESET} 2M   ${C_RGB4}[3]${C_RESET} 3M   ${C_RGB4}[4]${C_RESET} 4M"
+                    echo -e "${C_RGB4}[5]${C_RESET} 5M   ${C_RGB4}[6]${C_RESET} 10M  ${C_RGB4}[7]${C_RESET} 20M  ${C_RGB4}[8]${C_RESET} 50M"
+                    echo -e "${C_RGB4}[9]${C_RESET} 100M ${C_RGB4}[10]${C_RESET} ${TXT_SETTINGS_SPEED_UNLIMITED}"
+                    echo -ne "${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
+                    read -r speed_choice
+                    case "$speed_choice" in
+                        1) LM_SPEED_LIMIT="1M"; break ;;
+                        2) LM_SPEED_LIMIT="2M"; break ;;
+                        3) LM_SPEED_LIMIT="3M"; break ;;
+                        4) LM_SPEED_LIMIT="4M"; break ;;
+                        5) LM_SPEED_LIMIT="5M"; break ;;
+                        6) LM_SPEED_LIMIT="10M"; break ;;
+                        7) LM_SPEED_LIMIT="20M"; break ;;
+                        8) LM_SPEED_LIMIT="50M"; break ;;
+                        9) LM_SPEED_LIMIT="100M"; break ;;
+                        10) LM_SPEED_LIMIT="unlimited"; break ;;
+                        *) lm_toast "$TXT_ERROR_INVALID_CHOICE" ;;
+                    esac
+                done
                 lm_save_config
                 lm_toast "${TXT_SETTINGS_SAVED}: $LM_SPEED_LIMIT"
                 sleep 1 ;;
@@ -756,7 +708,7 @@ lm_settings_menu() {
                 fi
                 sleep 1 ;;
             0) break ;;
-            *) echo -e "${C_RGB1}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 1 ;;
+            *) lm_toast "$TXT_ERROR_INVALID_CHOICE"; sleep 1 ;;
         esac
     done
 }
@@ -777,8 +729,11 @@ lm_admin_menu() {
                 lm_check_update
                 case $? in
                     0) echo -e "\n${C_RGB2}[LM]${C_RESET} $TXT_UPDATE_AVAILABLE ($LM_REMOTE_VERSION)"
-                       echo -ne "${C_RGB2}$TXT_UPDATE_PROMPT${C_RESET} "; read -r up_confirm
-                       case "$up_confirm" in h|H|y|Y|e|E|yes|YES|Yes) lm_do_update ;; *) echo -e "${C_RGB4}[LM]${C_RESET} $TXT_MENU_OPTION_BACK" ;; esac ;;
+                       while true; do
+                           echo -ne "${C_RGB2}$TXT_UPDATE_PROMPT${C_RESET} "
+                           read -r up_confirm
+                           case "$up_confirm" in h|H|y|Y|e|E|yes|YES|Yes) lm_do_update; break ;; n|N|no|NO|No) break ;; *) lm_toast "$TXT_ERROR_INVALID_CHOICE" ;; esac
+                       done ;;
                     2) echo -e "\n${C_RGB2}[LM]${C_RESET} $TXT_ALREADY_LATEST" ;;
                     *) echo -e "\n${C_RGB1}[LM]${C_RESET} $TXT_UPDATE_FAILED" ;;
                 esac
@@ -790,7 +745,7 @@ lm_admin_menu() {
                 lm_toast "$TXT_CACHE_CLEARED"
                 echo -e "\n${C_RGB2}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r ;;
             0) break ;;
-            *) echo -e "${C_RGB1}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 1 ;;
+            *) lm_toast "$TXT_ERROR_INVALID_CHOICE"; sleep 1 ;;
         esac
     done
 }
@@ -807,9 +762,6 @@ lm_manual_menu() {
         echo -e "${C_RGB4}[4]${C_RESET} Twitter/X"
         echo -e "${C_RGB4}[5]${C_RESET} Facebook"
         echo -e "${C_RGB4}[6]${C_RESET} SoundCloud"
-        echo -e "${C_RGB4}[7]${C_RESET} Pinterest"
-        echo -e "${C_RGB4}[8]${C_RESET} Reddit"
-        echo -e "${C_RGB4}[9]${C_RESET} Vimeo"
         echo -e "${C_RGB1}[0]${C_RESET} $TXT_MENU_OPTION_BACK\n"
         echo -ne "${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
         read -r platform_choice
@@ -829,17 +781,14 @@ lm_manual_menu() {
                         2) echo -ne "\n${C_RGB2}$TXT_PROMPT_YT_PLAYLIST_LINK:${C_RESET} "; read -r yt_pl_url; lm_download_with_prompt youtube_playlist "$yt_pl_url"; echo -e "\n${C_RGB2}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r; break ;;
                         3) echo -ne "\n${C_RGB2}$TXT_PROMPT_YT_CHANNEL_LINK:${C_RESET} "; read -r yt_ch_url; lm_download_with_prompt youtube_channel "$yt_ch_url"; echo -e "\n${C_RGB2}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r; break ;;
                         0) break ;;
-                        *) echo -e "${C_RGB1}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE" ;;
+                        *) lm_toast "$TXT_ERROR_INVALID_CHOICE" ;;
                     esac
                 done ;;
             4) echo -ne "\n${C_RGB2}$TXT_PROMPT_TWITTER_LINK:${C_RESET} "; read -r tw_url; lm_download_with_prompt twitter "$tw_url"; echo -e "\n${C_RGB2}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r ;;
             5) echo -ne "\n${C_RGB2}$TXT_PROMPT_FACEBOOK_LINK:${C_RESET} "; read -r fb_url; lm_download_with_prompt facebook "$fb_url"; echo -e "\n${C_RGB2}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r ;;
             6) echo -ne "\n${C_RGB2}$TXT_PROMPT_SOUNDCLOUD_LINK:${C_RESET} "; read -r sc_url; lm_download_with_prompt soundcloud "$sc_url"; echo -e "\n${C_RGB2}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r ;;
-            7) echo -ne "\n${C_RGB2}$TXT_PROMPT_PINTEREST_LINK:${C_RESET} "; read -r pi_url; lm_download_with_prompt pinterest "$pi_url"; echo -e "\n${C_RGB2}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r ;;
-            8) echo -ne "\n${C_RGB2}$TXT_PROMPT_REDDIT_LINK:${C_RESET} "; read -r rd_url; lm_download_with_prompt reddit "$rd_url"; echo -e "\n${C_RGB2}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r ;;
-            9) echo -ne "\n${C_RGB2}$TXT_PROMPT_VIMEO_LINK:${C_RESET} "; read -r vm_url; lm_download_with_prompt vimeo "$vm_url"; echo -e "\n${C_RGB2}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r ;;
             0) break ;;
-            *) echo -e "${C_RGB1}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 1 ;;
+            *) lm_toast "$TXT_ERROR_INVALID_CHOICE"; sleep 1 ;;
         esac
     done
 }
@@ -854,8 +803,11 @@ lm_auto_download() {
         local clip_url
         if clip_url="$(lm_get_clipboard_url)"; then
             echo -e "${C_RGB2}[LM]${C_RESET} $TXT_CLIPBOARD_FOUND: $clip_url"
-            echo -ne "${C_RGB2}$TXT_USE_CLIPBOARD${C_RESET} "; read -r use_clip
-            case "$use_clip" in h|H|y|Y|e|E|yes|YES|Yes) url="$clip_url" ;; *) echo -ne "${C_RGB2}$TXT_PROMPT_LINK:${C_RESET} "; read -r url ;; esac
+            while true; do
+                echo -ne "${C_RGB2}$TXT_USE_CLIPBOARD${C_RESET} "
+                read -r use_clip
+                case "$use_clip" in h|H|y|Y|e|E|yes|YES|Yes) url="$clip_url"; break ;; n|N|no|NO|No) echo -ne "${C_RGB2}$TXT_PROMPT_LINK:${C_RESET} "; read -r url; break ;; *) lm_toast "$TXT_ERROR_INVALID_CHOICE" ;; esac
+            done
         else
             echo -ne "${C_RGB2}$TXT_PROMPT_LINK:${C_RESET} "; read -r url
         fi
@@ -875,7 +827,7 @@ lm_main_menu() {
         echo -e "${C_RGB4}[3]${C_RESET} $TXT_MENU_OPTION_SETTINGS"
         echo -e "${C_RGB4}[4]${C_RESET} $TXT_MENU_OPTION_ADMIN"
         echo -e "${C_RGB4}[5]${C_RESET} $TXT_MENU_OPTION_SEARCH"
-        echo -e "${C_RGB4}[6]${C_RESET} ${TXT_QUEUE_MENU_TITLE}"
+        echo -e "${C_RGB4}[6]${C_RESET} ${TXT_ACTIVE_MENU_TITLE}"
         echo -e "${C_RGB1}[0]${C_RESET} $TXT_MENU_OPTION_EXIT\n"
         echo -ne "${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
         read -r main_choice
@@ -885,9 +837,9 @@ lm_main_menu() {
             3) lm_settings_menu ;;
             4) lm_admin_menu ;;
             5) lm_search_menu ;;
-            6) lm_queue_menu ;;
+            6) lm_active_menu ;;
             0) lm_banner; echo -e "${C_RGB2}[LM]${C_RESET} $TXT_EXIT_MESSAGE\n"; exit 0 ;;
-            *) echo -e "${C_RGB1}[LM]${C_RESET} $TXT_ERROR_INVALID_CHOICE"; sleep 1 ;;
+            *) lm_toast "$TXT_ERROR_INVALID_CHOICE"; sleep 1 ;;
         esac
     done
 }
@@ -918,7 +870,11 @@ lm_install() {
     lm_choose_language
     cp "$SOURCE_PATH" "$LM_BIN"
     chmod +x "$LM_BIN"
-    if [ -f "$LM_LANG_SOURCE" ]; then cp "$LM_LANG_SOURCE" "$LM_DIR/lm_lang.sh"; fi
+    if [ -f "$LM_LANG_SOURCE" ]; then
+        cp "$LM_LANG_SOURCE" "$LM_DIR/lm-lang.sh"
+    else
+        curl -fsSL --connect-timeout 5 "$LM_LANG_RAW" -o "$LM_DIR/lm-lang.sh"
+    fi
     lm_save_config
     lm_banner
     echo -e "${C_RGB2}╔══════════════════════════════════════╗${C_RESET}"
@@ -937,11 +893,14 @@ lm_main() {
     fi
     if [ $# -eq 0 ]; then
         lm_startup_animation_fast
-        if lm_check_update; then
+        lm_check_update
+        if [ $? -eq 0 ]; then
             echo -e "\n${C_RGB2}[LM]${C_RESET} $TXT_UPDATE_AVAILABLE ($LM_REMOTE_VERSION)"
-            echo -ne "${C_RGB2}$TXT_UPDATE_PROMPT${C_RESET} "
-            read -r up_confirm
-            case "$up_confirm" in h|H|y|Y|e|E|yes|YES|Yes) lm_do_update ;; esac
+            while true; do
+                echo -ne "${C_RGB2}$TXT_UPDATE_PROMPT${C_RESET} "
+                read -r up_confirm
+                case "$up_confirm" in h|H|y|Y|e|E|yes|YES|Yes) lm_do_update; break ;; n|N|no|NO|No) break ;; *) lm_toast "$TXT_ERROR_INVALID_CHOICE" ;; esac
+            done
         fi
         lm_main_menu
     else
