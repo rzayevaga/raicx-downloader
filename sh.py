@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-import sys, subprocess, json
+import sys
+import subprocess
+import json
+import time
 
-def search(query):
+def search_fast(query, max_results=20):
     try:
         result = subprocess.check_output(
-            ['yt-dlp', '-j', '--flat-playlist', f'ytsearch10:{query}'],
-            stderr=subprocess.DEVNULL
+            ['yt-dlp', '-j', '--flat-playlist', f'ytsearch{max_results}:{query}'],
+            stderr=subprocess.DEVNULL,
+            timeout=10
         )
         lines = result.strip().splitlines()
         videos = []
@@ -13,28 +17,36 @@ def search(query):
             info = json.loads(line)
             videos.append({
                 'id': info.get('id'),
-                'title': info.get('title', ''),
+                'title': info.get('title', '')[:80],
                 'duration': info.get('duration', 0)
             })
         return videos
-    except Exception as e:
-        print(f"[Xəta] {e}", file=sys.stderr)
+    except subprocess.TimeoutExpired:
+        return []
+    except Exception:
         return []
 
 def main():
     if len(sys.argv) < 2:
-        print("İstifadə: python search_helper.py <axtarış sözü>")
+        print("NƏTİCƏ_YOXDUR")
         sys.exit(1)
+    
     query = ' '.join(sys.argv[1:])
-    videos = search(query)
+    start = time.time()
+    videos = search_fast(query, 20)
+    
     if not videos:
         print("NƏTİCƏ_YOXDUR")
         sys.exit(1)
+    
     for i, v in enumerate(videos, 1):
-        print(f"{i}::{v['title']}")
+        dur = v['duration']
+        dur_str = f"{dur//60}:{dur%60:02d}" if dur else "?"
+        print(f"{i}::[{dur_str}] {v['title']}")
+    
     print("SEÇİM")
     try:
-        choice = input("Nəticə nömrəsini seçin (1-10): ").strip()
+        choice = input("Nəticə nömrəsini seçin (1-20): ").strip()
         if choice.isdigit():
             idx = int(choice) - 1
             if 0 <= idx < len(videos):
