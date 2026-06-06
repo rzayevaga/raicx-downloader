@@ -9,7 +9,7 @@ def search_fast(query, max_results=20):
         result = subprocess.check_output(
             ['yt-dlp', '-j', '--flat-playlist', f'ytsearch{max_results}:{query}'],
             stderr=subprocess.DEVNULL,
-            timeout=10
+            timeout=15
         )
         lines = result.strip().splitlines()
         videos = []
@@ -23,7 +23,7 @@ def search_fast(query, max_results=20):
         return videos
     except subprocess.TimeoutExpired:
         return []
-    except Exception:
+    except Exception as e:
         return []
 
 def main():
@@ -32,7 +32,6 @@ def main():
         sys.exit(1)
     
     query = ' '.join(sys.argv[1:])
-    start = time.time()
     videos = search_fast(query, 20)
     
     if not videos:
