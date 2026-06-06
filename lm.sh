@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -o pipefail
 
-LM_VERSION="TatraPlus-Gold-V31.2026.06.06"
+LM_VERSION="TatraPlus-Gold-V33.2026.06.06"
 LM_VERSION_CODE=3320260606
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
