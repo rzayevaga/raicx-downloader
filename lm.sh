@@ -1,8 +1,8 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -o pipefail
 
-LM_VERSION="TatraPlus-Gold-V31.2026.06.06"
-LM_VERSION_CODE=3120260606
+LM_VERSION="TatraPlus-Gold-V34.2026.06.06"
+LM_VERSION_CODE=3420260606
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
@@ -16,7 +16,7 @@ LM_LANG="AZ"
 LM_REMOTE_VERSION=""
 LM_REMOTE_VERSION_CODE=0
 LM_QUEUE_FILE="$LM_DIR/queue.active"
-LM_MAX_PARALLEL=3
+LM_MAX_PARALLEL=8
 LM_SPEED_LIMIT="unlimited"
 
 C_RESET='\033[0m'
@@ -282,7 +282,7 @@ lm_banner() {
     local border=$(printf '═%.0s' {1..48})
     echo -e "${C_RGB4}╔${border}╗${C_RESET}"
     echo -e "${C_RGB4}║${C_RESET}  ${C_BOLD}${C_RGB5}◢◤ TATRA PLUS GOLD ◥◣${C_RESET}  ${C_RGB4}║${C_RESET}"
-    echo -e "${C_RGB4}║${C_RESET}  ${C_DIM}${C_RGB2}⚡ Premium Downloader ⚡${C_RESET}  ${C_RGB4}║${C_RESET}"
+    echo -e "${C_RGB4}║${C_RESET}  ${C_DIM}${C_RGB2}⚡LM Premium Downloader ⚡${C_RESET}  ${C_RGB4}║${C_RESET}"
     echo -e "${C_RGB4}║${C_RESET}  ${C_RGB3}Version: $LM_VERSION${C_RESET}  ${C_RGB4}║${C_RESET}"
     echo -e "${C_RGB4}╚${border}╝${C_RESET}"
     echo
