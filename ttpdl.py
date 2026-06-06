@@ -106,9 +106,7 @@ def main():
         
         images = post.get("images", [])
         music_url = post.get("music")
-        video_url = None
-        if "play" in post:
-            video_url = post["play"]
+        video_url = post.get("play")
         
         image_paths = []
         music_path = None
