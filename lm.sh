@@ -1,8 +1,8 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -o pipefail
 
-LM_VERSION="TatraPlus-Gold-V31.2026.06.06"
-LM_VERSION_CODE=3120260606
+LM_VERSION="TatraPlus-Gold-V35.2026.06.06"
+LM_VERSION_CODE=3520260606
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
@@ -16,7 +16,7 @@ LM_LANG="AZ"
 LM_REMOTE_VERSION=""
 LM_REMOTE_VERSION_CODE=0
 LM_QUEUE_FILE="$LM_DIR/queue.active"
-LM_MAX_PARALLEL=3
+LM_MAX_PARALLEL=8
 LM_SPEED_LIMIT="unlimited"
 
 C_RESET='\033[0m'
@@ -281,9 +281,9 @@ lm_banner() {
     clear
     local border=$(printf '═%.0s' {1..48})
     echo -e "${C_RGB4}╔${border}╗${C_RESET}"
-    echo -e "${C_RGB4}║${C_RESET}  ${C_BOLD}${C_RGB5}◢◤ TATRA PLUS GOLD ◥◣${C_RESET}  ${C_RGB4}║${C_RESET}"
-    echo -e "${C_RGB4}║${C_RESET}  ${C_DIM}${C_RGB2}⚡ Premium Downloader ⚡${C_RESET}  ${C_RGB4}║${C_RESET}"
-    echo -e "${C_RGB4}║${C_RESET}  ${C_RGB3}Version: $LM_VERSION${C_RESET}  ${C_RGB4}║${C_RESET}"
+    echo -e "${C_RGB4}║${C_RESET}  ${C_BOLD}${C_RGB5}◢◤ TATRA PLUS GOLD ◥◣${C_RESET}  ${C_RGB4} ${C_RESET}"
+    echo -e "${C_RGB4}║${C_RESET}  ${C_DIM}${C_RGB2}⚡LM Premium Downloader ⚡${C_RESET}  ${C_RGB4} ${C_RESET}"
+    echo -e "${C_RGB4}║${C_RESET}  ${C_RGB3}Version: $LM_VERSION${C_RESET}  ${C_RGB4} ${C_RESET}"
     echo -e "${C_RGB4}╚${border}╝${C_RESET}"
     echo
 }
@@ -642,7 +642,7 @@ lm_active_menu() {
     while true; do
         lm_banner
         echo -e "${C_RGB3}╔══════════════════════════════════════════════╗"
-        echo -e "║           ${TXT_ACTIVE_MENU_TITLE}           ║"
+        echo -e "║           ${TXT_ACTIVE_MENU_TITLE}            "
         echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
         lm_active_sessions
         echo -e "${C_RGB1}[0]${C_RESET} $TXT_MENU_OPTION_BACK\n"
@@ -659,7 +659,7 @@ lm_search_menu() {
     while true; do
         lm_banner
         echo -e "${C_RGB3}╔══════════════════════════════════════════════╗"
-        echo -e "║                  $TXT_SEARCH_TITLE                  ║"
+        echo -e "║                  $TXT_SEARCH_TITLE                   "
         echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
         echo -ne "${C_RGB2}$TXT_SEARCH_PROMPT:${C_RESET} "
         read -r query
@@ -700,7 +700,7 @@ lm_settings_menu() {
     while true; do
         lm_banner
         echo -e "${C_RGB3}╔══════════════════════════════════════════════╗"
-        echo -e "║              $TXT_SETTINGS_MENU_TITLE              ║"
+        echo -e "║              $TXT_SETTINGS_MENU_TITLE               "
         echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
         echo -e "${C_RGB4}[1]${C_RESET} $TXT_MENU_OPTION_LANGUAGE"
         echo -e "${C_RGB4}[2]${C_RESET} ${TXT_SETTINGS_PARALLEL} [${C_RGB5}$LM_MAX_PARALLEL${C_RESET}]"
@@ -770,7 +770,7 @@ lm_admin_menu() {
     while true; do
         lm_banner
         echo -e "${C_RGB3}╔══════════════════════════════════════════════╗"
-        echo -e "║              $TXT_ADMIN_MENU_TITLE              ║"
+        echo -e "║              $TXT_ADMIN_MENU_TITLE               "
         echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
         echo -e "${C_RGB4}[1]${C_RESET} $TXT_MENU_OPTION_UPDATE"
         echo -e "${C_RGB4}[2]${C_RESET} $TXT_MENU_OPTION_OPTIMIZE"
@@ -807,7 +807,7 @@ lm_manual_menu() {
     while true; do
         lm_banner
         echo -e "${C_RGB3}╔══════════════════════════════════════════════╗"
-        echo -e "║           $TXT_MANUAL_MENU_TITLE             ║"
+        echo -e "║           $TXT_MANUAL_MENU_TITLE              "
         echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
         echo -e "${C_RGB4}[1]${C_RESET} Instagram"
         echo -e "${C_RGB4}[2]${C_RESET} TikTok"
@@ -850,7 +850,7 @@ lm_auto_download() {
     local url="$1" platform
     lm_banner
     echo -e "${C_RGB3}╔══════════════════════════════════════════════╗"
-    echo -e "║             $TXT_AUTO_MENU_TITLE             ║"
+    echo -e "║             $TXT_AUTO_MENU_TITLE              "
     echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
     if [ -z "$url" ]; then
         local clip_url
