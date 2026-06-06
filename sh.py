@@ -14,12 +14,17 @@ def search_fast(query, max_results=20):
         lines = result.strip().splitlines()
         videos = []
         for line in lines:
-            info = json.loads(line)
-            videos.append({
-                'id': info.get('id'),
-                'title': info.get('title', '')[:80],
-                'duration': info.get('duration', 0)
-            })
+            if not line:
+                continue
+            try:
+                info = json.loads(line)
+                videos.append({
+                    'id': info.get('id'),
+                    'title': info.get('title', '')[:80],
+                    'duration': info.get('duration', 0)
+                })
+            except json.JSONDecodeError:
+                continue
         return videos
     except subprocess.TimeoutExpired:
         return []
@@ -40,7 +45,7 @@ def main():
     
     for i, v in enumerate(videos, 1):
         dur = v['duration']
-        dur_str = f"{dur//60}:{dur%60:02d}" if dur else "?"
+        dur_str = f"{dur//60}:{dur%60:02d}" if dur and dur > 0 else "?"
         print(f"{i}::[{dur_str}] {v['title']}")
     
     print("SEÇİM")
