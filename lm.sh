@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -o pipefail
 
-LM_VERSION="TatraPlus-Gold-V31.2026.06.06"
+LM_VERSION="TatraPlus-Gold-V32.2026.06.06"
 LM_VERSION_CODE=3120260606
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
@@ -234,11 +234,11 @@ lm_check_update() {
 
 lm_do_update() {
     echo -e "\n${C_RGB2}[LM]${C_RESET} $TXT_UPDATING"
-    local tmp_bin="$LM_BIN.tmp" tmp_lang="$LM_DIR/lm_lang.sh.tmp"
+    local tmp_bin="$LM_BIN.tmp" tmp_lang="$LM_DIR/lm-lang.sh.tmp"
     if curl -fsSL --connect-timeout 5 "$LM_REPO_RAW" -o "$tmp_bin" && curl -fsSL --connect-timeout 5 "$LM_LANG_RAW" -o "$tmp_lang"; then
         chmod +x "$tmp_bin"
         mv "$tmp_bin" "$LM_BIN"
-        mv "$tmp_lang" "$LM_DIR/lm_lang.sh"
+        mv "$tmp_lang" "$LM_DIR/lm-lang.sh"
         curl -fsSL --connect-timeout 5 "$LM_TIKTOK_PHOTO_DL_RAW" -o "$LM_DIR/ttpdl.py"
         chmod +x "$LM_DIR/ttpdl.py"
         curl -fsSL --connect-timeout 5 "$LM_SEARCH_HELPER_RAW" -o "$LM_DIR/sh.py"
