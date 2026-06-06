@@ -26,6 +26,17 @@ def download_file(url, path, desc=None):
             bar.update(len(chunk))
     return True
 
+def download_video(url, path):
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    resp = requests.get(url, headers=headers, stream=True, timeout=60)
+    resp.raise_for_status()
+    total = int(resp.headers.get('content-length', 0))
+    with open(path, 'wb') as f, tqdm(desc="Video", total=total, unit='B', unit_scale=True, colour='green', leave=False) as bar:
+        for chunk in resp.iter_content(chunk_size=8192):
+            f.write(chunk)
+            bar.update(len(chunk))
+    return path
+
 def download_image(url, path):
     headers = {"User-Agent": "Mozilla/5.0"}
     resp = requests.get(url, headers=headers, timeout=30)
@@ -95,18 +106,56 @@ def main():
         
         images = post.get("images", [])
         music_url = post.get("music")
+        video_url = None
+        if "play" in post:
+            video_url = post["play"]
         
         image_paths = []
-        if mode in ("1", "3", "4") and images:
-            image_paths = download_images_parallel(images, folder)
+        music_path = None
+        video_path = None
         
-        if mode in ("2", "3", "4") and music_url:
-            music_path = os.path.join(folder, "music.mp3")
-            download_file(music_url, music_path, "Musiqi")
-            if mode == "4" and image_paths and shutil.which("ffmpeg"):
-                video_out = os.path.join(folder, "combined_video.mp4")
+        if mode == "1":
+            if images:
+                image_paths = download_images_parallel(images, folder)
+                print(f"[✓] {len(image_paths)} şəkil endirildi.")
+        elif mode == "2":
+            if music_url:
+                music_path = os.path.join(folder, "music.mp3")
+                download_file(music_url, music_path, "Musiqi")
+                print(f"[✓] Musiqi endirildi: {music_path}")
+        elif mode == "3":
+            if video_url:
+                video_path = os.path.join(folder, "video.mp4")
+                download_video(video_url, video_path)
+                print(f"[✓] Video endirildi: {video_path}")
+        elif mode == "4":
+            if images:
+                image_paths = download_images_parallel(images, folder)
+                print(f"[✓] {len(image_paths)} şəkil endirildi.")
+            if music_url:
+                music_path = os.path.join(folder, "music.mp3")
+                download_file(music_url, music_path, "Musiqi")
+                print(f"[✓] Musiqi endirildi: {music_path}")
+            if video_url:
+                video_path = os.path.join(folder, "video.mp4")
+                download_video(video_url, video_path)
+                print(f"[✓] Video endirildi: {video_path}")
+        elif mode == "5":
+            if images:
+                image_paths = download_images_parallel(images, folder)
+                print(f"[✓] {len(image_paths)} şəkil endirildi.")
+            if music_url:
+                music_path = os.path.join(folder, "music.mp3")
+                download_file(music_url, music_path, "Musiqi")
+                print(f"[✓] Musiqi endirildi: {music_path}")
+            if video_url:
+                video_path = os.path.join(folder, "video.mp4")
+                download_video(video_url, video_path)
+                print(f"[✓] Video endirildi: {video_path}")
+            if image_paths and music_path and shutil.which("ffmpeg"):
+                video_out = os.path.join(folder, "slideshow_video.mp4")
                 if combine_slideshow(image_paths, music_path, video_out):
-                    print(f"[✓] Video hazır: {video_out}")
+                    print(f"[✓] Slayd-video hazır: {video_out}")
                 else:
                     print("[✗] FFmpeg xətası")
         
