@@ -380,20 +380,20 @@ lm_download_with_quality_fallback() {
     local format_opt="$1"
     shift
     local -a cmd=("$@")
-    local tmp_format=""
-    if [[ "$format_opt" =~ ^best\[height<=\[0-9]+\]$ ]]; then
-        tmp_format="$format_opt"
-        cmd=("${cmd[@]:0:${#cmd[@]}-2}" "-f" "$tmp_format" "${cmd[@]:${#cmd[@]}-1}")
+    if [[ "$format_opt" == best\[height\<=* ]]; then
+        "${cmd[@]}"
+        local ret=$?
+        if [ $ret -ne 0 ]; then
+            echo -e "${C_RGB2}[LM]${C_RESET} Seçilmiş keyfiyyət mövcud deyil, ən yaxşı format yüklənir..."
+            local fallback_cmd=("${cmd[@]:0:${#cmd[@]}-2}" "-f" "best" "${cmd[@]:${#cmd[@]}-1}")
+            "${fallback_cmd[@]}"
+            ret=$?
+        fi
+        return $ret
+    else
+        "${cmd[@]}"
+        return $?
     fi
-    "${cmd[@]}"
-    local ret=$?
-    if [ $ret -ne 0 ] && [[ "$format_opt" =~ ^best\[height<=\[0-9]+\]$ ]]; then
-        echo -e "${C_RGB2}[LM]${C_RESET} Seçilmiş keyfiyyət mövcud deyil, ən yaxşı format yüklənir..."
-        local fallback_cmd=("${cmd[@]:0:${#cmd[@]}-2}" "-f" "best" "${cmd[@]:${#cmd[@]}-1}")
-        "${fallback_cmd[@]}"
-        ret=$?
-    fi
-    return $ret
 }
 
 lm_download_common() {
@@ -500,7 +500,7 @@ lm_download_common() {
 
     local -a base_cmd=(yt-dlp --no-write-info-json --no-overwrites -f "$format" ${opts[@]} ${speed_opt} -o "$template" "$url")
     local ret=0
-    if [[ "$format" =~ ^best\[height<=\[0-9]+\]$ ]]; then
+    if [[ "$format" =~ ^best\[height\<=[0-9]+\] ]]; then
         lm_download_with_quality_fallback "$format" "${base_cmd[@]}"
         ret=$?
     else
