@@ -1,8 +1,8 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -o pipefail
 
-LM_VERSION="TatraPlus-Gold-V37.2026.06.06"
-LM_VERSION_CODE=3720260606
+LM_VERSION="TatraPlus-Gold-V38.2026.06.07"
+LM_VERSION_CODE=3820260607
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
@@ -11,11 +11,9 @@ LM_DOWNLOAD_BASE="/storage/emulated/0/lmrxdl/download"
 LM_REPO_RAW="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/raicX/lm.sh"
 LM_LANG_RAW="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/raicX/lm-lang.sh"
 LM_TIKTOK_PHOTO_DL_RAW="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/raicX/ttpdl.py"
-LM_SEARCH_HELPER_RAW="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/raicX/sh.py"
 LM_LANG="AZ"
 LM_REMOTE_VERSION=""
 LM_REMOTE_VERSION_CODE=0
-LM_QUEUE_FILE="$LM_DIR/queue.active"
 LM_MAX_PARALLEL=8
 LM_SPEED_LIMIT="unlimited"
 
@@ -198,7 +196,7 @@ lm_detect_platform() {
     if [[ $url_lower == *"instagram.com"* ]] || [[ $url_lower == *"instagr.am"* ]]; then echo "instagram"
     elif [[ $url_lower == *"tiktok.com"* ]] || [[ $url_lower == *"vm.tiktok.com"* ]] || [[ $url_lower == *"vt.tiktok.com"* ]] || [[ $url_lower == *"m.tiktok.com"* ]]; then echo "tiktok"
     elif [[ $url_lower == *"youtube.com/playlist"* ]] || { [[ $url_lower == *"list="* ]] && { [[ $url_lower == *"youtube.com"* ]] || [[ $url_lower == *"youtu.be"* ]]; }; }; then echo "youtube_playlist"
-    elif [[ $url_lower == *"youtube.com/@\"*\"?*"* ]] || [[ $url_lower == *"youtube.com/@\"*"* ]] || [[ $url_lower == *"youtube.com/channel/"* ]] || [[ $url_lower == *"youtube.com/c/"* ]]; then echo "youtube_channel"
+    elif [[ $url_lower == *"youtube.com/@"* ]] || [[ $url_lower == *"youtube.com/channel/"* ]] || [[ $url_lower == *"youtube.com/c/"* ]]; then echo "youtube_channel"
     elif [[ $url_lower == *"youtube.com"* ]] || [[ $url_lower == *"youtu.be"* ]]; then echo "youtube"
     elif [[ $url_lower == *"twitter.com"* ]] || [[ $url_lower == *"x.com"* ]]; then echo "twitter"
     elif [[ $url_lower == *"facebook.com"* ]] || [[ $url_lower == *"fb.com"* ]] || [[ $url_lower == *"fb.watch"* ]]; then echo "facebook"
@@ -252,8 +250,6 @@ lm_do_update() {
         mv "$tmp_lang" "$LM_DIR/lm-lang.sh"
         curl -fsSL --connect-timeout 5 "$LM_TIKTOK_PHOTO_DL_RAW" -o "$LM_DIR/ttpdl.py"
         chmod +x "$LM_DIR/ttpdl.py"
-        curl -fsSL --connect-timeout 5 "$LM_SEARCH_HELPER_RAW" -o "$LM_DIR/sh.py"
-        chmod +x "$LM_DIR/sh.py"
         echo -e "${C_RGB2}[LM]${C_RESET} $TXT_UPDATE_SUCCESS"
         exit 0
     else
@@ -380,6 +376,26 @@ lm_select_audio_quality() {
     done
 }
 
+lm_download_with_quality_fallback() {
+    local format_opt="$1"
+    shift
+    local -a cmd=("$@")
+    local tmp_format=""
+    if [[ "$format_opt" =~ ^best\[height<=\[0-9]+\]$ ]]; then
+        tmp_format="$format_opt"
+        cmd=("${cmd[@]:0:${#cmd[@]}-2}" "-f" "$tmp_format" "${cmd[@]:${#cmd[@]}-1}")
+    fi
+    "${cmd[@]}"
+    local ret=$?
+    if [ $ret -ne 0 ] && [[ "$format_opt" =~ ^best\[height<=\[0-9]+\]$ ]]; then
+        echo -e "${C_RGB2}[LM]${C_RESET} Seçilmiş keyfiyyət mövcud deyil, ən yaxşı format yüklənir..."
+        local fallback_cmd=("${cmd[@]:0:${#cmd[@]}-2}" "-f" "best" "${cmd[@]:${#cmd[@]}-1}")
+        "${fallback_cmd[@]}"
+        ret=$?
+    fi
+    return $ret
+}
+
 lm_download_common() {
     local platform="$1" mode="$2" url="$3"
     local quality_format="" audio_quality="" output_dir template format opts_str
@@ -482,9 +498,16 @@ lm_download_common() {
     if ! command_error="$(lm_require_command yt-dlp)"; then echo -e "\n${C_RGB1}[LM]${C_RESET} $command_error\n"; return 127; fi
     if ! lm_prepare_output_dir "$output_dir"; then echo -e "\n${C_RGB1}[LM]${C_RESET} $TXT_ERROR_OUTPUT_DIR: $output_dir\n"; return 1; fi
 
-    local -a cmd=(yt-dlp --no-write-info-json --no-overwrites -f "$format" ${opts[@]} ${speed_opt} -o "$template" "$url")
-    "${cmd[@]}"
-    local ret=$?
+    local -a base_cmd=(yt-dlp --no-write-info-json --no-overwrites -f "$format" ${opts[@]} ${speed_opt} -o "$template" "$url")
+    local ret=0
+    if [[ "$format" =~ ^best\[height<=\[0-9]+\]$ ]]; then
+        lm_download_with_quality_fallback "$format" "${base_cmd[@]}"
+        ret=$?
+    else
+        "${base_cmd[@]}"
+        ret=$?
+    fi
+
     if [ "$ret" -eq 0 ]; then
         echo -e "\n${C_RGB2}[LM]${C_RESET} $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
         lm_toast "$TXT_DOWNLOAD_DONE_PREFIX"
@@ -669,30 +692,49 @@ lm_search_menu() {
         fi
         lm_toast "$TXT_SEARCHING"
         local search_output
-        search_output=$(python "$LM_DIR/sh.py" "$query" 2>&1)
-        if [[ "$search_output" == *"NƏTİCƏ_YOXDUR"* ]] || [[ -z "$search_output" ]]; then
+        search_output=$(yt-dlp -j --flat-playlist "ytsearch20:$query" 2>/dev/null)
+        if [[ -z "$search_output" ]]; then
             echo -e "\n${C_RGB1}[LM]${C_RESET} $TXT_SEARCH_NO_RESULTS"
             echo -ne "\n${C_RGB2}$TXT_SEARCH_AGAIN${C_RESET} "
             read -r again
             case "$again" in h|H|y|Y|e|E|yes|YES|Yes) continue ;; *) break ;; esac
         fi
-        local link
-        link=$(echo "$search_output" | grep "^LINK:" | cut -d':' -f2-)
-        if [ "$link" = "İPTAL" ]; then
-            lm_toast "Axtarışdan çıxıldı."
-            break
-        elif [ -n "$link" ]; then
-            lm_toast "Yükləmə başlayır: $link"
-            local plat
-            plat=$(lm_detect_platform "$link")
-            lm_download_with_prompt "$plat" "$link"
+        local i=1
+        local -a titles=()
+        local -a ids=()
+        while IFS= read -r line; do
+            if [[ -n "$line" ]]; then
+                local title=$(echo "$line" | jq -r '.title' 2>/dev/null)
+                local id=$(echo "$line" | jq -r '.id' 2>/dev/null)
+                if [[ -n "$title" && -n "$id" ]]; then
+                    titles+=("$title")
+                    ids+=("$id")
+                    echo -e "${C_RGB4}[$i]${C_RESET} $title"
+                    ((i++))
+                fi
+            fi
+        done <<< "$search_output"
+        if [[ ${#titles[@]} -eq 0 ]]; then
+            echo -e "\n${C_RGB1}[LM]${C_RESET} $TXT_SEARCH_NO_RESULTS"
             echo -ne "\n${C_RGB2}$TXT_SEARCH_AGAIN${C_RESET} "
             read -r again
             case "$again" in h|H|y|Y|e|E|yes|YES|Yes) continue ;; *) break ;; esac
-        else
-            echo -e "${C_RGB1}[LM]${C_RESET} Axtarışda xəta baş verdi."
-            sleep 1
         fi
+        echo -ne "\n${C_RGB2}Seçim nömrəsi (1-${#titles[@]}) və ya 0 çıxış:${C_RESET} "
+        read -r idx
+        if [[ "$idx" =~ ^[0-9]+$ ]] && [ "$idx" -ge 1 ] && [ "$idx" -le "${#titles[@]}" ]; then
+            local selected_id="${ids[$((idx-1))]}"
+            local link="https://youtu.be/$selected_id"
+            lm_toast "Yükləmə başlayır: $link"
+            lm_download_with_prompt "youtube" "$link"
+        elif [ "$idx" = "0" ]; then
+            break
+        else
+            lm_toast "$TXT_ERROR_INVALID_CHOICE"
+        fi
+        echo -ne "\n${C_RGB2}$TXT_SEARCH_AGAIN${C_RESET} "
+        read -r again
+        case "$again" in h|H|y|Y|e|E|yes|YES|Yes) continue ;; *) break ;; esac
     done
 }
 
@@ -918,7 +960,6 @@ lm_install() {
     lm_run_step_fast "$TXT_STEP_CREATE_DIRS" lm_create_folders
     lm_run_step_fast "$TXT_STEP_SETUP_URL_OPENER" lm_setup_url_opener
     lm_run_step_fast "$TXT_STEP_GH_PHOTO_DL" curl -fsSL --connect-timeout 5 "$LM_TIKTOK_PHOTO_DL_RAW" -o "$LM_DIR/ttpdl.py" && chmod +x "$LM_DIR/ttpdl.py"
-    lm_run_step_fast "$TXT_STEP_GH_SEARCH" curl -fsSL --connect-timeout 5 "$LM_SEARCH_HELPER_RAW" -o "$LM_DIR/sh.py" && chmod +x "$LM_DIR/sh.py"
 
     lm_choose_language
     cp "$SOURCE_PATH" "$LM_BIN"
@@ -941,7 +982,7 @@ lm_install() {
 lm_main() {
     lm_load_config
     lm_set_lang_vars
-    if [ "$installed" != "true" ] || [ "$version_code" -lt 3120260606 ]; then
+    if [ "$installed" != "true" ] || [ "$version_code" -lt 3820260607 ]; then
         lm_install
     fi
     if [ $# -eq 0 ]; then
