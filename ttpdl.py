@@ -122,10 +122,24 @@ def main():
                 download_file(music_url, music_path, "Musiqi")
                 print(f"[✓] Musiqi endirildi: {music_path}")
         elif mode == "3":
-            if video_url:
+            if images and music_url and shutil.which("ffmpeg"):
+                image_paths = download_images_parallel(images, folder)
+                music_path = os.path.join(folder, "music.mp3")
+                download_file(music_url, music_path, "Musiqi")
+                video_out = os.path.join(folder, "combined_video.mp4")
+                if combine_slideshow(image_paths, music_path, video_out):
+                    print(f"[✓] Birləşdirilmiş video hazır: {video_out}")
+                    for img in image_paths:
+                        os.remove(img)
+                    os.remove(music_path)
+                else:
+                    print("[✗] FFmpeg xətası")
+            elif video_url:
                 video_path = os.path.join(folder, "video.mp4")
                 download_video(video_url, video_path)
                 print(f"[✓] Video endirildi: {video_path}")
+            else:
+                print("[✗] Birləşdirilmiş video üçün şəkil və musiqi tələb olunur.")
         elif mode == "4":
             if images:
                 image_paths = download_images_parallel(images, folder)
