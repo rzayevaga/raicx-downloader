@@ -2,8 +2,8 @@
 set +e
 trap 'lm_auto_recover' ERR
 
-LM_VERSION="lamvavNE-v3.2.1.0"
-LM_VERSION_CODE=3210202607
+LM_VERSION="lamvavNE-v3.2.2.0"
+LM_VERSION_CODE=322020260722
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
