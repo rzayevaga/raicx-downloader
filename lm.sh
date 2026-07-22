@@ -56,7 +56,8 @@ lm_auto_recover() {
 
 lm_background_auto_update() {
     (
-        python -m pip install -U yt-dlp instaloader gallery-dl requests tqdm cryptography >/dev/null 2>&1
+        pkg install -y python-cryptography >/dev/null 2>&1
+        python -m pip install -U yt-dlp instaloader gallery-dl requests tqdm >/dev/null 2>&1
         python "$LM_DIR/cookies_manager.py" clean >/dev/null 2>&1
     ) &
 }
@@ -974,7 +975,8 @@ lm_install() {
     lm_run_step_fast "$TXT_STEP_UPDATE_YTDLP" python -m pip install -U yt-dlp
     lm_run_step_fast "$TXT_STEP_UPDATE_INSTALOADER" python -m pip install -U instaloader
     lm_run_step_fast "$TXT_STEP_UPDATE_GDL" python -m pip install -U gallery-dl
-    lm_run_step_fast "$TXT_STEP_PYTHON_PKGS" python -m pip install -U requests tqdm cryptography
+    lm_run_step_fast "$TXT_STEP_CRYPTO" pkg install python-cryptography -y
+    lm_run_step_fast "$TXT_STEP_PYTHON_PKGS" python -m pip install -U requests tqdm
     lm_run_step_fast "$TXT_STEP_CREATE_DIRS" lm_create_folders
     lm_run_step_fast "$TXT_STEP_SETUP_URL_OPENER" lm_setup_url_opener
     lm_run_step_fast "$TXT_STEP_GH_PHOTO_DL" curl -fsSL --connect-timeout 5 "$LM_TIKTOK_PHOTO_DL_RAW" -o "$LM_DIR/ttpdl.py" && chmod +x "$LM_DIR/ttpdl.py"
