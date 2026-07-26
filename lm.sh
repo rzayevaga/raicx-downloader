@@ -1,21 +1,20 @@
 #!/data/data/com.termux/files/usr/bin/bash
-set +e
-trap 'lm_auto_recover' ERR
+set -o pipefail
 
-LM_VERSION="lamvavNE-v3.2.2.0"
-LM_VERSION_CODE=322020260722
+LM_VERSION="TatraPlus-Gold-V38.2026.06.07"
+LM_VERSION_CODE=3820260607
 LM_DIR="$HOME/.raiclm"
 LM_CONFIG="$LM_DIR/lm.conf"
 LM_BIN="/data/data/com.termux/files/usr/bin/lm"
 LM_OPENER="$HOME/bin/termux-url-opener"
-LM_DOWNLOAD_BASE="/storage/emulated/0/lamvavNE/downloads"
+LM_DOWNLOAD_BASE="/storage/emulated/0/lmrxdl/download"
 LM_REPO_RAW="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/raicX/lm.sh"
 LM_LANG_RAW="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/raicX/lm-lang.sh"
 LM_TIKTOK_PHOTO_DL_RAW="https://raw.githubusercontent.com/rzayevaga/raicx-downloader/raicX/ttpdl.py"
 LM_LANG="AZ"
 LM_REMOTE_VERSION=""
 LM_REMOTE_VERSION_CODE=0
-LM_MAX_PARALLEL=12
+LM_MAX_PARALLEL=8
 LM_SPEED_LIMIT="unlimited"
 
 C_RESET='\033[0m'
@@ -47,21 +46,6 @@ fi
 declare -A LM_ACTIVE_JOBS
 LM_JOB_COUNT=0
 
-lm_auto_recover() {
-    lm_show_cursor
-    echo -e "${C_RGB1}[NEURAL AUTO-HEAL] Xəta ləğv edildi, sistem bərpa olunur...${C_RESET}"
-    sleep 0.2
-    return 0
-}
-
-lm_background_auto_update() {
-    (
-        pkg install -y python-cryptography >/dev/null 2>&1
-        python -m pip install -U yt-dlp instaloader gallery-dl requests tqdm >/dev/null 2>&1
-        python "$LM_DIR/cookies_manager.py" clean >/dev/null 2>&1
-    ) &
-}
-
 lm_hide_cursor() { printf "\e[?25l"; }
 lm_show_cursor() { printf "\e[?25h"; }
 
@@ -85,8 +69,25 @@ lm_get_clipboard_url() {
     return 1
 }
 
+lm_rgb_rainbow() {
+    local delay=0.0005
+    local colors=(
+        "38;2;255;0;0" "38;2;255;64;0" "38;2;255;128;0" "38;2;255;192;0"
+        "38;2;255;255;0" "38;2;192;255;0" "38;2;128;255;0" "38;2;64;255;0"
+        "38;2;0;255;0" "38;2;0;255;64" "38;2;0;255;128" "38;2;0;255;192"
+        "38;2;0;255;255" "38;2;0;192;255" "38;2;0;128;255" "38;2;0;64;255"
+        "38;2;0;0;255" "38;2;64;0;255" "38;2;128;0;255" "38;2;192;0;255"
+        "38;2;255;0;255" "38;2;255;0;192" "38;2;255;0;128" "38;2;255;0;64"
+    )
+    for c in "${colors[@]}"; do
+        echo -ne "\033[${c}m█\033[0m"
+        sleep "$delay"
+    done
+}
+
 lm_animate_border_fast() {
     local text="$1"
+    local width=42
     local -a frames=("▓" "▒" "░" "█")
     for i in {1..1}; do
         for frame in "${frames[@]}"; do
@@ -105,16 +106,16 @@ lm_spin_fast() {
     lm_hide_cursor
     while kill -0 "$pid" 2>/dev/null; do
         i=$(( (i+1) % ${#spin[@]} ))
-        printf "\r${C_RGB2}[lamvavNE] ${spin[$i]} %s${C_RESET}" "$msg"
+        printf "\r${C_RGB2}[LM] ${spin[$i]} %s${C_RESET}" "$msg"
         sleep 0.04
     done
     wait "$pid" 2>/dev/null
     local status=$?
     lm_show_cursor
     if [ "$status" -eq 0 ]; then
-        printf "\r${C_RGB2}[lamvavNE] ✓ %s                    ${C_RESET}\n" "$msg"
+        printf "\r${C_RGB2}[LM] ✓ %s                    ${C_RESET}\n" "$msg"
     else
-        printf "\r${C_RGB1}[lamvavNE] ✗ %s                    ${C_RESET}\n" "$msg"
+        printf "\r${C_RGB1}[LM] ✗ %s                    ${C_RESET}\n" "$msg"
     fi
     return "$status"
 }
@@ -139,7 +140,7 @@ lm_create_folders() {
         "$LM_DOWNLOAD_BASE/SoundCloud/Music"
         "$LM_DOWNLOAD_BASE/YouTube/Channel/Video" "$LM_DOWNLOAD_BASE/YouTube/Channel/Music"
     )
-    for d in "${dirs[@]}"; do mkdir -p "$d" 2>/dev/null; done
+    for d in "${dirs[@]}"; do mkdir -p "$d"; done
 }
 
 lm_save_config() {
@@ -240,7 +241,7 @@ lm_check_update() {
 }
 
 lm_do_update() {
-    echo -e "\n${C_RGB2}[lamvavNE]${C_RESET} $TXT_UPDATING"
+    echo -e "\n${C_RGB2}[LM]${C_RESET} $TXT_UPDATING"
     local tmp_bin="$LM_BIN.tmp" tmp_lang="$LM_DIR/lm-lang.sh.tmp"
     if curl -fsSL --connect-timeout 5 "$LM_REPO_RAW" -o "$tmp_bin" && curl -fsSL --connect-timeout 5 "$LM_LANG_RAW" -o "$tmp_lang"; then
         chmod +x "$tmp_bin"
@@ -249,10 +250,10 @@ lm_do_update() {
         mv "$tmp_lang" "$LM_DIR/lm-lang.sh"
         curl -fsSL --connect-timeout 5 "$LM_TIKTOK_PHOTO_DL_RAW" -o "$LM_DIR/ttpdl.py"
         chmod +x "$LM_DIR/ttpdl.py"
-        echo -e "${C_RGB2}[lamvavNE]${C_RESET} $TXT_UPDATE_SUCCESS"
+        echo -e "${C_RGB2}[LM]${C_RESET} $TXT_UPDATE_SUCCESS"
         exit 0
     else
-        echo -e "${C_RGB1}[lamvavNE]${C_RESET} $TXT_UPDATE_FAILED"
+        echo -e "${C_RGB1}[LM]${C_RESET} $TXT_UPDATE_FAILED"
         rm -f "$tmp_bin" "$tmp_lang"
         return 1
     fi
@@ -264,21 +265,21 @@ lm_startup_animation_fast() {
     echo -ne "\n${C_BOLD}"
     for i in {1..30}; do
         printf "${C_RGB4}✦${C_RESET}"
-        sleep 0.003
+        sleep 0.005
     done
     echo
-    lm_animate_border_fast "lamvavNE [Media Downloader]"
-    sleep 0.05
+    lm_animate_border_fast "TATRA PLUS GOLD"
+    sleep 0.1
     lm_show_cursor
 }
 
 lm_banner() {
     clear
-    local border=$(printf '═%.0s' {1..52})
+    local border=$(printf '═%.0s' {1..48})
     echo -e "${C_RGB4}╔${border}╗${C_RESET}"
-    echo -e "${C_RGB4}║${C_RESET}  ${C_BOLD}${C_RGB5}◢◤ lamvavNE [Media Downloader] ◥◣${C_RESET}  ${C_RGB4}║${C_RESET}"
-    echo -e "${C_RGB4}║${C_RESET}  ${C_DIM}${C_RGB2}⚡ Mega Ultra Max ++ 2026 Engine ⚡${C_RESET}  ${C_RGB4}║${C_RESET}"
-    echo -e "${C_RGB4}║${C_RESET}  ${C_RGB3}Version: $LM_VERSION | Crypto Active${C_RESET}  ${C_RGB4}║${C_RESET}"
+    echo -e "${C_RGB4}║${C_RESET}  ${C_BOLD}${C_RGB5}◢◤ TATRA PLUS GOLD ◥◣${C_RESET}  ${C_RGB4}║${C_RESET}"
+    echo -e "${C_RGB4}║${C_RESET}  ${C_DIM}${C_RGB2}⚡ Premium Downloader ⚡${C_RESET}  ${C_RGB4}║${C_RESET}"
+    echo -e "${C_RGB4}║${C_RESET}  ${C_RGB3}Version: $LM_VERSION${C_RESET}  ${C_RGB4}║${C_RESET}"
     echo -e "${C_RGB4}╚${border}╝${C_RESET}"
     echo
 }
@@ -286,7 +287,7 @@ lm_banner() {
 lm_run_step_fast() {
     local message="$1"
     shift
-    echo -e "${C_RGB2}[lamvavNE]${C_RESET} $message..."
+    echo -e "${C_RGB2}[LM]${C_RESET} $message..."
     "$@" &
     local pid=$!
     lm_spin_fast "$pid" "$message"
@@ -383,7 +384,7 @@ lm_download_with_quality_fallback() {
         "${cmd[@]}"
         local ret=$?
         if [ $ret -ne 0 ]; then
-            echo -e "${C_RGB2}[lamvavNE]${C_RESET} Neyron bərpa: Ən optimal format seçilir..."
+            echo -e "${C_RGB2}[LM]${C_RESET} Seçilmiş keyfiyyət mövcud deyil, ən yaxşı format yüklənir..."
             local fallback_cmd=("${cmd[@]:0:${#cmd[@]}-2}" "-f" "best" "${cmd[@]:${#cmd[@]}-1}")
             "${fallback_cmd[@]}"
             ret=$?
@@ -410,21 +411,19 @@ lm_download_common() {
 
     local speed_opt=$(lm_get_speed_limit_opt)
 
-    python "$LM_DIR/cookies_manager.py" decrypt >/dev/null 2>&1
-    local cookie_opt=""
-    if [ -f "$LM_DIR/cookies.txt" ]; then
-        cookie_opt="--cookies $LM_DIR/cookies.txt"
-    fi
-
     case "${platform}:${mode}" in
-        instagram:video) output_dir="$LM_DOWNLOAD_BASE/Instagram/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --concurrent-fragments 8); lm_toast "$TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO" ;;
+        instagram:video) output_dir="$LM_DOWNLOAD_BASE/Instagram/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --concurrent-fragments 4); lm_toast "$TXT_DOWNLOAD_STARTED_INSTAGRAM_VIDEO" ;;
         instagram:audio) output_dir="$LM_DOWNLOAD_BASE/Instagram/Music"; template="$output_dir/%(title)s.%(ext)s"; format="bestaudio"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_INSTAGRAM_AUDIO" ;;
-        tiktok:video) output_dir="$LM_DOWNLOAD_BASE/TikTok/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --concurrent-fragments 8 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO" ;;
+        tiktok:video) output_dir="$LM_DOWNLOAD_BASE/TikTok/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_TIKTOK_VIDEO" ;;
         tiktok:audio) output_dir="$LM_DOWNLOAD_BASE/TikTok/Music"; template="$output_dir/%(title)s.%(ext)s"; format="bestaudio"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_TIKTOK_AUDIO" ;;
         youtube:video)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Video"; template="$output_dir/%(title)s.%(ext)s"
-            if [ -n "$quality_format" ]; then format="$quality_format"; else format="best"; fi
-            opts=(--merge-output-format mp4 --concurrent-fragments 8 --no-write-info-json)
+            if [ -n "$quality_format" ]; then
+                format="$quality_format"
+            else
+                format="best"
+            fi
+            opts=(--merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json)
             lm_toast "$TXT_DOWNLOAD_STARTED_YT_VIDEO" ;;
         youtube:audio)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Music"; template="$output_dir/%(title)s.%(ext)s"
@@ -442,8 +441,12 @@ lm_download_common() {
             lm_toast "$TXT_DOWNLOAD_STARTED_YT_AUDIO" ;;
         youtube_playlist:video)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Video"; template="$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s"
-            if [ -n "$quality_format" ]; then format="$quality_format"; else format="best"; fi
-            opts=(--yes-playlist --merge-output-format mp4 --concurrent-fragments 8 --no-write-info-json)
+            if [ -n "$quality_format" ]; then
+                format="$quality_format"
+            else
+                format="best"
+            fi
+            opts=(--yes-playlist --merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json)
             lm_toast "$TXT_DOWNLOAD_STARTED_YTPL_VIDEO" ;;
         youtube_playlist:audio)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Playlist/Music"; template="$output_dir/%(playlist_title)s - %(playlist_index)s - %(title)s.%(ext)s"
@@ -461,8 +464,12 @@ lm_download_common() {
             lm_toast "$TXT_DOWNLOAD_STARTED_YTPL_AUDIO" ;;
         youtube_channel:video)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Channel/Video"; template="$output_dir/%(uploader)s - %(title)s.%(ext)s"
-            if [ -n "$quality_format" ]; then format="$quality_format"; else format="best"; fi
-            opts=(--merge-output-format mp4 --concurrent-fragments 8 --no-write-info-json)
+            if [ -n "$quality_format" ]; then
+                format="$quality_format"
+            else
+                format="best"
+            fi
+            opts=(--merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json)
             lm_toast "$TXT_DOWNLOAD_STARTED_YT_CHANNEL_VIDEO" ;;
         youtube_channel:audio)
             output_dir="$LM_DOWNLOAD_BASE/YouTube/Channel/Music"; template="$output_dir/%(uploader)s - %(title)s.%(ext)s"
@@ -478,20 +485,20 @@ lm_download_common() {
                 opts+=(--audio-format mp3 --audio-quality 0)
             fi
             lm_toast "$TXT_DOWNLOAD_STARTED_YT_CHANNEL_AUDIO" ;;
-        twitter:video) output_dir="$LM_DOWNLOAD_BASE/Twitter/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --concurrent-fragments 8 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_TWITTER_VIDEO" ;;
+        twitter:video) output_dir="$LM_DOWNLOAD_BASE/Twitter/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_TWITTER_VIDEO" ;;
         twitter:audio) output_dir="$LM_DOWNLOAD_BASE/Twitter/Music"; template="$output_dir/%(title)s.%(ext)s"; format="bestaudio"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_TWITTER_AUDIO" ;;
-        facebook:video) output_dir="$LM_DOWNLOAD_BASE/Facebook/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --concurrent-fragments 8 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_FACEBOOK_VIDEO" ;;
+        facebook:video) output_dir="$LM_DOWNLOAD_BASE/Facebook/Video"; template="$output_dir/%(title)s.%(ext)s"; format="best"; opts=(--merge-output-format mp4 --concurrent-fragments 4 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_FACEBOOK_VIDEO" ;;
         facebook:audio) output_dir="$LM_DOWNLOAD_BASE/Facebook/Music"; template="$output_dir/%(title)s.%(ext)s"; format="bestaudio"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_FACEBOOK_AUDIO" ;;
         soundcloud:audio) output_dir="$LM_DOWNLOAD_BASE/SoundCloud/Music"; template="$output_dir/%(title)s.%(ext)s"; format="bestaudio"; opts=(--extract-audio --audio-format mp3 --audio-quality 0 --embed-thumbnail --embed-metadata --no-write-info-json); lm_toast "$TXT_DOWNLOAD_STARTED_SOUNDCLOUD_AUDIO" ;;
-        *) echo -e "${C_RGB1}[lamvavNE]${C_RESET} $TXT_PLATFORM_UNKNOWN"; echo -e "${C_RGB4}$TXT_SUPPORTED_PLATFORMS${C_RESET}"; return 1 ;;
+        *) echo -e "${C_RGB1}[LM]${C_RESET} $TXT_PLATFORM_UNKNOWN"; echo -e "${C_RGB4}$TXT_SUPPORTED_PLATFORMS${C_RESET}"; return 1 ;;
     esac
 
     local validation_error
-    if ! validation_error="$(lm_validate_url "$url")"; then echo -e "\n${C_RGB1}[lamvavNE]${C_RESET} $validation_error\n"; return 1; fi
-    if ! command_error="$(lm_require_command yt-dlp)"; then echo -e "\n${C_RGB1}[lamvavNE]${C_RESET} $command_error\n"; return 127; fi
-    if ! lm_prepare_output_dir "$output_dir"; then echo -e "\n${C_RGB1}[lamvavNE]${C_RESET} $TXT_ERROR_OUTPUT_DIR: $output_dir\n"; return 1; fi
+    if ! validation_error="$(lm_validate_url "$url")"; then echo -e "\n${C_RGB1}[LM]${C_RESET} $validation_error\n"; return 1; fi
+    if ! command_error="$(lm_require_command yt-dlp)"; then echo -e "\n${C_RGB1}[LM]${C_RESET} $command_error\n"; return 127; fi
+    if ! lm_prepare_output_dir "$output_dir"; then echo -e "\n${C_RGB1}[LM]${C_RESET} $TXT_ERROR_OUTPUT_DIR: $output_dir\n"; return 1; fi
 
-    local -a base_cmd=(yt-dlp ${cookie_opt} --no-write-info-json --no-overwrites -f "$format" ${opts[@]} ${speed_opt} -o "$template" "$url")
+    local -a base_cmd=(yt-dlp --no-write-info-json --no-overwrites -f "$format" ${opts[@]} ${speed_opt} -o "$template" "$url")
     local ret=0
     if [[ "$format" =~ ^best\[height\<=[0-9]+\] ]]; then
         lm_download_with_quality_fallback "$format" "${base_cmd[@]}"
@@ -501,20 +508,18 @@ lm_download_common() {
         ret=$?
     fi
 
-    python "$LM_DIR/cookies_manager.py" clean >/dev/null 2>&1
-
     if [ "$ret" -eq 0 ]; then
-        echo -e "\n${C_RGB2}[lamvavNE]${C_RESET} $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
+        echo -e "\n${C_RGB2}[LM]${C_RESET} $TXT_DOWNLOAD_DONE_PREFIX: $output_dir\n"
         lm_toast "$TXT_DOWNLOAD_DONE_PREFIX"
     else
-        echo -e "\n${C_RGB1}[lamvavNE]${C_RESET} $TXT_DOWNLOAD_FAILED\n"
+        echo -e "\n${C_RGB1}[LM]${C_RESET} $TXT_DOWNLOAD_FAILED\n"
     fi
     return "$ret"
 }
 
 lm_download_for_platform() {
     local platform="$1" url="$2" kind="$3"
-    if [ "$platform" = "unknown" ]; then echo -e "${C_RGB1}[lamvavNE]${C_RESET} $TXT_PLATFORM_UNKNOWN"; echo -e "${C_RGB4}$TXT_SUPPORTED_PLATFORMS${C_RESET}"; return 1; fi
+    if [ "$platform" = "unknown" ]; then echo -e "${C_RGB1}[LM]${C_RESET} $TXT_PLATFORM_UNKNOWN"; echo -e "${C_RGB4}$TXT_SUPPORTED_PLATFORMS${C_RESET}"; return 1; fi
     if [ "$platform" = "youtube_playlist" ] && [ "$kind" != "video" ] && [ "$kind" != "audio" ]; then kind="video"; fi
     lm_download_common "$platform" "$kind" "$url"
 }
@@ -573,7 +578,7 @@ lm_download_with_prompt() {
         twitter) lm_toast "$TXT_AUTO_PLATFORM_TWITTER" ;;
         facebook) lm_toast "$TXT_AUTO_PLATFORM_FACEBOOK" ;;
         soundcloud) lm_toast "$TXT_AUTO_PLATFORM_SOUNDCLOUD" ;;
-        *) echo -e "${C_RGB1}[lamvavNE]${C_RESET} $TXT_PLATFORM_UNKNOWN"; echo -e "${C_RGB4}$TXT_SUPPORTED_PLATFORMS${C_RESET}"; return 1 ;;
+        *) echo -e "${C_RGB1}[LM]${C_RESET} $TXT_PLATFORM_UNKNOWN"; echo -e "${C_RGB4}$TXT_SUPPORTED_PLATFORMS${C_RESET}"; return 1 ;;
     esac
 
     while true; do
@@ -635,33 +640,11 @@ lm_download_with_prompt() {
     done
 }
 
-lm_cookies_menu() {
-    while true; do
-        lm_banner
-        echo -e "${C_RGB3}╔══════════════════════════════════════════════╗"
-        echo -e "║          $TXT_COOKIES_MENU_TITLE             ║"
-        echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
-        echo -e "${C_RGB4}[1]${C_RESET} Manual cookies.txt Daxil Et (AES-256 Şifrələmə)"
-        echo -e "${C_RGB4}[2]${C_RESET} Termux Browser Avto-Login və Sessiya Yoxlama"
-        echo -e "${C_RGB4}[3]${C_RESET} Kriptoqrafik Açar İnteqrasiyasını Sıfırla"
-        echo -e "${C_RGB1}[0]${C_RESET} $TXT_MENU_OPTION_BACK\n"
-        echo -ne "${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
-        read -r cchoice
-        case "$cchoice" in
-            1) python "$LM_DIR/cookies_manager.py" manual; lm_toast "$TXT_COOKIE_SUCCESS"; sleep 1 ;;
-            2) python "$LM_DIR/cookies_manager.py" browser; lm_toast "$TXT_COOKIE_SUCCESS"; sleep 1 ;;
-            3) rm -f "$LM_DIR/.key" "$LM_DIR/cookies.enc"; lm_toast "Kriptoqrafiya yeniləndi"; sleep 1 ;;
-            0) break ;;
-            *) lm_toast "$TXT_ERROR_INVALID_CHOICE" ;;
-        esac
-    done
-}
-
 lm_active_sessions() {
     local pids
     pids=$(pgrep -f "lm .*https?://" 2>/dev/null)
     if [ -z "$pids" ]; then
-        echo -e "${C_RGB4}[lamvavNE]${C_RESET} ${TXT_QUEUE_EMPTY}"
+        echo -e "${C_RGB4}[LM]${C_RESET} ${TXT_QUEUE_EMPTY}"
         return 1
     fi
     echo -e "\n${C_RGB3}─── ${TXT_QUEUE_TITLE} ───${C_RESET}\n"
@@ -672,7 +655,7 @@ lm_active_sessions() {
         cmdline=$(ps -p "$pid" -o args= 2>/dev/null)
         local url=$(echo "$cmdline" | grep -oE 'https?://[^ ]+' | head -1)
         local platform=$(lm_detect_platform "$url")
-        local status="Yüklənir (Neural Stream)"
+        local status="Yüklənir"
         echo -e "${C_RGB2}%-8s ${C_RGB5}%-12s ${C_RGB3}%-20s ${C_DIM}%s${C_RESET}" "$pid" "$platform" "$status" "$url"
     done
     echo
@@ -711,7 +694,7 @@ lm_search_menu() {
         local search_output
         search_output=$(yt-dlp -j --flat-playlist "ytsearch20:$query" 2>/dev/null)
         if [[ -z "$search_output" ]]; then
-            echo -e "\n${C_RGB1}[lamvavNE]${C_RESET} $TXT_SEARCH_NO_RESULTS"
+            echo -e "\n${C_RGB1}[LM]${C_RESET} $TXT_SEARCH_NO_RESULTS"
             echo -ne "\n${C_RGB2}$TXT_SEARCH_AGAIN${C_RESET} "
             read -r again
             case "$again" in h|H|y|Y|e|E|yes|YES|Yes) continue ;; *) break ;; esac
@@ -732,7 +715,7 @@ lm_search_menu() {
             fi
         done <<< "$search_output"
         if [[ ${#titles[@]} -eq 0 ]]; then
-            echo -e "\n${C_RGB1}[lamvavNE]${C_RESET} $TXT_SEARCH_NO_RESULTS"
+            echo -e "\n${C_RGB1}[LM]${C_RESET} $TXT_SEARCH_NO_RESULTS"
             echo -ne "\n${C_RGB2}$TXT_SEARCH_AGAIN${C_RESET} "
             read -r again
             case "$again" in h|H|y|Y|e|E|yes|YES|Yes) continue ;; *) break ;; esac
@@ -774,7 +757,7 @@ lm_settings_menu() {
                 while true; do
                     echo -ne "${C_RGB2}${TXT_SETTINGS_PARALLEL_NUM}:${C_RESET} "
                     read -r new_parallel
-                    if [[ "$new_parallel" =~ ^[0-9]+$ ]] && [ "$new_parallel" -ge 1 ] && [ "$new_parallel" -le 16 ]; then
+                    if [[ "$new_parallel" =~ ^[0-9]+$ ]] && [ "$new_parallel" -ge 1 ] && [ "$new_parallel" -le 12 ]; then
                         LM_MAX_PARALLEL=$new_parallel
                         lm_save_config
                         lm_toast "${TXT_SETTINGS_SAVED}: $LM_MAX_PARALLEL"
@@ -840,18 +823,18 @@ lm_admin_menu() {
             1)
                 lm_check_update
                 case $? in
-                    0) echo -e "\n${C_RGB2}[lamvavNE]${C_RESET} $TXT_UPDATE_AVAILABLE ($LM_REMOTE_VERSION)"
+                    0) echo -e "\n${C_RGB2}[LM]${C_RESET} $TXT_UPDATE_AVAILABLE ($LM_REMOTE_VERSION)"
                        while true; do
                            echo -ne "${C_RGB2}$TXT_UPDATE_PROMPT${C_RESET} "
                            read -r up_confirm
                            case "$up_confirm" in h|H|y|Y|e|E|yes|YES|Yes) lm_do_update; break ;; n|N|no|NO|No) break ;; *) lm_toast "$TXT_ERROR_INVALID_CHOICE" ;; esac
                        done ;;
-                    2) echo -e "\n${C_RGB2}[lamvavNE]${C_RESET} $TXT_ALREADY_LATEST" ;;
-                    *) echo -e "\n${C_RGB1}[lamvavNE]${C_RESET} $TXT_UPDATE_FAILED" ;;
+                    2) echo -e "\n${C_RGB2}[LM]${C_RESET} $TXT_ALREADY_LATEST" ;;
+                    *) echo -e "\n${C_RGB1}[LM]${C_RESET} $TXT_UPDATE_FAILED" ;;
                 esac
                 echo -e "\n${C_RGB2}$TXT_PROMPT_CONTINUE...${C_RESET}"; read -r ;;
             2)
-                echo -e "\n${C_RGB2}[lamvavNE]${C_RESET} $TXT_OPTIMIZE_DONE"
+                echo -e "\n${C_RGB2}[LM]${C_RESET} $TXT_OPTIMIZE_DONE"
                 rm -rf "$LM_DIR/cache" 2>/dev/null
                 pip cache purge >/dev/null 2>&1
                 lm_toast "$TXT_CACHE_CLEARED"
@@ -914,7 +897,7 @@ lm_auto_download() {
     if [ -z "$url" ]; then
         local clip_url
         if clip_url="$(lm_get_clipboard_url)"; then
-            echo -e "${C_RGB2}[lamvavNE]${C_RESET} $TXT_CLIPBOARD_FOUND: $clip_url"
+            echo -e "${C_RGB2}[LM]${C_RESET} $TXT_CLIPBOARD_FOUND: $clip_url"
             while true; do
                 echo -ne "${C_RGB2}$TXT_USE_CLIPBOARD${C_RESET} "
                 read -r use_clip
@@ -932,27 +915,25 @@ lm_main_menu() {
     while true; do
         lm_banner
         echo -e "${C_RGB3}╔══════════════════════════════════════════════╗"
-        echo -e "║          lamvavNE $TXT_MAIN_MENU_TITLE        ║"
+        echo -e "║        Ɍム-ic LM $TXT_MAIN_MENU_TITLE        ║"
         echo -e "╚══════════════════════════════════════════════╝${C_RESET}\n"
         echo -e "${C_RGB4}[1]${C_RESET} $TXT_MENU_OPTION_MANUAL"
         echo -e "${C_RGB4}[2]${C_RESET} $TXT_MENU_OPTION_AUTO"
-        echo -e "${C_RGB4}[3]${C_RESET} $TXT_MENU_OPTION_COOKIES"
-        echo -e "${C_RGB4}[4]${C_RESET} $TXT_MENU_OPTION_SETTINGS"
-        echo -e "${C_RGB4}[5]${C_RESET} $TXT_MENU_OPTION_ADMIN"
-        echo -e "${C_RGB4}[6]${C_RESET} $TXT_MENU_OPTION_SEARCH"
-        echo -e "${C_RGB4}[7]${C_RESET} ${TXT_ACTIVE_MENU_TITLE}"
+        echo -e "${C_RGB4}[3]${C_RESET} $TXT_MENU_OPTION_SETTINGS"
+        echo -e "${C_RGB4}[4]${C_RESET} $TXT_MENU_OPTION_ADMIN"
+        echo -e "${C_RGB4}[5]${C_RESET} $TXT_MENU_OPTION_SEARCH"
+        echo -e "${C_RGB4}[6]${C_RESET} ${TXT_ACTIVE_MENU_TITLE}"
         echo -e "${C_RGB1}[0]${C_RESET} $TXT_MENU_OPTION_EXIT\n"
         echo -ne "${C_RGB2}$TXT_PROMPT_CHOICE:${C_RESET} "
         read -r main_choice
         case "$main_choice" in
             1) lm_manual_menu ;;
             2) lm_auto_download "" ;;
-            3) lm_cookies_menu ;;
-            4) lm_settings_menu ;;
-            5) lm_admin_menu ;;
-            6) lm_search_menu ;;
-            7) lm_active_menu ;;
-            0) lm_banner; echo -e "${C_RGB2}[lamvavNE]${C_RESET} $TXT_EXIT_MESSAGE\n"; exit 0 ;;
+            3) lm_settings_menu ;;
+            4) lm_admin_menu ;;
+            5) lm_search_menu ;;
+            6) lm_active_menu ;;
+            0) lm_banner; echo -e "${C_RGB2}[LM]${C_RESET} $TXT_EXIT_MESSAGE\n"; exit 0 ;;
             *) lm_toast "$TXT_ERROR_INVALID_CHOICE"; sleep 1 ;;
         esac
     done
@@ -975,7 +956,6 @@ lm_install() {
     lm_run_step_fast "$TXT_STEP_UPDATE_YTDLP" python -m pip install -U yt-dlp
     lm_run_step_fast "$TXT_STEP_UPDATE_INSTALOADER" python -m pip install -U instaloader
     lm_run_step_fast "$TXT_STEP_UPDATE_GDL" python -m pip install -U gallery-dl
-    lm_run_step_fast "$TXT_STEP_CRYPTO" pkg install python-cryptography -y
     lm_run_step_fast "$TXT_STEP_PYTHON_PKGS" python -m pip install -U requests tqdm
     lm_run_step_fast "$TXT_STEP_CREATE_DIRS" lm_create_folders
     lm_run_step_fast "$TXT_STEP_SETUP_URL_OPENER" lm_setup_url_opener
@@ -1000,14 +980,22 @@ lm_install() {
 }
 
 lm_main() {
-    lm_background_auto_update
     lm_load_config
     lm_set_lang_vars
-    if [ "$installed" != "true" ] || [ "$version_code" -lt 3210202607 ]; then
+    if [ "$installed" != "true" ] || [ "$version_code" -lt 3820260607 ]; then
         lm_install
     fi
     if [ $# -eq 0 ]; then
         lm_startup_animation_fast
+        lm_check_update
+        if [ $? -eq 0 ]; then
+            echo -e "\n${C_RGB2}[LM]${C_RESET} $TXT_UPDATE_AVAILABLE ($LM_REMOTE_VERSION)"
+            while true; do
+                echo -ne "${C_RGB2}$TXT_UPDATE_PROMPT${C_RESET} "
+                read -r up_confirm
+                case "$up_confirm" in h|H|y|Y|e|E|yes|YES|Yes) lm_do_update; break ;; n|N|no|NO|No) break ;; *) lm_toast "$TXT_ERROR_INVALID_CHOICE" ;; esac
+            done
+        fi
         lm_main_menu
     else
         lm_startup_animation_fast
