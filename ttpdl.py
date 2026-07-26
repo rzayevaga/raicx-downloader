@@ -69,7 +69,7 @@ def combine_slideshow(images, audio, out):
                     '-of', 'default=noprint_wrappers=1:nokey=1', audio]
     try:
         dur = float(subprocess.check_output(duration_cmd).strip())
-    except Exception:
+    except:
         dur = 5.0
     per_img = dur / len(images)
     concat_file = os.path.join(os.path.dirname(out), "slideshow_list.txt")
@@ -90,23 +90,28 @@ def main():
     url = sys.argv[1]
     mode = sys.argv[2]
     output_dir = sys.argv[3] if len(sys.argv) > 3 else "TikTok_Downloads"
+    
     try:
         r = requests.get(API_URL, params={"url": url}, headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
         data = r.json()
         if data.get("code") != 0:
             print("API xətası")
             sys.exit(1)
+        
         post = data["data"]
         post_id = post.get("id", "unknown")
         author = post.get("author", {}).get("nickname", "unknown")
         folder = os.path.join(output_dir, f"{clean_filename(author)}_{post_id}")
         os.makedirs(folder, exist_ok=True)
+        
         images = post.get("images", [])
         music_url = post.get("music")
         video_url = post.get("play")
+        
         image_paths = []
         music_path = None
         video_path = None
+        
         if mode == "1":
             if images:
                 image_paths = download_images_parallel(images, folder)
@@ -133,6 +138,8 @@ def main():
                 video_path = os.path.join(folder, "video.mp4")
                 download_video(video_url, video_path)
                 print(f"[✓] Video endirildi: {video_path}")
+            else:
+                print("[✗] Birləşdirilmiş video üçün şəkil və musiqi tələb olunur.")
         elif mode == "4":
             if images:
                 image_paths = download_images_parallel(images, folder)
@@ -163,6 +170,7 @@ def main():
                     print(f"[✓] Slayd-video hazır: {video_out}")
                 else:
                     print("[✗] FFmpeg xətası")
+        
         print(f"[✓] Əməliyyat tamam. Qovluq: {folder}")
     except Exception as e:
         print(f"[✗] Xəta: {e}")
